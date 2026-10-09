@@ -10,7 +10,7 @@ export const LANGUAGES = [
 export const TEXT = {
   en: {
     appName: "EarthEcho",
-    tagline: "Hear how the Earth's surface is changing, seen by NASA-ISRO NISAR radar.",
+    tagline: "See how the Earth's surface is changing, measured by NASA-ISRO NISAR radar.",
     searchPlaceholder: "Search a city, country or landmark",
     useMyLocation: "Use my location",
     changeType: "Type of change",
@@ -25,15 +25,22 @@ export const TEXT = {
     slideHint: "Drag the slider to fade from before to after.",
     showChange: "Show detected changes",
     comparePeriods: "Compare periods",
-    legendDarker: "Darker later: likely more water or wetter ground",
-    legendBrighter: "Brighter later: likely drier land, sand or crops",
-    caption:
-      "What am I looking at? NISAR radar brightness. Dark areas are smooth or wet surfaces such as water; bright areas are rough surfaces such as buildings, sandbars and fields. Colours mark changes that are statistically significant.",
+    modeChange: "What changed",
+    modeRadar: "Radar view",
+    legendDarker: "Blue: likely more water or wetter ground",
+    legendBrighter: "Orange: likely drier land, sand bars or crops",
+    summary: (from, to, wet, dry, total) =>
+      `Between ${from} and ${to}, about ${wet} km² of this area looks like more water or wetter ground, and about ${dry} km² looks drier (sand bars, dry land or crops). The area covered is about ${total} km².`,
+    captionChange:
+      "The colours are laid over a normal satellite photo. Only places where the radar measured a real change are coloured. Everything else did not change enough to be sure.",
+    captionRadar:
+      "This is the raw radar picture. Dark areas are smooth or wet surfaces such as water. Bright areas are rough surfaces such as buildings, sandbars and fields. Radar has no real colour, so it is shown in grey.",
+    why: "Why it matters: the Jamuna moves its channels every monsoon, washing away farmland and homes on its banks. Seeing where water and sand are changing helps people and planners prepare.",
     themeLight: "Light",
     themeDark: "Dark",
     language: "Language",
     footer:
-      "NISAR data is provisional. Radar brightness shows likely surface change, not certain cause.",
+      "NISAR data is provisional. Radar shows likely surface change, not a certain cause.",
     types: {
       flood: "Flood",
       wetland: "Wetland and water",
@@ -53,7 +60,7 @@ export const TEXT = {
   },
   bn: {
     appName: "EarthEcho",
-    tagline: "NASA-ISRO NISAR রাডারে দেখা পৃথিবীর পৃষ্ঠের পরিবর্তন।",
+    tagline: "NASA-ISRO NISAR রাডারে মাপা পৃথিবীর পৃষ্ঠের পরিবর্তন দেখুন।",
     searchPlaceholder: "শহর, দেশ বা কোনো স্থান খুঁজুন",
     useMyLocation: "আমার অবস্থান ব্যবহার করুন",
     changeType: "পরিবর্তনের ধরন",
@@ -68,15 +75,22 @@ export const TEXT = {
     slideHint: "আগে থেকে পরে দেখতে স্লাইডার টানুন।",
     showChange: "শনাক্ত করা পরিবর্তন দেখান",
     comparePeriods: "সময়কাল তুলনা",
-    legendDarker: "পরে গাঢ়: সম্ভবত বেশি পানি বা ভেজা মাটি",
-    legendBrighter: "পরে উজ্জ্বল: সম্ভবত শুকনো জমি, বালু বা ফসল",
-    caption:
-      "আমি কী দেখছি? NISAR রাডারের উজ্জ্বলতা। গাঢ় অংশ মসৃণ বা ভেজা পৃষ্ঠ, যেমন পানি; উজ্জ্বল অংশ অমসৃণ পৃষ্ঠ, যেমন ঘরবাড়ি, বালুচর ও ক্ষেত। রঙিন অংশ পরিসংখ্যানগতভাবে উল্লেখযোগ্য পরিবর্তন।",
+    modeChange: "কী বদলেছে",
+    modeRadar: "রাডার দৃশ্য",
+    legendDarker: "নীল: সম্ভবত বেশি পানি বা ভেজা মাটি",
+    legendBrighter: "কমলা: সম্ভবত শুকনো জমি, বালুচর বা ফসল",
+    summary: (from, to, wet, dry, total) =>
+      `${from} থেকে ${to} এর মধ্যে এই এলাকার প্রায় ${wet} বর্গকিমি জায়গায় সম্ভবত পানি বা ভেজা মাটি বেড়েছে, আর প্রায় ${dry} বর্গকিমি জায়গা শুকনো হয়েছে (বালুচর, শুকনো জমি বা ফসল)। মোট দেখা এলাকা প্রায় ${total} বর্গকিমি।`,
+    captionChange:
+      "সাধারণ স্যাটেলাইট ছবির ওপর রঙগুলো বসানো হয়েছে। যেখানে রাডার সত্যিকারের পরিবর্তন মেপেছে শুধু সেখানেই রং আছে। বাকি জায়গায় নিশ্চিত হওয়ার মতো পরিবর্তন হয়নি।",
+    captionRadar:
+      "এটি রাডারের মূল ছবি। গাঢ় অংশ মসৃণ বা ভেজা পৃষ্ঠ, যেমন পানি। উজ্জ্বল অংশ অমসৃণ পৃষ্ঠ, যেমন ঘরবাড়ি, বালুচর ও ক্ষেত। রাডারের নিজস্ব রং নেই, তাই ছবিটি ধূসর।",
+    why: "কেন গুরুত্বপূর্ণ: প্রতি বর্ষায় যমুনা তার গতিপথ বদলায়, নদীর পাড়ের ফসলি জমি ও ঘরবাড়ি ভেঙে যায়। কোথায় পানি ও বালু বদলাচ্ছে তা দেখলে মানুষ ও পরিকল্পনাকারীরা আগে থেকে প্রস্তুত হতে পারেন।",
     themeLight: "দিন",
     themeDark: "রাত",
     language: "ভাষা",
     footer:
-      "NISAR ডেটা সাময়িক। রাডারের উজ্জ্বলতা সম্ভাব্য পরিবর্তন দেখায়, নিশ্চিত কারণ নয়।",
+      "NISAR ডেটা সাময়িক। রাডার সম্ভাব্য পরিবর্তন দেখায়, নিশ্চিত কারণ নয়।",
     types: {
       flood: "বন্যা",
       wetland: "জলাভূমি ও পানি",

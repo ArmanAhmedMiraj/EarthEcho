@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Map, NavigationControl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./extra.css";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -78,6 +79,15 @@ function bestPair(meta) {
   return best;
 }
 
+// Approximate area covered by the radar window, in square kilometres.
+function windowAreaKm2(meta) {
+  const [w, s, e, n] = meta.bounds_west_south_east_north;
+  const midLat = ((s + n) / 2) * (Math.PI / 180);
+  const widthKm = (e - w) * 111.32 * Math.cos(midLat);
+  const heightKm = (n - s) * 110.57;
+  return widthKm * heightKm;
+}
+
 export default function MapView({ place, t, lang }) {
   const box = useRef(null);
   const mapRef = useRef(null);
@@ -87,6 +97,7 @@ export default function MapView({ place, t, lang }) {
   const [error, setError] = useState(false);
   const [layersOn, setLayersOn] = useState(false); // radar layers exist on the map
 
+  const [mode, setMode] = useState("change");      // "change" or "radar"
   const [beforeDate, setBeforeDate] = useState("");
   const [afterDate, setAfterDate] = useState("");
   const [mix, setMix] = useState(0);               // 0 = before, 100 = after
@@ -127,6 +138,7 @@ export default function MapView({ place, t, lang }) {
       .then((m) => {
         if (cancelled) return;
         setMeta(m);
+        setMode("change");
         setBeforeDate(m.dates[0].date);
         setAfterDate(m.dates[m.dates.length - 1].date);
         setPair(bestPair(m));
@@ -247,21 +259,39 @@ export default function MapView({ place, t, lang }) {
     if (after) map.getSource("sar-after")?.updateImage({ url: base + after.sar, coordinates });
   }, [layersOn, beforeDate, afterDate]);
 
-  // 6. The slider fades from before to after.
-  useEffect(() => {
-    if (!layersOn) return;
-    mapRef.current.setPaintProperty("sar-after", "raster-opacity", mix / 100);
-  }, [layersOn, mix]);
-
-  // 7. Change overlay: which comparison, and on or off.
+  // 6. Which layers are visible depends on the mode.
+  //    "What changed": satellite photo + coloured changes only.
+  //    "Radar view": grey radar with the before/after slider (+ optional changes).
   useEffect(() => {
     if (!layersOn || !meta) return;
     const map = mapRef.current;
     const base = `${BASE}data/${place.id}/`;
+    const radar = mode === "radar";
+
+    map.setLayoutProperty("sar-before", "visibility", radar ? "visible" : "none");
+    map.setLayoutProperty("sar-after", "visibility", radar ? "visible" : "none");
+    map.setPaintProperty("sar-after", "raster-opacity", mix / 100);
+
     const item = meta.changes[pair];
     if (item) map.getSource("change")?.updateImage({ url: base + item.file, coordinates: meta.corners_lonlat });
-    map.setLayoutProperty("change", "visibility", showChange ? "visible" : "none");
-  }, [layersOn, pair, showChange]);
+    map.setLayoutProperty("change", "visibility", !radar || showChange ? "visible" : "none");
+  }, [layersOn, mode, mix, pair, showChange]);
+
+  // Plain-language summary for the chosen comparison.
+  let summaryText = "";
+  if (meta && meta.changes[pair]) {
+    const c = meta.changes[pair];
+    const total = windowAreaKm2(meta);
+    const fmt = (n) =>
+      n.toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: 1 });
+    summaryText = t.summary(
+      c.from,
+      c.to,
+      fmt((c.darker_percent / 100) * total),
+      fmt((c.brighter_percent / 100) * total),
+      fmt(Math.round(total))
+    );
+  }
 
   return (
     <section className="stage">
@@ -283,69 +313,91 @@ export default function MapView({ place, t, lang }) {
 
       {meta && (
         <div className="viewer">
-          <div className="row">
-            <label className="field-label">
-              {t.before}
-              <select value={beforeDate} onChange={(e) => setBeforeDate(e.target.value)}>
-                {meta.dates.map((d) => (
-                  <option key={d.date} value={d.date}>
-                    {formatDate(d.date, lang)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field-label">
-              {t.after}
-              <select value={afterDate} onChange={(e) => setAfterDate(e.target.value)}>
-                {meta.dates.map((d) => (
-                  <option key={d.date} value={d.date}>
-                    {formatDate(d.date, lang)}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="modes">
+            <button
+              className={"mode" + (mode === "change" ? " on" : "")}
+              onClick={() => setMode("change")}
+            >
+              {t.modeChange}
+            </button>
+            <button
+              className={"mode" + (mode === "radar" ? " on" : "")}
+              onClick={() => setMode("radar")}
+            >
+              {t.modeRadar}
+            </button>
           </div>
 
-          <div className="slider-row">
-            <span>{formatDate(beforeDate, lang)}</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={mix}
-              onChange={(e) => setMix(Number(e.target.value))}
-              aria-label={t.slideHint}
-            />
-            <span>{formatDate(afterDate, lang)}</span>
-          </div>
-          <p className="muted small">{t.slideHint}</p>
+          <label className="field-label">
+            {t.comparePeriods}
+            <select value={pair} onChange={(e) => setPair(Number(e.target.value))}>
+              {meta.changes.map((c, i) => (
+                <option key={c.file} value={i}>
+                  {c.from} → {c.to}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <div className="row">
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={showChange}
-                onChange={(e) => setShowChange(e.target.checked)}
-              />
-              {t.showChange}
-            </label>
-            <label className="field-label grow">
-              {t.comparePeriods}
-              <select value={pair} onChange={(e) => setPair(Number(e.target.value))}>
-                {meta.changes.map((c, i) => (
-                  <option key={c.file} value={i}>
-                    {c.from} → {c.to} ({c.darker_percent}% / {c.brighter_percent}%)
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="summary">
+            <p>{summaryText}</p>
+            <div className="figures">
+              <span className="figure"><span className="chip dark" />{t.legendDarker}</span>
+              <span className="figure"><span className="chip bright" />{t.legendBrighter}</span>
+            </div>
           </div>
 
-          <ul className="legend">
-            <li><span className="chip dark" />{t.legendDarker}</li>
-            <li><span className="chip bright" />{t.legendBrighter}</li>
-          </ul>
-          <p className="caption">{t.caption}</p>
+          {mode === "radar" && (
+            <>
+              <div className="row">
+                <label className="field-label">
+                  {t.before}
+                  <select value={beforeDate} onChange={(e) => setBeforeDate(e.target.value)}>
+                    {meta.dates.map((d) => (
+                      <option key={d.date} value={d.date}>
+                        {formatDate(d.date, lang)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field-label">
+                  {t.after}
+                  <select value={afterDate} onChange={(e) => setAfterDate(e.target.value)}>
+                    {meta.dates.map((d) => (
+                      <option key={d.date} value={d.date}>
+                        {formatDate(d.date, lang)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={showChange}
+                    onChange={(e) => setShowChange(e.target.checked)}
+                  />
+                  {t.showChange}
+                </label>
+              </div>
+
+              <div className="slider-row">
+                <span>{formatDate(beforeDate, lang)}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={mix}
+                  onChange={(e) => setMix(Number(e.target.value))}
+                  aria-label={t.slideHint}
+                />
+                <span>{formatDate(afterDate, lang)}</span>
+              </div>
+              <p className="muted small">{t.slideHint}</p>
+            </>
+          )}
+
+          <p className="caption">{mode === "change" ? t.captionChange : t.captionRadar}</p>
+          <p className="why">{t.why}</p>
         </div>
       )}
     </section>
