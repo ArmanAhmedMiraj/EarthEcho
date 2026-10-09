@@ -78,16 +78,40 @@ select, .btn, .search {
 .badge { font-size: 12px; color: var(--warn); }
 .badge.ok { color: var(--ok); }
 
+/* ---- map area ---- */
 .stage {
   background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--radius); min-height: 420px;
-  display: grid; place-items: center; padding: 24px;
+  border-radius: var(--radius); overflow: hidden;
+  display: flex; flex-direction: column; min-width: 0; min-height: 600px;
 }
-.map-placeholder { text-align: center; max-width: 420px; }
-.map-placeholder h2 { margin: 0 0 4px; }
-.map-placeholder p { margin: 6px 0; }
+.map-wrap { position: relative; flex: 1; min-height: 420px; background: #0b2447; }
+.map-wrap .map-box { position: absolute; inset: 0; }
+/* Dark mode: darken the whole map canvas (the map tiles are light only). */
+.map-box.dark-tiles .maplibregl-canvas {
+  filter: invert(0.9) hue-rotate(180deg) brightness(0.9) contrast(0.95);
+}
+.banner {
+  position: absolute; top: 12px; left: 12px; z-index: 2; max-width: calc(100% - 80px);
+  background: rgba(7, 20, 43, 0.85); color: #ffffff;
+  border-radius: 8px; padding: 8px 12px; font-size: 14px;
+}
+.warn-banner { background: rgba(120, 53, 15, 0.92); }
+
+/* ---- before/after panel ---- */
+.viewer { padding: 14px 16px 16px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.field-label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.field-label.grow { flex: 1; min-width: 220px; }
+.check { display: flex; align-items: center; gap: 8px; font-weight: 600; padding-bottom: 8px; }
+.slider-row { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.chip { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-inline-end: 8px; }
+.chip.dark { background: #1e88e5; }
+.chip.bright { background: #f28e2b; }
+.caption { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.small { font-size: 12px; margin: 0; }
 .muted { color: var(--muted); }
-.warn { color: var(--warn); font-weight: 600; }
 
 .footer { padding: 12px 16px; font-size: 12px; color: var(--muted); text-align: center; }
 
@@ -99,4 +123,6 @@ select, .btn, .search {
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; }
   .tagline { display: none; }
+  .stage { min-height: 0; }
+  .map-wrap { min-height: 380px; }
 }

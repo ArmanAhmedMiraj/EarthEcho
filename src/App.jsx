@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { DEMO_PLACES } from "./demoPlaces.js";
+import MapView from "./MapView.jsx";
 
 // Reads a saved choice, and never crashes if browser storage is blocked.
 function readSaved(key, fallback) {
@@ -101,14 +102,7 @@ export default function App() {
           </ul>
         </aside>
 
-        <section className="stage">
-          <div className="map-placeholder">
-            <h2>{t.places[selected.id]}</h2>
-            <p>{t.types[selected.type]}</p>
-            <p className="muted">{t.mapPlaceholder}</p>
-            {!selected.ready && <p className="warn">{t.noLayer}</p>}
-          </div>
-        </section>
+        <MapView place={selected} t={t} lang={lang} theme={theme} />
       </main>
 
       <footer className="footer">{t.footer}</footer>
