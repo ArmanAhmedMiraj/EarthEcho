@@ -63,6 +63,21 @@ function formatDate(day, lang) {
   });
 }
 
+// Picks the comparison that shows BOTH blue and orange the most evenly,
+// so the first thing people see explains the colours.
+function bestPair(meta) {
+  let best = 0;
+  let bestScore = -1;
+  meta.changes.forEach((c, i) => {
+    const score = Math.min(c.darker_percent, c.brighter_percent);
+    if (score > bestScore) {
+      bestScore = score;
+      best = i;
+    }
+  });
+  return best;
+}
+
 export default function MapView({ place, t, lang }) {
   const box = useRef(null);
   const mapRef = useRef(null);
@@ -78,13 +93,13 @@ export default function MapView({ place, t, lang }) {
   const [showChange, setShowChange] = useState(true);
   const [pair, setPair] = useState(0);
 
-  // 1. Create the map once.
+  // 1. Create the map once. It starts on all of Bangladesh and India.
   useEffect(() => {
     const map = new Map({
       container: box.current,
       style: baseStyle(),
-      center: [90, 22],
-      zoom: 1.6,
+      center: [84, 23],
+      zoom: 3.6,
       maxZoom: 16,
       attributionControl: { compact: true },
     });
@@ -114,7 +129,7 @@ export default function MapView({ place, t, lang }) {
         setMeta(m);
         setBeforeDate(m.dates[0].date);
         setAfterDate(m.dates[m.dates.length - 1].date);
-        setPair(Math.min(3, m.changes.length - 1));
+        setPair(bestPair(m));
         setMix(0);
       })
       .catch(() => {
@@ -131,13 +146,13 @@ export default function MapView({ place, t, lang }) {
     const map = mapRef.current;
     if (place.ready && meta) {
       const [w, s, e, n] = meta.bounds_west_south_east_north;
-      map.fitBounds([[w, s], [e, n]], { padding: 30, duration: 5000, essential: true });
+      map.fitBounds([[w, s], [e, n]], { padding: 30, duration: 6000, essential: true });
     } else if (!place.ready) {
       map.flyTo({ center: [place.lon, place.lat], zoom: place.zoom, duration: 4000, essential: true });
     }
   }, [place.id, ready, meta]);
 
-  // 4. Put the radar images and the coverage outline on the map.
+  // 4. Put the radar images, the coverage outline and the pin on the map.
   useEffect(() => {
     if (!ready || !meta) return;
     const map = mapRef.current;
@@ -145,7 +160,7 @@ export default function MapView({ place, t, lang }) {
     const coordinates = meta.corners_lonlat;
     const firstFile = meta.dates[0].sar;
     const lastFile = meta.dates[meta.dates.length - 1].sar;
-    const changeFile = meta.changes[Math.min(3, meta.changes.length - 1)].file;
+    const changeFile = meta.changes[bestPair(meta)].file;
 
     const add = (id, file, opacity) => {
       map.addSource(id, { type: "image", url: base + file, coordinates });
@@ -174,13 +189,44 @@ export default function MapView({ place, t, lang }) {
       source: "coverage",
       paint: { "line-color": "#ffffff", "line-width": 1.6, "line-dasharray": [2, 2] },
     });
+
+    // Glowing pin so the radar area can be found from far away.
+    const [w, s, e, n] = meta.bounds_west_south_east_north;
+    map.addSource("pin", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [(w + e) / 2, (s + n) / 2] },
+      },
+    });
+    map.addLayer({
+      id: "pin-glow",
+      type: "circle",
+      source: "pin",
+      maxzoom: 9,
+      paint: { "circle-radius": 16, "circle-color": "#f28e2b", "circle-opacity": 0.3, "circle-blur": 0.6 },
+    });
+    map.addLayer({
+      id: "pin",
+      type: "circle",
+      source: "pin",
+      maxzoom: 9,
+      paint: {
+        "circle-radius": 6,
+        "circle-color": "#f28e2b",
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 2,
+      },
+    });
     setLayersOn(true);
 
     return () => {
       setLayersOn(false);
       try {
-        ["coverage", "change", "sar-after", "sar-before"].forEach((id) => {
+        ["pin", "pin-glow", "coverage", "change", "sar-after", "sar-before"].forEach((id) => {
           if (map.getLayer(id)) map.removeLayer(id);
+        });
+        ["pin", "coverage", "change", "sar-after", "sar-before"].forEach((id) => {
           if (map.getSource(id)) map.removeSource(id);
         });
       } catch {
@@ -288,7 +334,7 @@ export default function MapView({ place, t, lang }) {
               <select value={pair} onChange={(e) => setPair(Number(e.target.value))}>
                 {meta.changes.map((c, i) => (
                   <option key={c.file} value={i}>
-                    {c.from} → {c.to}
+                    {c.from} → {c.to} ({c.darker_percent}% / {c.brighter_percent}%)
                   </option>
                 ))}
               </select>
