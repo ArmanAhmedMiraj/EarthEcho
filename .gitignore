@@ -5,6 +5,6 @@ __pycache__
 data-raw
 .dodsrc
 .DS_Store
-data-processed/jamuna/
-data-processed/jamuna_v3/
-data-processed/preview_*.png
+archive-nisar/data-processed/jamuna/
+archive-nisar/data-processed/jamuna_v3/
+archive-nisar/data-processed/preview_*.png
