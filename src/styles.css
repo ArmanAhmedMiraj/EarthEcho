@@ -84,12 +84,24 @@ select, .btn, .search {
   border-radius: var(--radius); overflow: hidden;
   display: flex; flex-direction: column; min-width: 0; min-height: 600px;
 }
-.map-wrap { position: relative; flex: 1; min-height: 420px; background: #0b2447; }
-.map-wrap .map-box { position: absolute; inset: 0; }
-/* Dark mode: darken the whole map canvas (the map tiles are light only). */
-.map-box.dark-tiles .maplibregl-canvas {
-  filter: invert(0.9) hue-rotate(180deg) brightness(0.9) contrast(0.95);
+/* Space behind the globe: near-black with scattered stars. */
+.map-wrap {
+  position: relative; flex: 1; min-height: 520px;
+  background-color: #02040c;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #ffffff, transparent),
+    radial-gradient(1px 1px at 27% 72%, #dbe6ff, transparent),
+    radial-gradient(1.4px 1.4px at 41% 33%, #ffffff, transparent),
+    radial-gradient(1px 1px at 58% 82%, #ffffff, transparent),
+    radial-gradient(1.2px 1.2px at 73% 14%, #cfe0ff, transparent),
+    radial-gradient(1px 1px at 86% 58%, #ffffff, transparent),
+    radial-gradient(1.4px 1.4px at 93% 27%, #ffffff, transparent),
+    radial-gradient(1px 1px at 6% 61%, #ffffff, transparent),
+    radial-gradient(1px 1px at 49% 8%, #dbe6ff, transparent),
+    radial-gradient(1.2px 1.2px at 66% 47%, #ffffff, transparent);
+  background-size: 320px 320px;
 }
+.map-wrap .map-box { position: absolute; inset: 0; }
 .banner {
   position: absolute; top: 12px; left: 12px; z-index: 2; max-width: calc(100% - 80px);
   background: rgba(7, 20, 43, 0.85); color: #ffffff;
@@ -124,5 +136,5 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
   .layout { grid-template-columns: 1fr; }
   .tagline { display: none; }
   .stage { min-height: 0; }
-  .map-wrap { min-height: 380px; }
+  .map-wrap { min-height: 420px; }
 }

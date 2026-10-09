@@ -4,23 +4,51 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 const BASE = import.meta.env.BASE_URL;
 
-// A globe with OpenStreetMap tiles. Dark mode is done with a CSS filter (see styles.css).
+// A realistic globe: NASA Blue Marble far away, Esri satellite photos up close,
+// plus an atmosphere glow. No account or key is needed for either source.
 function baseStyle() {
   return {
     version: 8,
     projection: { type: "globe" },
+    sky: {
+      "sky-color": "#2f8fe8",
+      "sky-horizon-blend": 0.6,
+      "horizon-color": "#9fd0ff",
+      "horizon-fog-blend": 0.6,
+      "fog-color": "#5aa7f0",
+      "fog-ground-blend": 0.4,
+      "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 7, 0],
+    },
     sources: {
-      osm: {
+      bluemarble: {
         type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        tiles: [
+          "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg",
+        ],
         tileSize: 256,
-        maxzoom: 19,
-        attribution: "© OpenStreetMap contributors",
+        maxzoom: 8,
+        attribution: "Imagery: NASA GIBS (Blue Marble)",
+      },
+      satellite: {
+        type: "raster",
+        tiles: [
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        ],
+        tileSize: 256,
+        maxzoom: 18,
+        attribution: "Imagery: Esri, Maxar, Earthstar Geographics",
       },
     },
     layers: [
-      { id: "space", type: "background", paint: { "background-color": "#0b2447" } },
-      { id: "osm", type: "raster", source: "osm" },
+      { id: "ocean", type: "background", paint: { "background-color": "#06122b" } },
+      { id: "bluemarble", type: "raster", source: "bluemarble" },
+      {
+        id: "satellite",
+        type: "raster",
+        source: "satellite",
+        minzoom: 4,
+        paint: { "raster-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0, 7, 1] },
+      },
     ],
   };
 }
@@ -35,7 +63,7 @@ function formatDate(day, lang) {
   });
 }
 
-export default function MapView({ place, t, lang, theme }) {
+export default function MapView({ place, t, lang }) {
   const box = useRef(null);
   const mapRef = useRef(null);
 
@@ -56,7 +84,8 @@ export default function MapView({ place, t, lang, theme }) {
       container: box.current,
       style: baseStyle(),
       center: [90, 22],
-      zoom: 1.4,
+      zoom: 1.6,
+      maxZoom: 16,
       attributionControl: { compact: true },
     });
     map.addControl(new NavigationControl({ visualizePitch: true }), "top-right");
@@ -102,13 +131,13 @@ export default function MapView({ place, t, lang, theme }) {
     const map = mapRef.current;
     if (place.ready && meta) {
       const [w, s, e, n] = meta.bounds_west_south_east_north;
-      map.fitBounds([[w, s], [e, n]], { padding: 30, duration: 4000, essential: true });
+      map.fitBounds([[w, s], [e, n]], { padding: 30, duration: 5000, essential: true });
     } else if (!place.ready) {
-      map.flyTo({ center: [place.lon, place.lat], zoom: place.zoom, duration: 3500, essential: true });
+      map.flyTo({ center: [place.lon, place.lat], zoom: place.zoom, duration: 4000, essential: true });
     }
   }, [place.id, ready, meta]);
 
-  // 4. Put the radar images on the map.
+  // 4. Put the radar images and the coverage outline on the map.
   useEffect(() => {
     if (!ready || !meta) return;
     const map = mapRef.current;
@@ -130,12 +159,27 @@ export default function MapView({ place, t, lang, theme }) {
     add("sar-before", firstFile, 1);
     add("sar-after", lastFile, 0);
     add("change", changeFile, 1);
+
+    // Dashed outline: where radar data exists.
+    map.addSource("coverage", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: { type: "LineString", coordinates: [...coordinates, coordinates[0]] },
+      },
+    });
+    map.addLayer({
+      id: "coverage",
+      type: "line",
+      source: "coverage",
+      paint: { "line-color": "#ffffff", "line-width": 1.6, "line-dasharray": [2, 2] },
+    });
     setLayersOn(true);
 
     return () => {
       setLayersOn(false);
       try {
-        ["change", "sar-after", "sar-before"].forEach((id) => {
+        ["coverage", "change", "sar-after", "sar-before"].forEach((id) => {
           if (map.getLayer(id)) map.removeLayer(id);
           if (map.getSource(id)) map.removeSource(id);
         });
@@ -176,7 +220,7 @@ export default function MapView({ place, t, lang, theme }) {
   return (
     <section className="stage">
       <div className="map-wrap">
-        <div ref={box} className={"map-box" + (theme === "dark" ? " dark-tiles" : "")} />
+        <div ref={box} className="map-box" />
         {!place.ready && (
           <div className="banner warn-banner">
             <strong>{t.places[place.id]}</strong> · {t.noLayer}
