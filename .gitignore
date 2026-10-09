@@ -1,0 +1,10 @@
+node_modules
+dist
+.venv
+__pycache__
+data-raw
+.dodsrc
+.DS_Store
+data-processed/jamuna/
+data-processed/jamuna_v3/
+data-processed/preview_*.png
