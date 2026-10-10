@@ -146,3 +146,59 @@
 .plan-btn:hover {
   background: rgba(67, 160, 71, 0.15);
 }
+
+/* live weather row */
+.live-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 2px;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #43a047;
+  animation: live-pulse 2s infinite;
+}
+
+.live-dot.busy {
+  background: #ef8f00;
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(67, 160, 71, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0); }
+}
+
+.live-btn {
+  padding: 4px 12px;
+  border: 1px solid rgba(127, 127, 127, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.live-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.live-rain {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #2f8fd8;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.wd-day.uncounted .wd-rain span {
+  opacity: 0.35;
+}

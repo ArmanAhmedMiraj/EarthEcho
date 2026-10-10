@@ -49,6 +49,15 @@ export const WATER_SOURCES = [
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 
+// Rain that already fell is counted in full. Forecast rain (today and later) is counted only when the chance of rain
+// is 50 percent or more, so an unlikely shower does not delay your irrigation. This is a rule of mine, not from a source.
+export const LIKELY = 50;
+export const rainCounted = (d, future) => {
+  const mm = d.rain || 0;
+  if (!future) return mm;
+  return d.chance != null && d.chance < LIKELY ? 0 : mm;
+};
+
 export function kcFor(model, stage) {
   const k = model === "rice" ? KC.rice : KC[model];
   if (stage <= 0) return k.ini;
@@ -107,11 +116,12 @@ export function uplandCountdown({ crop, stage, soil, since, past = [], days = []
     const d = series[i];
     if (i === t0) drToday = dr;
     const etc = (d.et0 != null ? d.et0 : FALLBACK_ET0) * kc;
-    const eff = effectiveRain(d.rain);
+    const counted = rainCounted(d, i >= t0);
+    const eff = effectiveRain(counted);
     dr = clamp(dr + etc - eff, 0, taw);
     if (i >= t0) {
       const day = i - t0;
-      rows.push({ date: d.date, rain: d.rain || 0, etc, eff, level: 1 - dr / taw, low: dr >= raw });
+      rows.push({ date: d.date, rain: d.rain || 0, counted: counted > 0 || !(d.rain > 0), etc, eff, level: 1 - dr / taw, low: dr >= raw });
       if (first == null && dr >= raw) first = day;
     }
   }
@@ -122,28 +132,49 @@ export function uplandCountdown({ crop, stage, soil, since, past = [], days = []
     inDays: first,
     leftNow: 1 - drToday / taw, // share of the plant-available water still in the soil this morning
     giveMm: raw, // water to put back when the crop is at the limit
+    rainSoon: rainSoon(rows),
     rows,
   };
 }
 
 // ---- rice: standing water ----
-// standing = mm of water on the field this morning (0 = wet mud, null = dry and cracking).
-export function riceCountdown({ crop, stage, soil, standing, days = [] }) {
+// standing = mm of water on the field on the day the farmer last looked (0 = wet mud, null = dry and cracking).
+// ago = how many days ago that was (0 to 7), null when it was longer ago.
+export function riceCountdown({ crop, stage, soil, standing, ago = 0, past = [], days = [] }) {
   const kc = kcFor("rice", stage);
   const perc = SOIL_PERC[soil] != null ? SOIL_PERC[soil] : 6;
   const base = { kind: "rice", kc, perc, soilKnown: SOIL_PERC[soil] != null };
-  if (standing == null) return { ...base, status: "now", rows: [], leftNow: 0 };
+  if (ago == null) return { ...base, status: "stale", rows: [] };
   if (days.length === 0) return { ...base, status: "check", rows: [] };
+  if (standing == null && ago === 0) return { ...base, status: "now", rows: [], leftNow: 0 };
 
-  let h = standing;
+  const series = [...past, ...days];
+  const t0 = past.length;
+  const start = t0 - ago;
+  if (start < 0) return { ...base, status: "stale", rows: [] };
+
+  let h = standing == null ? 0 : standing;
+  let hToday = h;
   let first = null;
   const rows = [];
-  days.forEach((d, i) => {
+  for (let i = start; i < series.length; i++) {
+    const d = series[i];
+    if (i === t0) hToday = h;
     const etc = (d.et0 != null ? d.et0 : FALLBACK_ET0) * kc;
-    h = Math.min(RICE_CAP, h + (d.rain || 0) - etc - perc);
-    rows.push({ date: d.date, rain: d.rain || 0, etc, level: clamp(h, 0, RICE_CAP) / RICE_CAP, low: h <= 0, mm: Math.max(0, h) });
-    if (first == null && h <= 0) first = i;
-  });
-  const status = standing <= 0 ? "now" : first == null ? "none" : first === 0 ? "today" : "later";
-  return { ...base, status, inDays: first, leftNow: standing, rows };
+    const counted = rainCounted(d, i >= t0);
+    h = Math.min(RICE_CAP, h + counted - etc - perc);
+    if (i >= t0) {
+      const day = i - t0;
+      rows.push({ date: d.date, rain: d.rain || 0, counted: counted > 0 || !(d.rain > 0), etc, level: clamp(h, 0, RICE_CAP) / RICE_CAP, low: h <= 0, mm: Math.max(0, h) });
+      if (first == null && h <= 0) first = day;
+    }
+  }
+  const dryToday = hToday <= 0;
+  const status = dryToday ? "now" : first == null ? "none" : first === 0 ? "today" : "later";
+  return { ...base, status, inDays: first, leftNow: Math.max(0, hToday), rainSoon: rainSoon(rows), rows };
+}
+
+// Rain (mm) counted in the next 3 days, shown to the farmer so they see why the countdown moved.
+function rainSoon(rows) {
+  return rows.slice(0, 3).reduce((sum, r) => sum + (r.counted ? r.rain : 0), 0);
 }

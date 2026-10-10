@@ -24,8 +24,9 @@ const PAST_DAYS = 7;
 export async function fetchForecast(lat, lon) {
   const daily =
     "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
-  const url = `${FORECAST}?latitude=${lat}&longitude=${lon}&daily=${daily}&timezone=auto&past_days=${PAST_DAYS}&forecast_days=16`;
-  const d = (await getJson(url)).daily;
+  const url = `${FORECAST}?latitude=${lat}&longitude=${lon}&daily=${daily}&timezone=auto&past_days=${PAST_DAYS}&forecast_days=16&current=precipitation,temperature_2m`;
+  const data = await getJson(url);
+  const d = data.daily;
   const all = d.time.map((date, i) => ({
     date,
     tmax: d.temperature_2m_max[i],
@@ -35,7 +36,13 @@ export async function fetchForecast(lat, lon) {
     et0: d.et0_fao_evapotranspiration[i],
   }));
   // the first PAST_DAYS entries are days gone by; "days" stays what it always was: today and the days ahead
-  return { past: all.slice(0, PAST_DAYS), days: all.slice(PAST_DAYS) };
+  const c = data.current || null;
+  return {
+    past: all.slice(0, PAST_DAYS),
+    days: all.slice(PAST_DAYS),
+    // what is happening right now: rain in the last hour (mm) and the temperature
+    current: c ? { rain: c.precipitation, temp: c.temperature_2m, time: c.time } : null,
+  };
 }
 
 const average = (list) => (list.length ? list.reduce((a, b) => a + b, 0) / list.length : null);

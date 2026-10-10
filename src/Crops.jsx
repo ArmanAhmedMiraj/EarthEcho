@@ -171,7 +171,7 @@ function VarietyPanel({ cropKey, info, fitsCalendar, onPick, t, lang, number }) 
   );
 }
 
-export default function Crops({ t, lang, districtName, soil, soilLabel, forecast, place }) {
+export default function Crops({ t, lang, districtName, soil, soilLabel, forecast, place, updatedAt, refreshing, onRefresh }) {
   const [land, setLand] = useState("medium");
   const [water, setWater] = useState("yes");
   const [salt, setSalt] = useState("auto");
@@ -421,6 +421,10 @@ export default function Crops({ t, lang, districtName, soil, soilLabel, forecast
         t={t}
         lang={lang}
         forecast={forecast}
+        updatedAt={updatedAt}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        placeKey={place ? `${Number(place.lat).toFixed(2)},${Number(place.lon).toFixed(2)}` : "x"}
         soil={soil}
         soilLabel={soilLabel}
         guess={guess}

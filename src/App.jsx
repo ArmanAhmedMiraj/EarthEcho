@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { CROP_TEXT } from "./i18nCrops.js";
@@ -88,6 +88,10 @@ export default function App() {
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(null); // when the forecast was last fetched
+  const [refreshing, setRefreshing] = useState(false);
+  const weatherKey = useRef(""); // the place the forecast on screen belongs to
+  const lastFetch = useRef(0);
 
   const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang] };
 
@@ -177,6 +181,8 @@ export default function App() {
   // Load weather whenever the point changes.
   useEffect(() => {
     let cancelled = false;
+    const key = `${pos.lat},${pos.lon}`;
+    weatherKey.current = key;
     setLoading(true);
     setError(false);
     Promise.allSettled([fetchForecast(pos.lat, pos.lon), fetchHistory(pos.lat, pos.lon)]).then(
@@ -184,6 +190,8 @@ export default function App() {
         if (cancelled) return;
         setForecast(f.status === "fulfilled" ? f.value : null);
         setHistory(h.status === "fulfilled" ? h.value : null);
+        setUpdatedAt(f.status === "fulfilled" ? new Date() : null);
+        if (f.status === "fulfilled") lastFetch.current = Date.now();
         setError(f.status !== "fulfilled");
         setLoading(false);
       }
@@ -192,6 +200,36 @@ export default function App() {
       cancelled = true;
     };
   }, [pos.lat, pos.lon]);
+
+  // Keep the forecast live: fetch it again in the background. If that fails, the last good forecast stays on screen.
+  const refreshForecast = useCallback(() => {
+    const key = `${pos.lat},${pos.lon}`;
+    setRefreshing(true);
+    fetchForecast(pos.lat, pos.lon)
+      .then((f) => {
+        if (weatherKey.current !== key) return; // the farmer moved the pin while this was loading
+        setForecast(f);
+        setUpdatedAt(new Date());
+        setError(false);
+        lastFetch.current = Date.now();
+      })
+      .catch(() => {})
+      .finally(() => setRefreshing(false));
+  }, [pos.lat, pos.lon]);
+
+  useEffect(() => {
+    const EVERY = 20 * 60 * 1000;
+    const timer = setInterval(refreshForecast, EVERY);
+    // coming back to the tab (or the phone waking up) after a while: refresh at once
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastFetch.current > 5 * 60 * 1000) refreshForecast();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshForecast]);
 
   // ---- choosing places ----
   function buildChain(level, props) {
@@ -491,6 +529,9 @@ export default function App() {
               soil={soil}
               soilLabel={soil ? t.soilNames[soil] : ""}
               forecast={forecast}
+              updatedAt={updatedAt}
+              refreshing={refreshing}
+              onRefresh={refreshForecast}
               place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
             />
           </div>
