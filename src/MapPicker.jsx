@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./popup.css";
 // MapLibre 6 needs to be told where its background worker file is when used with Vite.
 // "?worker&url" (not plain "?url") makes Vite bundle the worker together with the file it imports.
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
@@ -292,7 +293,13 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     m.on("idle", refreshStatus);
 
     marker.current = new maplibregl.Marker({ color: "#e53935" }).setLngLat([pos.lon, pos.lat]).addTo(m);
-    popup.current = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 30, maxWidth: "280px" });
+    popup.current = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 32,
+      maxWidth: "190px",
+      className: "mini-popup",
+    });
 
     m.on("click", (e) => pickRef.current(e.lngLat.lat, e.lngLat.lng));
 
@@ -339,30 +346,35 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     update("unionNames");
   }, [layers.unionNames]);
 
-  // pin and name label
+  // pin and small name label
   useEffect(() => {
     if (!map.current || !marker.current || !popup.current) return;
     marker.current.setLngLat([pos.lon, pos.lat]);
 
     const el = document.createElement("div");
-    el.className = "pop";
-    const title = document.createElement("strong");
+    el.className = "mini-pop";
+
+    const title = document.createElement("span");
+    title.className = "mini-pop-title";
     title.textContent = label.title;
     el.appendChild(title);
-    if (label.path) {
+
+    // the path line is only shown when it says something the title does not
+    if (label.path && label.path !== label.title) {
       const path = document.createElement("div");
-      path.className = "pop-path";
+      path.className = "mini-pop-path";
       path.textContent = label.path;
       el.appendChild(path);
     }
+
     const coords = document.createElement("div");
-    coords.className = "pop-coords";
-    coords.textContent = label.coords;
+    coords.className = "mini-pop-coords";
+    coords.textContent = `${pos.lat}, ${pos.lon}`;
     el.appendChild(coords);
 
     popup.current.setLngLat([pos.lon, pos.lat]).setDOMContent(el);
     if (!popup.current.isOpen()) popup.current.addTo(map.current);
-  }, [pos.lat, pos.lon, label.title, label.path, label.coords]);
+  }, [pos.lat, pos.lon, label.title, label.path]);
 
   // fly to a chosen area or place
   useEffect(() => {

@@ -1,0 +1,45 @@
+/* The small label above the red pin. Kept compact so it does not hide the place names. */
+.maplibregl-popup.mini-popup {
+  pointer-events: none; /* a tap on the label goes through to the map */
+  max-width: 190px !important;
+}
+
+.maplibregl-popup.mini-popup .maplibregl-popup-content {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.maplibregl-popup.mini-popup .maplibregl-popup-tip {
+  border-width: 5px;
+}
+
+.mini-pop {
+  max-width: 170px;
+  line-height: 1.25;
+}
+
+.mini-pop-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1b1b1b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-pop-path {
+  font-size: 10.5px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-pop-coords {
+  font: 10px/1.25 ui-monospace, Consolas, monospace;
+  color: #333;
+}
