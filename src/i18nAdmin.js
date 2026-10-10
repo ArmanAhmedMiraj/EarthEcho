@@ -1,0 +1,68 @@
+export const ADMIN_TEXT = {
+  en: {
+    country: "Country",
+    countryBD: "Bangladesh",
+    countryOther: "Other country (search a place or tap the map)",
+    division: "Division",
+    district: "District",
+    upazila: "Upazila / Thana",
+    union: "Union / ward area",
+    choose: "— choose —",
+    chooseAbove: "— choose the one above first —",
+    nameSearchPlaceholder: "Search any name: division, district, upazila, union",
+    searchWorld: "Other places in the world",
+    levelNames: { division: "Division", district: "District", upazila: "Upazila / Thana", union: "Union" },
+    outsideBD:
+      "This point is outside Bangladesh's boundary data. Weather and soil still work here, but there is no division or district to show.",
+    otherCountryHint:
+      "Boundaries are built for Bangladesh only so far. For other countries, search a place name or tap the map. Weather and soil still work.",
+    pickedPoint: "Selected point",
+    latShort: "Lat",
+    lonShort: "Lon",
+    legendTitle: "Border lines",
+    legendCountry: "Country",
+    legendDivision: "Division",
+    legendDistrict: "District",
+    legendUpazila: "Upazila / Thana (zoom in)",
+    legendUnion: "Union (zoom in)",
+    legendSelected: "Selected area",
+    adminLoading: "Loading Bangladesh boundaries…",
+    adminError:
+      "Could not load the boundary files. Weather and soil still work. Tap the map to choose a point.",
+    footer:
+      "Data: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri imagery. Boundaries: Bangladesh Bureau of Statistics / OCHA ROAP via geoBoundaries (CC BY 3.0 IGO). These are estimates. Please confirm with your local agriculture officer.",
+  },
+  bn: {
+    country: "দেশ",
+    countryBD: "বাংলাদেশ",
+    countryOther: "অন্য দেশ (জায়গা খুঁজুন বা মানচিত্রে ট্যাপ করুন)",
+    division: "বিভাগ",
+    district: "জেলা",
+    upazila: "উপজেলা / থানা",
+    union: "ইউনিয়ন / ওয়ার্ড এলাকা",
+    choose: "— বেছে নিন —",
+    chooseAbove: "— আগে উপরেরটি বেছে নিন —",
+    nameSearchPlaceholder: "যেকোনো নাম খুঁজুন: বিভাগ, জেলা, উপজেলা, ইউনিয়ন",
+    searchWorld: "বিশ্বের অন্যান্য জায়গা",
+    levelNames: { division: "বিভাগ", district: "জেলা", upazila: "উপজেলা / থানা", union: "ইউনিয়ন" },
+    outsideBD:
+      "এই বিন্দুটি বাংলাদেশের সীমানার তথ্যের বাইরে। এখানে আবহাওয়া ও মাটির তথ্য কাজ করে, কিন্তু দেখানোর মতো বিভাগ বা জেলা নেই।",
+    otherCountryHint:
+      "সীমানা এখন শুধু বাংলাদেশের জন্য তৈরি। অন্য দেশের জন্য জায়গার নাম খুঁজুন বা মানচিত্রে ট্যাপ করুন। আবহাওয়া ও মাটি তবুও কাজ করবে।",
+    pickedPoint: "নির্বাচিত বিন্দু",
+    latShort: "অক্ষাংশ",
+    lonShort: "দ্রাঘিমাংশ",
+    legendTitle: "সীমানা রেখা",
+    legendCountry: "দেশ",
+    legendDivision: "বিভাগ",
+    legendDistrict: "জেলা",
+    legendUpazila: "উপজেলা / থানা (জুম করলে)",
+    legendUnion: "ইউনিয়ন (জুম করলে)",
+    legendSelected: "নির্বাচিত এলাকা",
+    adminLoading: "বাংলাদেশের সীমানা লোড হচ্ছে…",
+    adminError:
+      "সীমানার ফাইল লোড করা যায়নি। আবহাওয়া ও মাটি তবুও কাজ করবে। মানচিত্রে ট্যাপ করে বিন্দু বেছে নিন।",
+    footer:
+      "তথ্য: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri ছবি। সীমানা: বাংলাদেশ পরিসংখ্যান ব্যুরো / OCHA ROAP, geoBoundaries-এর মাধ্যমে (CC BY 3.0 IGO)। এগুলো অনুমান। স্থানীয় কৃষি কর্মকর্তার সাথে নিশ্চিত করুন।",
+  },
+};

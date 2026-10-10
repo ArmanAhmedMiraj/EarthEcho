@@ -1,0 +1,14 @@
+.field { display: flex; flex-direction: column; gap: 3px; margin: 8px 0; font-size: 0.85rem; color: var(--muted); }
+.field select { width: 100%; }
+.field select:disabled { opacity: 0.55; }
+
+.results li { border-bottom: 1px solid var(--border); }
+.results li:last-child { border-bottom: 0; }
+.results-head { padding: 6px 10px; background: var(--bg); }
+
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 8px 4px 0; font-size: 0.8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; vertical-align: middle; margin-inline-end: 5px; }
+
+.pop { color: #1c2b1c; font-size: 0.85rem; line-height: 1.4; }
+.pop-path { color: #5d6e5d; font-size: 0.78rem; }
+.pop-coords { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; margin-top: 2px; }
