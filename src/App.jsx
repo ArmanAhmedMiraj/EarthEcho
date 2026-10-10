@@ -42,6 +42,25 @@ const phoneTheme = () =>
 
 const collection = (features) => ({ type: "FeatureCollection", features });
 
+// One point with a name for every area, placed at the area's middle.
+// "rank" makes bigger areas get their name placed first, so small areas never hide big ones.
+function namePoints(fc) {
+  if (!fc) return null;
+  const points = [];
+  for (const f of fc.features) {
+    const p = f.properties;
+    if (!p || !p.name || p.lat == null || p.lon == null) continue;
+    const b = p.bbox || [0, 0, 0, 0];
+    const area = Math.abs((b[2] - b[0]) * (b[3] - b[1]));
+    points.push({
+      type: "Feature",
+      properties: { name: p.name, rank: -area },
+      geometry: { type: "Point", coordinates: [p.lon, p.lat] },
+    });
+  }
+  return collection(points);
+}
+
 export default function App() {
   const [lang, setLang] = useState(() => readSaved("ef-lang", "en"));
   const [theme, setTheme] = useState(() => readSaved("ef-theme", phoneTheme()));
@@ -323,6 +342,12 @@ export default function App() {
     return found ? { type: "Feature", properties: { level: selected.level }, geometry: found.geometry } : null;
   }, [selected, admin, unionsFc]);
 
+  // place names for the map (built once per file, not on every move)
+  const divisionNames = useMemo(() => (admin ? namePoints(admin.divisions) : null), [admin]);
+  const districtNames = useMemo(() => (admin ? namePoints(admin.districts) : null), [admin]);
+  const upazilaNames = useMemo(() => (admin ? namePoints(admin.upazilas) : null), [admin]);
+  const unionNames = useMemo(() => namePoints(viewUnions), [viewUnions]);
+
   const label = {
     title: pos.name || t.pickedPoint,
     path: pathText(place),
@@ -331,9 +356,14 @@ export default function App() {
 
   const layers = {
     country: admin ? admin.country : null,
-    districts: admin ? admin.districts : null, // always on, together with the country border
-    upazilas: admin ? admin.upazilas : null, // fade in by themselves when you zoom in
-    unions: viewUnions, // fade in further in, loaded for the districts on screen
+    divisions: admin ? admin.divisions : null, // always on, together with the country border
+    districts: admin ? admin.districts : null, // fade in when you zoom in to a division
+    upazilas: admin ? admin.upazilas : null, // fade in further in
+    unions: viewUnions, // fade in furthest in, loaded for the districts on screen
+    divisionNames,
+    districtNames,
+    upazilaNames,
+    unionNames,
   };
 
   return (
@@ -432,12 +462,13 @@ export default function App() {
             </div>
             <ul className="legend" aria-label={t.legendTitle}>
               <li><i style={{ borderTopColor: LEVEL_COLORS.country }} />{t.legendCountry}</li>
+              <li><i style={{ borderTopColor: LEVEL_COLORS.division }} />{t.legendDivision}</li>
               <li><i style={{ borderTopColor: LEVEL_COLORS.district }} />{t.legendDistrict}</li>
               <li><i style={{ borderTopColor: LEVEL_COLORS.upazila }} />{t.legendUpazila}</li>
               <li><i style={{ borderTopColor: LEVEL_COLORS.union }} />{t.legendUnion}</li>
-              <li><i style={{ borderTopColor: LEVEL_COLORS.division }} />{t.legendDivision}</li>
             </ul>
             <p className="muted small">{t.legendSelected}</p>
+            <p className="muted small">{t.legendNames}</p>
           </div>
           <div className="viewer">
             <h2>{t.step3}</h2>

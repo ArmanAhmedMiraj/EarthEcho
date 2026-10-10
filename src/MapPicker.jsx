@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // MapLibre 6 needs to be told where its background worker file is when used with Vite.
 // "?worker&url" (not plain "?url") makes Vite bundle the worker together with the file it imports.
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import { LEVEL_COLORS, ZOOM } from "./legend.js";
+import { LABEL_COLORS, LABEL_ZOOM, LEVEL_COLORS, ZOOM } from "./legend.js";
 
 maplibregl.setWorkerUrl(workerUrl);
 
@@ -12,10 +12,17 @@ maplibregl.setWorkerUrl(workerUrl);
 const SHOW_STATUS = false;
 
 const EMPTY = { type: "FeatureCollection", features: [] };
-const SOURCES = ["country", "districts", "upazilas", "unions", "selected"];
+const SOURCES = [
+  "country", "divisions", "districts", "upazilas", "unions", "selected",
+  "divisionNames", "districtNames", "upazilaNames", "unionNames",
+];
+
+// The map writes names with this font, downloaded from a free public font server.
+const FONT = ["Noto Sans Medium"];
 
 const STYLE = {
   version: 8,
+  glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
   sources: {
     satellite: {
       type: "raster",
@@ -46,7 +53,8 @@ const zoomWidth = (...stops) => ["interpolate", ["linear"], ["zoom"], ...stops.f
 
 const WIDTH = {
   country: zoomWidth([4, 1.1], [8, 1.6], [12, 2.4]),
-  district: zoomWidth([4, 0.7], [8, 1.1], [12, 1.8]),
+  division: zoomWidth([4, 1], [8, 1.5], [12, 2.2]),
+  district: zoomWidth([6, 0.6], [8, 1], [12, 1.8]),
   upazila: zoomWidth([9, 0.8], [13, 1.6]),
   union: zoomWidth([10, 0.6], [14, 1.2]),
   selected: zoomWidth([4, 2], [12, 3]),
@@ -57,6 +65,14 @@ const HALO = {
 };
 const HALO_OPACITY = 0.35; // how dark the soft shadow under the country and chosen lines is
 const FILL_OPACITY = 0.22; // how strongly the chosen area is coloured in
+
+// ---- name style: sizes of the place names at different zoom levels ----
+const NAME_SIZE = {
+  division: zoomWidth([3, 12], [7.4, 18]),
+  district: zoomWidth([7, 11], [9, 14]),
+  upazila: zoomWidth([9.2, 11], [11, 14]),
+  union: zoomWidth([10.9, 10], [13, 13], [15, 15]),
+};
 
 // fades in over the last 0.6 zoom steps before "zoom", so lines don't pop in suddenly
 const fadeIn = (zoom) => ["interpolate", ["linear"], ["zoom"], zoom - 0.6, 0, zoom, 0.9];
@@ -84,6 +100,41 @@ function halo(id, source, width) {
   };
 }
 
+// Place names. A name is hidden when it would touch another name (bigger areas win),
+// and each level fades in and out so names of different levels do not mix.
+function names(id, source, level, size, spacing) {
+  const [first, last] = LABEL_ZOOM[level];
+  const opacity = last == null
+    ? ["interpolate", ["linear"], ["zoom"], first, 0, first + 0.5, 1]
+    : ["interpolate", ["linear"], ["zoom"], first, 0, first + 0.5, 1, last - 0.5, 1, last, 0];
+  const def = {
+    id,
+    type: "symbol",
+    source,
+    minzoom: first,
+    layout: {
+      "text-field": ["get", "name"],
+      "text-font": FONT,
+      "text-size": size,
+      "text-max-width": 6,
+      "text-letter-spacing": spacing,
+      "text-padding": 6,
+      "text-allow-overlap": false,
+      "text-ignore-placement": false,
+      "symbol-sort-key": ["get", "rank"], // bigger areas get their name placed first
+    },
+    paint: {
+      "text-color": LABEL_COLORS[level],
+      "text-halo-color": "rgba(0, 0, 0, 0.85)",
+      "text-halo-width": 1.6,
+      "text-halo-blur": 0.4,
+      "text-opacity": opacity,
+    },
+  };
+  if (last != null) def.maxzoom = last;
+  return def;
+}
+
 // bottom to top
 const LAYER_DEFS = [
   { id: "selected-fill", type: "fill", source: "selected",
@@ -91,13 +142,19 @@ const LAYER_DEFS = [
   // appear by themselves when you zoom in to that level
   line("upazilas-line", "upazilas", LEVEL_COLORS.upazila, WIDTH.upazila, fadeIn(ZOOM.upazila), ZOOM.upazila - 0.6),
   line("unions-line", "unions", LEVEL_COLORS.union, WIDTH.union, fadeIn(ZOOM.union), ZOOM.union - 0.6),
+  line("districts-line", "districts", LEVEL_COLORS.district, WIDTH.district, fadeIn(ZOOM.district), ZOOM.district - 0.6),
   // always on
-  line("districts-line", "districts", LEVEL_COLORS.district, WIDTH.district, 0.85),
+  line("divisions-line", "divisions", LEVEL_COLORS.division, WIDTH.division, 0.95),
   halo("country-halo", "country", HALO.country),
   line("country-line", "country", LEVEL_COLORS.country, WIDTH.country, 1),
   // the area you chose, outlined in the colour of its level
   halo("selected-halo", "selected", HALO.selected),
   line("selected-line", "selected", BY_LEVEL, WIDTH.selected, 1),
+  // place names on top of everything
+  names("division-names", "divisionNames", "division", NAME_SIZE.division, 0.12),
+  names("district-names", "districtNames", "district", NAME_SIZE.district, 0.08),
+  names("upazila-names", "upazilaNames", "upazila", NAME_SIZE.upazila, 0.04),
+  names("union-names", "unionNames", "union", NAME_SIZE.union, 0.02),
 ];
 
 const count = (d) => (!d ? 0 : d.features ? d.features.length : 1);
@@ -118,10 +175,15 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
   viewRef.current = onView;
   dataRef.current = {
     country: layers.country,
+    divisions: layers.divisions,
     districts: layers.districts,
     upazilas: layers.upazilas,
     unions: layers.unions,
     selected,
+    divisionNames: layers.divisionNames,
+    districtNames: layers.districtNames,
+    upazilaNames: layers.upazilaNames,
+    unionNames: layers.unionNames,
   };
 
   function note(text) {
@@ -146,7 +208,7 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     let rendered = "?";
     try {
       present = LAYER_DEFS.filter((d) => m.getLayer(d.id)).length;
-      const existing = ["districts-line", "country-line"].filter((id) => m.getLayer(id));
+      const existing = ["divisions-line", "country-line"].filter((id) => m.getLayer(id));
       rendered = existing.length ? m.queryRenderedFeatures({ layers: existing }).length : 0;
     } catch (error) {
       note(`status: ${error.message}`);
@@ -154,8 +216,10 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     const d = dataRef.current;
     setStatus(
       `layers ${present}/${LAYER_DEFS.length} | in view: ${rendered}\n` +
-        `data: country ${count(d.country)}, districts ${count(d.districts)}, upazilas ${count(d.upazilas)}, ` +
-        `unions ${count(d.unions)}, selected ${count(d.selected)}\n` +
+        `data: country ${count(d.country)}, divisions ${count(d.divisions)}, districts ${count(d.districts)}, ` +
+        `upazilas ${count(d.upazilas)}, unions ${count(d.unions)}, selected ${count(d.selected)}\n` +
+        `names: divisions ${count(d.divisionNames)}, districts ${count(d.districtNames)}, ` +
+        `upazilas ${count(d.upazilaNames)}, unions ${count(d.unionNames)}\n` +
         `zoom ${m.getZoom().toFixed(1)} | events: ${events.current.join(", ") || "none"}\n` +
         `errors: ${notes.current.length ? notes.current.join(" ; ") : "none"}`
     );
@@ -248,6 +312,9 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     update("country");
   }, [layers.country]);
   useEffect(() => {
+    update("divisions");
+  }, [layers.divisions]);
+  useEffect(() => {
     update("districts");
   }, [layers.districts]);
   useEffect(() => {
@@ -259,6 +326,18 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
   useEffect(() => {
     update("selected");
   }, [selected]);
+  useEffect(() => {
+    update("divisionNames");
+  }, [layers.divisionNames]);
+  useEffect(() => {
+    update("districtNames");
+  }, [layers.districtNames]);
+  useEffect(() => {
+    update("upazilaNames");
+  }, [layers.upazilaNames]);
+  useEffect(() => {
+    update("unionNames");
+  }, [layers.unionNames]);
 
   // pin and name label
   useEffect(() => {
