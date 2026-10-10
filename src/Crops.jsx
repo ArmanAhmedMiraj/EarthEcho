@@ -7,6 +7,7 @@ import {
   isCoastalDistrict,
   nextStep,
   nowPosition,
+  poorReasons,
   rankRotations,
   segmentsOf,
   soilClass,
@@ -39,8 +40,9 @@ function Timeline({ rotation, lang, t, now }) {
         </div>
         <div className="tl-lane">
           {segs.map((s, i) => {
+            const isGap = s.kind !== "crop";
             const isFallow = s.kind === "fallow";
-            const crop = isFallow ? null : CROPS[s.crop];
+            const crop = isGap ? null : CROPS[s.crop];
             const classes = ["tl-bar", s.kind, s.cutLeft ? "cut-left" : "", s.cutRight ? "cut-right" : ""]
               .filter(Boolean)
               .join(" ");
@@ -48,11 +50,13 @@ function Timeline({ rotation, lang, t, now }) {
               <div
                 key={i}
                 className={classes}
-                data-crop={isFallow ? "fallow" : s.crop}
+                data-crop={isGap ? s.kind : s.crop}
                 style={{ gridColumn: `${s.c1} / ${s.c2}` }}
-                title={isFallow ? t.cropFallow : `${say(crop.name, lang)} · ~${crop.days} ${t.cropDays}`}
+                title={
+                  isFallow ? t.cropFallowHelp : isGap ? t.cropTurnaround : `${say(crop.name, lang)} · ~${crop.days} ${t.cropDays}`
+                }
               >
-                {s.c2 - s.c1 >= 5 ? (isFallow ? t.cropFallow : say(crop.short, lang)) : ""}
+                {s.c2 - s.c1 >= 5 ? (isFallow ? t.cropFallow : isGap ? "" : say(crop.short, lang)) : ""}
               </div>
             );
           })}
@@ -77,6 +81,8 @@ export default function Crops({ t, lang, districtName, soil, soilLabel }) {
     () => rankRotations({ land, irrigation: water === "yes", salt: saltOn, soil: soilKind }).slice(0, 3),
     [land, water, saltOn, soilKind]
   );
+  const nothingFits = ranked.length > 0 && ranked[0].score < 35;
+  const reasons = poorReasons({ land, irrigation: water === "yes", salt: saltOn });
   const rankWords = [t.cropRank1, t.cropRank2, t.cropRank3];
   const number = (n) => n.toLocaleString(lang === "bn" ? "bn-BD" : "en-US");
 
@@ -113,6 +119,23 @@ export default function Crops({ t, lang, districtName, soil, soilLabel }) {
       <p className="muted small">
         {t.cropSoilUsed}: {soilLabel || "—"}
         {salt === "auto" && coastal ? ` · ${t.cropSaltAutoNote}` : ""}
+      </p>
+
+      {nothingFits && (
+        <div className="crop-banner" role="status">
+          <strong>{t.cropNoneTitle}</strong>
+          {reasons.length > 0 && (
+            <ul>
+              {reasons.map((m, k) => (
+                <li key={k}>{say(m, lang)}</li>
+              ))}
+            </ul>
+          )}
+          <p>{t.cropNoneBody}</p>
+        </div>
+      )}
+      <p className="muted small">
+        {t.cropShown} {t.cropFallowHelp}
       </p>
 
       {ranked.map((r, i) => {

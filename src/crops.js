@@ -404,8 +404,34 @@ export function segmentsOf(rotation) {
       from -= SLOTS;
       to -= SLOTS;
     }
-    if (to - from >= 1) add("fallow", null, from, to);
+    const gap = to - from;
+    if (gap >= 1) add("fallow", null, from, to); // idle land, half a month or more
+    else if (gap > 0.1) add("turnaround", null, from, to); // short break for harvest and land preparation
   });
+  return out;
+}
+
+// Why the best choice is weak: names the answers that cause it. Empty list means nothing special.
+export function poorReasons(ctx) {
+  const out = [];
+  if (!ctx.irrigation) {
+    out.push({
+      en: "No dry-season water: Boro rice and potato need irrigation, so they are ruled out.",
+      bn: "শুষ্ক মৌসুমে পানি নেই: বোরো ধান ও আলুতে সেচ লাগে, তাই এগুলো বাদ গেছে।",
+    });
+  }
+  if (ctx.land === "low") {
+    out.push({
+      en: "Low land: water stays in the monsoon, and most of these rotations need drained land for their winter crops.",
+      bn: "নিচু জমি: বর্ষায় পানি জমে থাকে, আর এই ধারাগুলোর শীতকালীন ফসলে নিকাশযুক্ত জমি লাগে।",
+    });
+  }
+  if (ctx.salt) {
+    out.push({
+      en: "Salt: only the early salt-tolerant Boro suits salty fields, and it needs irrigation water.",
+      bn: "লবণ: লবণাক্ত জমিতে শুধু আগাম লবণসহনশীল বোরো মানায়, আর তাতে সেচের পানি লাগে।",
+    });
+  }
   return out;
 }
 
