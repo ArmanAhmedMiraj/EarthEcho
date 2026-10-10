@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
+import { CROP_TEXT } from "./i18nCrops.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
 import { fetchForecast, fetchHistory } from "./weather.js";
@@ -18,6 +19,8 @@ import {
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
+import Crops from "./Crops.jsx";
+import "./crops.css";
 
 const PARENT = { union: "upazila", upazila: "district", district: "division", division: null };
 
@@ -85,7 +88,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -479,6 +482,13 @@ export default function App() {
               history={history}
               loading={loading}
               error={error}
+            />
+            <Crops
+              t={t}
+              lang={lang}
+              districtName={place.district ? place.district.name : ""}
+              soil={soil}
+              soilLabel={soil ? t.soilNames[soil] : ""}
             />
           </div>
         </section>

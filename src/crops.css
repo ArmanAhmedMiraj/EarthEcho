@@ -1,0 +1,191 @@
+/* "What should I grow?" section. Uses transparent greys so it works in light and dark mode. */
+.crops {
+  margin-top: 28px;
+}
+
+.crops-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin: 12px 0 8px;
+}
+
+.crops-form label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.crops-form select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.rot-card {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 12px;
+  background: rgba(127, 127, 127, 0.07);
+}
+
+.rot-card.top {
+  border-color: #43a047;
+  box-shadow: 0 0 0 1px #43a047;
+}
+
+.rot-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.rot-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.rot-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rot-badge.poor {
+  background: #b26a00;
+}
+
+.rot-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 4px 20px;
+  margin-top: 10px;
+}
+
+.rot-lists h4 {
+  margin: 6px 0 2px;
+  font-size: 0.85rem;
+}
+
+.rot-lists ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.88rem;
+}
+
+.rot-lists li {
+  padding: 2px 0 2px 20px;
+  position: relative;
+}
+
+.rot-lists .fits li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #43a047;
+  font-weight: 700;
+}
+
+.rot-lists .warns li::before {
+  content: "!";
+  position: absolute;
+  left: 4px;
+  color: #ef8f00;
+  font-weight: 700;
+}
+
+.rot-next {
+  margin: 10px 0 2px;
+  font-weight: 600;
+}
+
+/* the season timeline */
+.tl-scroll {
+  overflow-x: auto;
+  margin-top: 10px;
+  padding-bottom: 4px;
+}
+
+.tl {
+  min-width: 640px;
+}
+
+.tl-months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+.tl-months span {
+  padding-left: 3px;
+  border-left: 1px solid rgba(127, 127, 127, 0.3);
+}
+
+.tl-lane {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(48, 1fr);
+  height: 34px;
+  margin-top: 2px;
+  background: rgba(127, 127, 127, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tl-bar {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 6px;
+  margin: 3px 1px;
+}
+
+.tl-bar.cut-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+.tl-bar.cut-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+
+.tl-bar[data-crop="boro"], .tl-bar[data-crop="boroSalt"] { background: #2e7d32; }
+.tl-bar[data-crop="taman"] { background: #66a82a; }
+.tl-bar[data-crop="aus"] { background: #9aa31f; }
+.tl-bar[data-crop="mustard"] { background: #e0a000; color: #2b2100; }
+.tl-bar[data-crop="potato"] { background: #8d6e63; }
+.tl-bar[data-crop="mungbean"] { background: #00897b; }
+
+.tl-bar.fallow {
+  background: repeating-linear-gradient(135deg, rgba(127, 127, 127, 0.25) 0 6px, rgba(127, 127, 127, 0.1) 6px 12px);
+  color: inherit;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.tl-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e53935;
+  pointer-events: none;
+}
+
+.crop-sources {
+  margin-top: 16px;
+  font-size: 0.85rem;
+}
+
+.crop-sources ol {
+  margin: 6px 0 0;
+  padding-left: 22px;
+}
