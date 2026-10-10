@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { CROP_TEXT } from "./i18nCrops.js";
+import { WATER_TEXT } from "./i18nWater.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
 import { fetchForecast, fetchHistory } from "./weather.js";
@@ -88,7 +89,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -489,6 +490,8 @@ export default function App() {
               districtName={place.district ? place.district.name : ""}
               soil={soil}
               soilLabel={soil ? t.soilNames[soil] : ""}
+              forecast={forecast}
+              place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
             />
           </div>
         </section>

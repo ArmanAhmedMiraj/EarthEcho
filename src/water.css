@@ -1,0 +1,148 @@
+/* "When do I need water?" section */
+.water {
+  margin-top: 28px;
+}
+
+.water-empty {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px dashed rgba(127, 127, 127, 0.5);
+  border-radius: 12px;
+}
+
+.water-card {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 14px;
+  background: rgba(127, 127, 127, 0.07);
+}
+
+.water-card.now,
+.water-card.today {
+  border-color: #e53935;
+  box-shadow: 0 0 0 1px #e53935;
+}
+
+.water-card.later {
+  border-color: #ef8f00;
+}
+
+.water-card.none {
+  border-color: #43a047;
+}
+
+.water-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.water-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.water-line {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+}
+
+.wd-tank {
+  flex: 0 0 auto;
+}
+
+.wd-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.wd-strip {
+  display: flex;
+  gap: 4px;
+  min-width: 560px;
+  align-items: flex-end;
+}
+
+.wd-day {
+  flex: 1 1 0;
+  min-width: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.wd-flag {
+  height: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.wd-bar,
+.wd-rain {
+  display: flex;
+  align-items: flex-end;
+  background: rgba(127, 127, 127, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.wd-bar {
+  height: 70px;
+}
+
+.wd-rain {
+  height: 26px;
+}
+
+.wd-bar span {
+  display: block;
+  width: 100%;
+  background: #43a047;
+}
+
+.wd-day.low .wd-bar span {
+  background: #e53935;
+}
+
+.wd-day.hit .wd-bar {
+  outline: 2px solid #e53935;
+}
+
+.wd-rain span {
+  display: block;
+  width: 100%;
+  background: #2f8fd8;
+}
+
+.wd-mm {
+  min-height: 1em;
+  color: #2f8fd8;
+  font-weight: 700;
+}
+
+.wd-lab {
+  opacity: 0.8;
+}
+
+/* save-as-PDF button on each plan card */
+.plan-btn {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: 1px solid #43a047;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.plan-btn:hover {
+  background: rgba(67, 160, 71, 0.15);
+}

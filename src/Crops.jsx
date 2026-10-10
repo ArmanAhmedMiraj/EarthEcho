@@ -16,7 +16,10 @@ import {
   soilClass,
   whenLabel,
 } from "./crops.js";
-import { CropPicture, TraitIcon } from "./CropArt.jsx";
+import { CropPicture, TraitIcon } from "./cropart.jsx";
+import Water from "./Water.jsx";
+import PlanPrint from "./PlanPrint.jsx";
+import { guessField } from "./water.js";
 
 const say = (obj, lang) => (obj ? obj[lang] || obj.en : "");
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -168,11 +171,13 @@ function VarietyPanel({ cropKey, info, fitsCalendar, onPick, t, lang, number }) 
   );
 }
 
-export default function Crops({ t, lang, districtName, soil, soilLabel }) {
+export default function Crops({ t, lang, districtName, soil, soilLabel, forecast, place }) {
   const [land, setLand] = useState("medium");
   const [water, setWater] = useState("yes");
   const [salt, setSalt] = useState("auto");
   const [picks, setPicks] = useState({}); // { rotationId: { cropKey: varietyId } }
+  const [waterNow, setWaterNow] = useState(null); // the answer of the water countdown, for the printed plan
+  const [planId, setPlanId] = useState(null); // which card the printed plan is made from
 
   const coastal = isCoastalDistrict(districtName);
   const cold = isColdDistrict(districtName);
@@ -204,6 +209,35 @@ export default function Crops({ t, lang, districtName, soil, soilLabel }) {
     const n = weeks ? Math.max(2, Math.round(days / 7)) : Math.max(2, Math.round(days / 30));
     return fill(t.cropRestText, { n: number(n), unit: weeks ? t.cropWeeks : t.cropMonths });
   };
+
+  const savePlan = (id) => {
+    setPlanId(id);
+    // wait one moment so the plan page is drawn, then open the print dialog (choose "Save as PDF")
+    setTimeout(() => window.print(), 150);
+  };
+
+  // what is probably growing today, from the first card, to start the water countdown
+  const first = ranked[0];
+  const firstInfo = chooseVarieties(first.rotation, ctx, picks[first.rotation.id] || {});
+  const guess = guessField(flowOf(first.rotation, firstInfo.daysMap, now), now);
+
+  // the plan the farmer asked to save
+  let plan = null;
+  const planCard = ranked.find((x) => x.rotation.id === planId);
+  if (planCard) {
+    const pinfo = chooseVarieties(planCard.rotation, ctx, picks[planCard.rotation.id] || {});
+    plan = {
+      rotation: planCard.rotation,
+      flow: flowOf(planCard.rotation, pinfo.daysMap, now),
+      chosen: pinfo.chosen,
+      ctx: { ...ctx, landLabel: land === "high" ? t.cropLandHigh : land === "low" ? t.cropLandLow : t.cropLandMedium },
+      place: place || { title: districtName || "—", path: "", lat: "", lon: "" },
+      soilLabel,
+      water: waterNow,
+      warns: planCard.warns,
+      restText,
+    };
+  }
 
   return (
     <section className="crops">
@@ -373,9 +407,27 @@ export default function Crops({ t, lang, districtName, soil, soilLabel }) {
             <p className="muted small">
               <strong>{t.cropTrial}:</strong> {say(r.rotation.trial, lang)} [{r.rotation.sources.join(", ")}]
             </p>
+
+            <button type="button" className="plan-btn" onClick={() => savePlan(r.rotation.id)}>
+              {t.planButton}
+            </button>
+            <p className="muted small">{t.planHelp}</p>
           </article>
         );
       })}
+
+      <Water
+        key={`${guess.crop}-${guess.stage}`}
+        t={t}
+        lang={lang}
+        forecast={forecast}
+        soil={soil}
+        soilLabel={soilLabel}
+        guess={guess}
+        onSummary={setWaterNow}
+      />
+
+      <PlanPrint t={t} lang={lang} plan={plan} />
 
       <p className="muted small">{t.cropPictureNote}</p>
       <p className="muted small">{t.cropVarietyNote}</p>

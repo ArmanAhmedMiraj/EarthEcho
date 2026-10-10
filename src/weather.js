@@ -18,21 +18,24 @@ export async function searchPlace(query, lang) {
   }));
 }
 
+// 16 days ahead, plus the last 7 days (what really fell and evaporated), so the water countdown can look back.
+const PAST_DAYS = 7;
+
 export async function fetchForecast(lat, lon) {
   const daily =
     "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration";
-  const url = `${FORECAST}?latitude=${lat}&longitude=${lon}&daily=${daily}&timezone=auto&forecast_days=16`;
+  const url = `${FORECAST}?latitude=${lat}&longitude=${lon}&daily=${daily}&timezone=auto&past_days=${PAST_DAYS}&forecast_days=16`;
   const d = (await getJson(url)).daily;
-  return {
-    days: d.time.map((date, i) => ({
-      date,
-      tmax: d.temperature_2m_max[i],
-      tmin: d.temperature_2m_min[i],
-      rain: d.precipitation_sum[i],
-      chance: d.precipitation_probability_max[i],
-      et0: d.et0_fao_evapotranspiration[i],
-    })),
-  };
+  const all = d.time.map((date, i) => ({
+    date,
+    tmax: d.temperature_2m_max[i],
+    tmin: d.temperature_2m_min[i],
+    rain: d.precipitation_sum[i],
+    chance: d.precipitation_probability_max[i],
+    et0: d.et0_fao_evapotranspiration[i],
+  }));
+  // the first PAST_DAYS entries are days gone by; "days" stays what it always was: today and the days ahead
+  return { past: all.slice(0, PAST_DAYS), days: all.slice(PAST_DAYS) };
 }
 
 const average = (list) => (list.length ? list.reduce((a, b) => a + b, 0) / list.length : null);
