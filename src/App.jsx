@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { CROP_TEXT } from "./i18nCrops.js";
+import { TABS_TEXT } from "./i18nTabs.js";
 import { WATER_TEXT } from "./i18nWater.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
@@ -22,6 +23,15 @@ import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
 import Crops from "./Crops.jsx";
 import "./crops.css";
+import "./tabs.css";
+
+// The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
+const TABS = ["location", "weather", "crops"];
+
+function tabFromHash() {
+  const id = window.location.hash.replace(/^#\/?/, "");
+  return TABS.includes(id) ? id : "location";
+}
 
 const PARENT = { union: "upazila", upazila: "district", district: "division", division: null };
 
@@ -80,6 +90,7 @@ export default function App() {
   const [country, setCountry] = useState("BD");
   const [focus, setFocus] = useState(null);
   const [message, setMessage] = useState("");
+  const [tab, setTab] = useState(tabFromHash);
   const [view, setView] = useState(null); // { zoom, bounds } of the map right now
   const [viewUnions, setViewUnions] = useState(null); // unions of the districts on screen
   const pickToken = useRef(0);
@@ -93,7 +104,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -111,6 +122,21 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
     saveChoice("ef-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const onHash = () => setTab(tabFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // The map is built fresh each time the Location page opens, so start it on the current choice.
+  useEffect(() => {
+    if (tab !== "location") return;
+    const found = deepestOf(place);
+    if (found && found.item.bbox) setFocus({ key: Date.now(), bbox: found.item.bbox });
+    else setFocus({ key: Date.now(), center: [pos.lon, pos.lat], zoom: 9 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   useEffect(() => {
     loadSoilMap().then(setSoilMap);
@@ -433,7 +459,44 @@ export default function App() {
         </div>
       </header>
 
-      <main className="layout">
+      <nav className="tabs" aria-label={t.tabsLabel}>
+        {TABS.map((id) => (
+          <button
+            key={id}
+            className="tab"
+            aria-current={tab === id ? "page" : undefined}
+            onClick={() => {
+              window.location.hash = `/${id}`;
+            }}
+          >
+            {{ location: t.tabLocation, weather: t.tabWeather, crops: t.tabCrops }[id]}
+          </button>
+        ))}
+      </nav>
+
+      <div className="locbar">
+        <div className="locbar-place">
+          <strong>{label.title}</strong>
+          <span className="muted small">
+            {label.path && label.path !== label.title ? `${label.path} · ` : ""}
+            {pos.lat}, {pos.lon}
+            {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
+          </span>
+        </div>
+        {tab !== "location" && (
+          <button
+            className="btn"
+            onClick={() => {
+              window.location.hash = "/location";
+            }}
+          >
+            {t.locbarChange}
+          </button>
+        )}
+      </div>
+
+      {tab === "location" && (
+        <main className="layout">
         <section className="panel">
           <h2>{t.step1}</h2>
           <AdminPicker
@@ -491,7 +554,7 @@ export default function App() {
 
         <section className="stage">
           <div>
-            <div className="map-wrap">
+            <div className="map-wrap tall">
               <MapPicker
                 pos={pos}
                 label={label}
@@ -512,6 +575,12 @@ export default function App() {
             <p className="muted small">{t.legendSelected}</p>
             <p className="muted small">{t.legendNames}</p>
           </div>
+        </section>
+        </main>
+      )}
+
+      {tab === "weather" && (
+        <main className="page">
           <div className="viewer">
             <h2>{t.step3}</h2>
             <Weather
@@ -522,6 +591,13 @@ export default function App() {
               loading={loading}
               error={error}
             />
+          </div>
+        </main>
+      )}
+
+      {tab === "crops" && (
+        <main className="page">
+          <div className="viewer">
             <Crops
               t={t}
               lang={lang}
@@ -535,8 +611,8 @@ export default function App() {
               place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
             />
           </div>
-        </section>
-      </main>
+        </main>
+      )}
 
       <footer className="footer">{t.footer}</footer>
     </div>
