@@ -5,6 +5,7 @@ import { GROUPS, SOURCES } from "./dataCatalogue.js";
 export default function Sources({ t, lang, lat, lon }) {
   const [live, setLive] = useState({ state: "loading", data: null });
   const [filter, setFilter] = useState("all");
+  const [sat, setSat] = useState({ state: "loading", data: null });
 
   useEffect(() => {
     let cancelled = false;
@@ -22,6 +23,22 @@ export default function Sources({ t, lang, lat, lon }) {
     };
   }, [lat, lon]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setSat({ state: "loading", data: null });
+    fetch(`/api/satellite?lat=${lat}&lon=${lon}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => {
+        if (!cancelled) setSat({ state: data.ok ? "ok" : "error", data });
+      })
+      .catch(() => {
+        if (!cancelled) setSat({ state: "error", data: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lat, lon]);
+
   const locale = lang === "bn" ? "bn-BD" : "en-GB";
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const day = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" });
@@ -31,6 +48,9 @@ export default function Sources({ t, lang, lat, lon }) {
   const liveCount = SOURCES.filter((s) => s.status === "live").length;
   const shown = SOURCES.filter((s) => filter === "all" || s.status === filter);
   const data = live.data;
+  const satData = sat.data;
+  const daysOld = (iso) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
+  const waterPct = (v) => whole.format(v * 100);
 
   return (
     <div className="viewer">
@@ -69,6 +89,49 @@ export default function Sources({ t, lang, lat, lon }) {
               {clock.format(new Date(data.provenance.fetchedAt))}
             </p>
             <p className="small warn-soft">{t.liveCaution}</p>
+          </>
+        )}
+      </section>
+
+      <section className="live-card">
+        <h3>{t.satTitle}</h3>
+        {sat.state === "loading" && <p className="muted">{t.satLoading}</p>}
+        {sat.state === "error" && <p className="warn">{t.satError}</p>}
+        {sat.state === "ok" && satData && (
+          <>
+            <div className="stats">
+              <div className="stat">
+                <strong>{satData.soilSurface ? `${waterPct(satData.soilSurface.volumetric)}%` : t.liveNoData}</strong>
+                <span>{t.satSurface}</span>
+              </div>
+              <div className="stat">
+                <strong>{satData.soilRoot ? `${waterPct(satData.soilRoot.volumetric)}%` : t.liveNoData}</strong>
+                <span>{t.satRoot}</span>
+              </div>
+              <div className="stat">
+                <strong>
+                  {!satData.rainNow
+                    ? t.liveNoData
+                    : satData.rainNow.rateMmHr === 0
+                      ? t.satRainNone
+                      : `${satData.rainNow.rateMmHr} mm/hr`}
+                </strong>
+                <span>{t.satRain}</span>
+              </div>
+            </div>
+            <p className="small muted">
+              {satData.soilSurface ? (
+                <>
+                  {t.satReading}: {day.format(new Date(satData.soilSurface.date))} ({t.satDaysOld(daysOld(satData.soilSurface.date))}) ·{" "}
+                  {t.satWater(waterPct(satData.soilSurface.volumetric))} ·{" "}
+                </>
+              ) : (
+                <>{t.satNoSoil} · </>
+              )}
+              {satData.provenance.soil.name}, {satData.provenance.soil.resolution} · {t.satRead} ·{" "}
+              {t.satRounded}
+            </p>
+            <p className="small muted">{t.satRainNote}</p>
           </>
         )}
       </section>
