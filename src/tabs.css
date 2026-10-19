@@ -1,0 +1,37 @@
+/* Glass pill tabs and the location bar. Colours come from styles.css. */
+.tabs { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; padding: 4px 2px 8px; }
+.tab {
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  background: linear-gradient(180deg, var(--glass-1), var(--glass-2));
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 9px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 var(--edge), 0 8px 20px -14px var(--shadow);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+.tab:hover { color: var(--text); transform: translateY(-1px); }
+.tab[aria-current="page"] {
+  color: var(--accent-text);
+  font-weight: 700;
+  border-color: transparent;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a1) 85%, transparent), color-mix(in srgb, var(--a2) 85%, transparent));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 10px 26px -8px var(--a1);
+}
+
+.locbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 6px; padding: 10px 16px; border-radius: 18px; }
+.locbar-place { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.locbar-place strong { overflow-wrap: anywhere; font-weight: 800; letter-spacing: -0.01em; }
+.locbar .btn { padding: 6px 14px; }
+
+.page { margin-top: 14px; }
+.map-wrap.tall { height: max(420px, 64vh); }
+
+/* Dark mode: older green text from the crop planner is too dark on a dark glass card */
+:root[data-theme="dark"] .flow-variety { color: #6ee7b7; }
+:root[data-theme="dark"] .rot-lists .fits li::before { color: #6ee7b7; }
