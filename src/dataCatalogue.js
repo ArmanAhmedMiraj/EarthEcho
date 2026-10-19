@@ -1,0 +1,200 @@
+// The data catalogue: every source EarthEcho uses or plans to use, with its licence and limits.
+// status "live" = the app already uses it today. "planned" = built in the named stage.
+// licenceChecked: false means we still have to read the exact terms before we ship it.
+export const GROUPS = [
+  { id: "nasa", en: "NASA Earth observation", bn: "নাসার পৃথিবী পর্যবেক্ষণ" },
+  { id: "soil", en: "Soil", bn: "মাটি" },
+  { id: "weather", en: "Weather and hazards", bn: "আবহাওয়া ও দুর্যোগ" },
+  { id: "farm", en: "Crops and markets", bn: "ফসল ও বাজার" },
+  { id: "geo", en: "Maps and boundaries", bn: "মানচিত্র ও সীমানা" },
+];
+
+export const SOURCES = [
+  // ---- NASA ----
+  {
+    id: "power", group: "nasa", name: "NASA POWER", publisher: "NASA Langley Research Center",
+    provides: "Daily and monthly temperature, rain, humidity, wind, sunshine, and model soil wetness; ten years of history.",
+    resolution: "About 55 km cell", update: "Daily, about 2 to 3 days behind", licence: "NASA open data, credit NASA POWER",
+    access: "Open API", url: "https://power.larc.nasa.gov/docs/", status: "live", stage: 3, licenceChecked: true,
+    limit: "Too coarse for one field. Soil wetness is a model estimate, not a measurement.",
+  },
+  {
+    id: "gpm", group: "nasa", name: "GPM IMERG rainfall", publisher: "NASA Global Precipitation Measurement",
+    provides: "Satellite rain estimates every 30 minutes: recent rain, dry spells and heavy-rain checks.",
+    resolution: "About 10 km", update: "Near real time about 12 hours behind; final data later", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://gpm.nasa.gov/data", status: "planned", stage: 5, licenceChecked: false,
+    limit: "An estimate of rain that fell. It is not a forecast.",
+  },
+  {
+    id: "smap", group: "nasa", name: "SMAP soil moisture", publisher: "NASA Soil Moisture Active Passive",
+    provides: "Satellite surface soil moisture for the wetness icon and drought checks.",
+    resolution: "About 9 to 36 km", update: "Every 2 to 3 days", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://smap.jpl.nasa.gov/data/", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Regional estimate. It cannot tell the moisture of one handful of soil.",
+  },
+  {
+    id: "nisar", group: "nasa", name: "NISAR radar", publisher: "NASA and ISRO",
+    provides: "Radar images that see through cloud: floods, crop and land change, soil moisture as products are released.",
+    resolution: "Tens of metres", update: "Every 12 days", licence: "Open through NASA Earthdata and ASF",
+    access: "Free Earthdata login", url: "https://nisar.jpl.nasa.gov/", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Soil moisture is not valid over snow, frozen ground and very dense forest.",
+  },
+  {
+    id: "nasadem", group: "nasa", name: "NASADEM elevation", publisher: "NASA LP DAAC",
+    provides: "Height above sea level, slope and aspect, for steep land and mountain checks.",
+    resolution: "About 30 m", update: "Fixed map", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/products/nasadem_hgtv001/", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Does not show buildings or trees, and is older in places.",
+  },
+  {
+    id: "modis-snow", group: "nasa", name: "MODIS snow cover", publisher: "NASA NSIDC",
+    provides: "Daily snow cover, to tell permanent snow from seasonal snow in Nepal, Bhutan and the mountains.",
+    resolution: "About 500 m", update: "Daily", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://nsidc.org/data/mod10a1", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Clouds leave gaps, so we combine many days.",
+  },
+  {
+    id: "modis-ndvi", group: "nasa", name: "MODIS and VIIRS vegetation (NDVI, EVI)", publisher: "NASA LP DAAC",
+    provides: "How green the land is, season by season, compared with its normal.",
+    resolution: "250 m to 1 km", update: "Every 16 days", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/product_search/?collections=Combined+MODIS", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Shows greenness. It does not identify the crop or its variety.",
+  },
+  {
+    id: "lst", group: "nasa", name: "MODIS and VIIRS land surface temperature", publisher: "NASA LP DAAC",
+    provides: "How hot the ground surface is, for heat and frost screening.",
+    resolution: "About 1 km", update: "Daily", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/products/mod11a1v061/", status: "planned", stage: 5, licenceChecked: false,
+    limit: "Ground temperature is not air temperature, and clouds leave gaps.",
+  },
+  {
+    id: "gldas", group: "nasa", name: "GLDAS land model", publisher: "NASA GSFC",
+    provides: "Modelled soil moisture, runoff and evaporation for drought and water-balance checks.",
+    resolution: "About 25 km", update: "Daily to monthly", licence: "NASA open data",
+    access: "Free Earthdata login", url: "https://ldas.gsfc.nasa.gov/gldas", status: "planned", stage: 5, licenceChecked: false,
+    limit: "A model, not a direct observation.",
+  },
+  {
+    id: "gibs", group: "nasa", name: "GIBS and Worldview imagery", publisher: "NASA Earthdata",
+    provides: "Satellite picture layers for the Earth Explorer globe and time slider.",
+    resolution: "Varies by layer", update: "Daily for most layers", licence: "NASA open data",
+    access: "Open map tiles", url: "https://nasa-gibs.github.io/gibs-api-docs/", status: "planned", stage: 4, licenceChecked: false,
+    limit: "Pictures to look at. They are not numbers to calculate with.",
+  },
+  {
+    id: "firms", group: "nasa", name: "FIRMS fire detections", publisher: "NASA",
+    provides: "Satellite fire and heat detections for the disaster page.",
+    resolution: "375 m to 1 km", update: "About 3 hours", licence: "NASA open data",
+    access: "Free map key", url: "https://firms.modaps.eosdis.nasa.gov/", status: "planned", stage: 9, licenceChecked: false,
+    limit: "A detection is not a confirmed fire report.",
+  },
+  // ---- Soil ----
+  {
+    id: "soilgrids", group: "soil", name: "SoilGrids", publisher: "ISRIC World Soil Information",
+    provides: "Sand, silt, clay, pH, carbon and more at six depths. Already used for the Bangladesh soil map.",
+    resolution: "250 m", update: "Fixed map", licence: "CC BY 4.0",
+    access: "Open", url: "https://soilgrids.org/", status: "live", stage: 6, licenceChecked: true,
+    limit: "ISRIC warns it is not a farm-level map. Always show its uncertainty.",
+  },
+  {
+    id: "openlandmap", group: "soil", name: "OpenLandMap", publisher: "OpenGeoHub",
+    provides: "More global soil and land layers to cross-check SoilGrids.",
+    resolution: "250 m", update: "Fixed map", licence: "Differs by layer, mostly CC BY 4.0",
+    access: "Open", url: "https://openlandmap.org/", status: "planned", stage: 6, licenceChecked: false,
+    limit: "Read the licence of each layer before using it.",
+  },
+  {
+    id: "gssurgo", group: "soil", name: "gSSURGO and Web Soil Survey", publisher: "USDA NRCS",
+    provides: "Detailed soil series and properties for the United States.",
+    resolution: "Mapped at about 1:12,000 to 1:24,000", update: "Yearly", licence: "US government data, open",
+    access: "Open", url: "https://websoilsurvey.nrcs.usda.gov/", status: "planned", stage: 6, licenceChecked: false,
+    limit: "United States only.",
+  },
+  {
+    id: "srdi", group: "soil", name: "SRDI soil resources", publisher: "Soil Resource Development Institute, Bangladesh",
+    provides: "Soil nutrient information by upazila and union.",
+    resolution: "Union level", update: "Irregular", licence: "To be confirmed with SRDI",
+    access: "Public pages", url: "https://srdi.gov.bd/", status: "planned", stage: 6, licenceChecked: false,
+    limit: "We must confirm reuse terms before copying any data.",
+  },
+  {
+    id: "shc", group: "soil", name: "Soil Health Card", publisher: "Government of India",
+    provides: "Soil-test nutrient results and advice, in many languages.",
+    resolution: "Farm and village level", update: "Regular cycles", licence: "To be confirmed",
+    access: "Public portal", url: "https://soilhealth.dac.gov.in/", status: "planned", stage: 6, licenceChecked: false,
+    limit: "Bulk reuse needs permission.",
+  },
+  {
+    id: "wosis", group: "soil", name: "WoSIS soil profiles", publisher: "ISRIC",
+    provides: "Real soil laboratory profiles to train and test our soil model.",
+    resolution: "Point samples", update: "Periodic", licence: "Per record, mostly open",
+    access: "Open", url: "https://www.isric.org/explore/wosis", status: "planned", stage: 6, licenceChecked: false,
+    limit: "Not every record may be redistributed.",
+  },
+  // ---- Weather and hazards ----
+  {
+    id: "open-meteo", group: "weather", name: "Open-Meteo forecast", publisher: "Open-Meteo",
+    provides: "The 16-day forecast and last 7 days of weather in the app today.",
+    resolution: "About 2 to 11 km", update: "Hourly", licence: "CC BY 4.0, free for non-commercial use",
+    access: "Open API", url: "https://open-meteo.com/", status: "live", stage: 8, licenceChecked: true,
+    limit: "Not a NASA source. Commercial use needs a paid plan.",
+  },
+  {
+    id: "official-warnings", group: "weather", name: "National weather and flood warnings", publisher: "BMD, FFWC, IMD, NDMA, NWS and others",
+    provides: "Official cyclone, flood and storm warnings. We never turn a rumour into a warning.",
+    resolution: "By warning area", update: "As issued", licence: "Different for each service",
+    access: "Public pages and feeds", url: "https://www.gdacs.org/", status: "planned", stage: 9, licenceChecked: false,
+    limit: "Coverage and formats differ by country.",
+  },
+  {
+    id: "sentinel", group: "weather", name: "Sentinel-1 and Sentinel-2", publisher: "Copernicus (ESA)",
+    provides: "Radar for floods and optical images for crop condition.",
+    resolution: "10 m", update: "Every 5 to 6 days", licence: "Free, full and open",
+    access: "Free account", url: "https://dataspace.copernicus.eu/", status: "planned", stage: 5, licenceChecked: false,
+    limit: "European data, not NASA. Optical images are blocked by cloud.",
+  },
+  // ---- Crops ----
+  {
+    id: "bd-crops", group: "farm", name: "BRRI, BARI and DAE crop guidance", publisher: "Bangladesh research institutes",
+    provides: "Crop varieties, planting months and growing days used by the crop planner today.",
+    resolution: "Country and district", update: "Reviewed by us", licence: "Public guidance, cited",
+    access: "Public pages", url: "https://brri.gov.bd/", status: "live", stage: 11, licenceChecked: false,
+    limit: "Hand-entered. We will add yield and cost data in Stage 11.",
+  },
+  {
+    id: "faostat", group: "farm", name: "FAOSTAT", publisher: "FAO",
+    provides: "Crop area, yield and production by country and year.",
+    resolution: "Country", update: "Yearly", licence: "Mostly CC BY 4.0, check each dataset",
+    access: "Open", url: "https://www.fao.org/faostat/", status: "planned", stage: 12, licenceChecked: false,
+    limit: "Country totals, not village yields.",
+  },
+  {
+    id: "wapor", group: "farm", name: "FAO WaPOR", publisher: "FAO",
+    provides: "Water use and crop water productivity.",
+    resolution: "30 m to 250 m", update: "10 days", licence: "Open, check terms",
+    access: "Open API", url: "https://www.fao.org/in-action/remote-sensing-for-water-productivity/", status: "planned", stage: 10, licenceChecked: false,
+    limit: "Covers Africa and the Near East fully, and South Asia only partly. We must check coverage.",
+  },
+  // ---- Maps ----
+  {
+    id: "bd-admin", group: "geo", name: "Bangladesh boundaries", publisher: "Administrative boundary files",
+    provides: "Division, district, upazila and union borders used by the map today.",
+    resolution: "Union level", update: "Fixed", licence: "Open boundary data",
+    access: "Bundled in the app", url: "https://github.com/ArmanAhmedMiraj/EarthEcho", status: "live", stage: 4, licenceChecked: false,
+    limit: "Other countries arrive in Stage 4.",
+  },
+  {
+    id: "geoboundaries", group: "geo", name: "geoBoundaries", publisher: "William & Mary geoLab",
+    provides: "Borders for India, Pakistan, Nepal, Myanmar, Bhutan and the USA.",
+    resolution: "Varies by country", update: "Periodic", licence: "Mostly CC BY 4.0, check each country",
+    access: "Open", url: "https://www.geoboundaries.org/", status: "planned", stage: 4, licenceChecked: false,
+    limit: "Completeness and age differ by country.",
+  },
+  {
+    id: "osm", group: "geo", name: "OpenStreetMap", publisher: "OpenStreetMap contributors",
+    provides: "Shops, roads and points of interest for the supplier map.",
+    resolution: "Point data", update: "Continuous", licence: "ODbL, credit required",
+    access: "Open", url: "https://www.openstreetmap.org/copyright", status: "planned", stage: 13, licenceChecked: false,
+    limit: "A shop on the map is not proof of what it has in stock.",
+  },
+];

@@ -3,6 +3,7 @@ import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { CROP_TEXT } from "./i18nCrops.js";
 import { TABS_TEXT } from "./i18nTabs.js";
+import { DATA_TEXT } from "./i18nData.js";
 import { WATER_TEXT } from "./i18nWater.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
@@ -22,11 +23,13 @@ import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
 import Crops from "./Crops.jsx";
+import Sources from "./Sources.jsx";
 import "./crops.css";
 import "./tabs.css";
+import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["location", "weather", "crops"];
+const TABS = ["location", "weather", "crops", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
@@ -104,7 +107,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -469,7 +472,7 @@ export default function App() {
               window.location.hash = `/${id}`;
             }}
           >
-            {{ location: t.tabLocation, weather: t.tabWeather, crops: t.tabCrops }[id]}
+            {{ location: t.tabLocation, weather: t.tabWeather, crops: t.tabCrops, data: t.tabData }[id]}
           </button>
         ))}
       </nav>
@@ -611,6 +614,12 @@ export default function App() {
               place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
             />
           </div>
+        </main>
+      )}
+
+      {tab === "data" && (
+        <main className="page">
+          <Sources t={t} lang={lang} lat={pos.lat} lon={pos.lon} />
         </main>
       )}
 
