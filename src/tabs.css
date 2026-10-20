@@ -30,7 +30,7 @@
 .locbar .btn { padding: 6px 14px; }
 
 .page { margin-top: 14px; }
-.map-wrap.tall { height: max(420px, 64vh); }
+.map-wrap.tall { height: max(420px, calc(100vh - 230px)); }
 
 /* Dark mode: older green text from the crop planner is too dark on a dark glass card */
 :root[data-theme="dark"] .flow-variety { color: #6ee7b7; }

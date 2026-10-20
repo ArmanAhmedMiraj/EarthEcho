@@ -86,7 +86,8 @@ h3 { margin: 16px 0 6px; font-size: 0.97rem; font-weight: 700; }
 .muted { color: var(--muted); }
 .warn { color: var(--warn); }
 
-.app { max-width: 1240px; margin: 0 auto; padding: 14px 16px 8px; position: relative; z-index: 1; }
+/* the page uses the whole screen width; only the side space grows with the screen so content never touches the edge */
+.app { max-width: none; margin: 0 auto; padding: 14px clamp(16px, 3vw, 56px) 8px; position: relative; z-index: 1; }
 .topbar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
 .brand { display: flex; gap: 12px; align-items: center; }
 .logo {

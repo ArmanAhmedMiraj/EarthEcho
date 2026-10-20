@@ -12,3 +12,6 @@
 .as-src ol { margin: 6px 0 0; padding-left: 22px; }
 .as-form { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 8px 0; background: var(--bg); }
 .as-form input { flex: 1 1 220px; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); min-width: 0; }
+
+/* very wide screens: keep the chat text a readable length, the question box stays full width */
+.as-log { max-width: 1100px; }
