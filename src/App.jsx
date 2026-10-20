@@ -28,6 +28,7 @@ import Prepare from "./Prepare.jsx";
 import Gallery, { usePlacePhotos } from "./Gallery.jsx";
 import { START_TEXT } from "./i18nStart.js";
 import { ENV_TEXT } from "./i18nEnv.js";
+import { WEATHER_TEXT } from "./i18nWeather.js";
 import { SOIL_TEXT } from "./i18nSoil.js";
 import Soil from "./Soil.jsx";
 import { SUIT_TEXT } from "./i18nSuit.js";
@@ -134,7 +135,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -786,12 +787,13 @@ export default function App() {
           <div className="viewer">
             <h2>{t.step3}</h2>
             <Weather
+              key={`${pos.lat},${pos.lon}`}
               t={t}
               lang={lang}
-              forecast={forecast}
+              lat={pos.lat}
+              lon={pos.lon}
+              country={country}
               history={history}
-              loading={loading}
-              error={error}
             />
           </div>
         </main>

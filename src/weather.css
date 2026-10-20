@@ -1,0 +1,23 @@
+.wx-now { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
+.wx-big { font-size: 3.4rem; line-height: 1; }
+.wx-temp { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--text); }
+.wx-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 14px; margin-top: 12px; }
+.wx-fact span { display: block; font-size: 0.78rem; color: var(--muted); }
+.wx-fact strong { font-size: 0.98rem; color: var(--text); }
+.wx-alert { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); margin: 8px 0; background: var(--panel); }
+.wx-alert b { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.wx-alert.severe { border-color: #c0392b; } .wx-alert.severe b { background: #c0392b; color: #fff; }
+.wx-alert.warning { border-color: var(--amber); } .wx-alert.warning b { background: var(--amber); color: #1b1b1b; }
+.wx-alert.watch b { background: var(--border); color: var(--text); }
+.wx-svg { width: 100%; height: auto; max-height: 230px; display: block; }
+.wx-svg text { fill: var(--muted); font-size: 10px; }
+.wx-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.wx-box { padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+.wx-box h4 { margin: 0 0 6px; }
+.wx-news { list-style: none; padding: 0; margin: 0; }
+.wx-news li { padding: 9px 0; border-bottom: 1px solid var(--border); }
+.wx-news a { color: var(--text); font-weight: 600; text-decoration: none; }
+.wx-news a:hover { text-decoration: underline; }
+.wx-outlook { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.wx-outlook .card { text-align: center; padding: 8px 6px; }
+.wx-outlook .ic { font-size: 1.4rem; }

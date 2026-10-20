@@ -1,6 +1,13 @@
 {
   "functions": {
-    "api/soil.js": { "maxDuration": 30 },
-    "api/environment.js": { "maxDuration": 30 }
+    "api/soil.js": {
+      "maxDuration": 30
+    },
+    "api/environment.js": {
+      "maxDuration": 30
+    },
+    "api/news.js": {
+      "maxDuration": 40
+    }
   }
 }
