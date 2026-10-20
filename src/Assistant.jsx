@@ -36,7 +36,7 @@ async function buildContext({ lat, lon, label, country, soilData, env }) {
 function renderAnswer(text) {
   return text.split("\n").map((line, i) => (
     <p key={i}>
-      {line.split(/(\[S\d+\])/g).map((part, j) => (/^\[S\d+\]$/.test(part) ? <sup key={j} className="as-cite">{part.slice(1, -1)}</sup> : part.replace(/\*\*/g, ""))) }
+      {line.split(/([\[【]S\d+[\]】])/g).map((part, j) => (/^[\[【]S\d+[\]】]$/.test(part) ? <sup key={j} className="as-cite">{part.slice(1, -1)}</sup> : part.replace(/\*\*/g, ""))) }
     </p>
   ));
 }
@@ -47,7 +47,11 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
   const [busy, setBusy] = useState(false);
   const ctxRef = useRef(null);
   const endRef = useRef(null);
-  useEffect(() => { ctxRef.current = null; }, [lat, lon]);
+  // the farm's weather and best crops are gathered as soon as the tab opens, so the first question does not wait for them
+  useEffect(() => {
+    ctxRef.current = buildContext({ lat, lon, label, country, soilData, env });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lat, lon, env, soilData]);
   useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ block: "nearest" }); }, [messages, busy]);
 
   async function ask(q) {
@@ -61,20 +65,54 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
     }
     setBusy(true);
     try {
-      if (!ctxRef.current) ctxRef.current = await buildContext({ lat, lon, label, country, soilData, env });
+      if (!ctxRef.current) ctxRef.current = buildContext({ lat, lon, label, country, soilData, env });
+      const context = await ctxRef.current;
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question, lang, context: ctxRef.current }),
+        body: JSON.stringify({ question, lang, context }),
       });
-      const data = await response.json().catch(() => null);
-      if (data && data.ok) setMessages((m) => [...m, { role: "bot", text: data.answer, sources: data.sources || [] }]);
-      else {
+      const failWith = (data) => {
         const map = { nokey: t.asNoKey, quota: t.asQuota, rate: t.asRate, badkey: t.asBadKey };
-        setMessages((m) => [...m, { role: "bot", error: map[data && data.error] || t.asFail, detail: data && data.detail }]);
+        setMessages((m) => [...m.filter((x) => !x.streaming), { role: "bot", error: map[data && data.error] || t.asFail, detail: data && data.detail }]);
+      };
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("ndjson") || !response.body) {
+        failWith(await response.json().catch(() => ({ detail: `server replied HTTP ${response.status}` })));
+      } else {
+        // the answer arrives piece by piece: show each piece as soon as it comes
+        let sources = [];
+        let answer = "";
+        let started = false;
+        let failed = false;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        const show = () => setMessages((m) => {
+          const rest = m.filter((x) => !x.streaming);
+          return [...rest, { role: "bot", text: answer, sources, streaming: true }];
+        });
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let i;
+          while ((i = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, i).trim();
+            buffer = buffer.slice(i + 1);
+            if (!line) continue;
+            let o = null;
+            try { o = JSON.parse(line); } catch { continue; }
+            if (o.sources) sources = o.sources;
+            else if (o.d) { answer += o.d; started = true; show(); }
+            else if (o.error && !started) { failed = true; failWith(o); }
+          }
+        }
+        setMessages((m) => m.map((x) => (x.streaming ? { role: "bot", text: x.text, sources: x.sources } : x)));
+        if (!started && !failed) setMessages((m) => [...m, { role: "bot", error: t.asFail }]);
       }
-    } catch {
-      setMessages((m) => [...m, { role: "bot", error: t.asFail }]);
+    } catch (e) {
+      setMessages((m) => [...m, { role: "bot", error: t.asFail, detail: String(e && e.message).slice(0, 120) }]);
     } finally {
       setBusy(false);
     }
@@ -112,7 +150,7 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
             )}
           </div>
         ))}
-        {busy && <div className="as-msg bot"><p className="muted">{t.asThinking}</p></div>}
+        {busy && !messages.some((m) => m.streaming) && <div className="as-msg bot"><p className="muted">{t.asThinking}</p></div>}
         <div ref={endRef} />
       </div>
       <form className="as-form" onSubmit={(e) => { e.preventDefault(); ask(); }}>
