@@ -22,6 +22,7 @@ import {
   pathText,
   titleOf,
 } from "./admin.js";
+import { nearestPlace } from "./nearby.js";
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
@@ -100,6 +101,7 @@ export default function App() {
   const [tab, setTab] = useState(tabFromHash);
   const [view, setView] = useState(null); // { zoom, bounds } of the map right now
   const started = useRef(false);
+  const [nearest, setNearest] = useState(null); // nearest named village / neighbourhood, from OpenStreetMap
   const pickToken = useRef(0);
 
   const [forecast, setForecast] = useState(null);
@@ -230,6 +232,21 @@ export default function App() {
       cancelled = true;
     };
   }, [viewKeys, admin]);
+
+  // The nearest named village or neighbourhood of the chosen point (after a short pause, so a fast series of taps asks once)
+  useEffect(() => {
+    setNearest(null);
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      nearestPlace(pos.lat, pos.lon, lang, controller.signal)
+        .then(setNearest)
+        .catch(() => {});
+    }, 700);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [pos.lat, pos.lon, lang]);
 
   // Load weather whenever the point changes.
   useEffect(() => {
@@ -574,6 +591,14 @@ export default function App() {
               </>
             )}
             <strong>{t.coordinates}:</strong> {pos.lat}, {pos.lon}
+            {nearest && (
+              <>
+                <br />
+                <strong>{t.nearestPlace}:</strong> {nearest.name}
+                {nearest.postcode ? ` (${nearest.postcode})` : ""}{" "}
+                <span className="muted">· OpenStreetMap</span>
+              </>
+            )}
           </p>
 
           <h2>{t.step2}</h2>

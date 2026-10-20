@@ -19,6 +19,7 @@ export const ADMIN_TEXT = {
     outsideCountry:
       "This point is outside the 7 countries with boundary data. Weather and soil still work here, but there is no district to show.",
     boundaryCredits: "Boundary sources and licences",
+    nearestPlace: "Nearest named place",
     pickedPoint: "Selected point",
     latShort: "Lat",
     lonShort: "Lon",
@@ -55,6 +56,7 @@ export const ADMIN_TEXT = {
     outsideCountry:
       "এই বিন্দুটি সীমানার তথ্য থাকা ৭টি দেশের বাইরে। এখানে আবহাওয়া ও মাটির তথ্য কাজ করে, কিন্তু দেখানোর মতো জেলা নেই।",
     boundaryCredits: "সীমানার উৎস ও লাইসেন্স",
+    nearestPlace: "কাছের নামকরা জায়গা",
     pickedPoint: "নির্বাচিত বিন্দু",
     latShort: "অক্ষাংশ",
     lonShort: "দ্রাঘিমাংশ",
