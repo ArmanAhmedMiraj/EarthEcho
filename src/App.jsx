@@ -29,6 +29,8 @@ import Gallery, { usePlacePhotos } from "./Gallery.jsx";
 import { START_TEXT } from "./i18nStart.js";
 import { ENV_TEXT } from "./i18nEnv.js";
 import { WEATHER_TEXT } from "./i18nWeather.js";
+import { DISASTER_TEXT } from "./i18nDisasters.js";
+import Disasters from "./Disasters.jsx";
 import { SOIL_TEXT } from "./i18nSoil.js";
 import Soil from "./Soil.jsx";
 import { SUIT_TEXT } from "./i18nSuit.js";
@@ -44,7 +46,7 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["weather", "crops", "suitability", "soil", "environment", "data"];
+const TABS = ["weather", "disasters", "crops", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
@@ -135,7 +137,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -670,7 +672,7 @@ export default function App() {
                   window.location.hash = `/${id}`;
                 }}
               >
-                {{ weather: t.tabWeather, crops: t.tabCrops, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
+                {{ weather: t.tabWeather, disasters: t.tabDisasters, crops: t.tabCrops, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
               </button>
             ))}
           </nav>
@@ -829,6 +831,15 @@ export default function App() {
             env={envData}
             soilData={soilData}
           />
+        </main>
+      )}
+
+      {stage === "app" && tab === "disasters" && (
+        <main className="page">
+          <div className="viewer">
+            <h2>{t.dsTitle}</h2>
+            <Disasters key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} />
+          </div>
         </main>
       )}
 

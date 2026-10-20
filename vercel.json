@@ -8,6 +8,9 @@
     },
     "api/news.js": {
       "maxDuration": 40
+    },
+    "api/disasters.js": {
+      "maxDuration": 30
     }
   }
 }
