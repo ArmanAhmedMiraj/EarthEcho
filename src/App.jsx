@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
-import { CROP_TEXT } from "./i18nCrops.js";
 import { TABS_TEXT } from "./i18nTabs.js";
 import { DATA_TEXT } from "./i18nData.js";
-import { WATER_TEXT } from "./i18nWater.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
 import { fetchForecast, fetchHistory } from "./weather.js";
@@ -23,7 +21,6 @@ import {
   titleOf,
 } from "./admin.js";
 import { nearestPlace } from "./nearby.js";
-import Globe from "./Globe.jsx";
 import Prepare from "./Prepare.jsx";
 import Gallery, { usePlacePhotos } from "./Gallery.jsx";
 import { START_TEXT } from "./i18nStart.js";
@@ -51,18 +48,17 @@ import Environment from "./Environment.jsx";
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
-import Crops from "./Crops.jsx";
+import Logo from "./Logo.jsx";
 import Sources from "./Sources.jsx";
-import "./crops.css";
 import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["weather", "disasters", "irrigation", "rotation", "market", "suppliers", "farms", "assistant", "crops", "suitability", "soil", "environment", "data"];
+const TABS = ["weather", "disasters", "irrigation", "rotation", "market", "suppliers", "farms", "assistant", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
-  return TABS.includes(id) ? id : "crops";
+  return TABS.includes(id) ? id : "rotation";
 }
 
 function readSaved(key, fallback) {
@@ -157,7 +153,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -653,8 +649,8 @@ export default function App() {
           setSatellite(found.satellite);
           setEnvData(found.env);
           setSoilData(found.soil);
-          window.location.hash = "/crops";
-          setTab("crops");
+          window.location.hash = "/rotation";
+          setTab("rotation");
           setStage("app");
         }}
       />
@@ -665,11 +661,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          {stage === "app" ? (
-            <Globe className="mini" lat={pos.lat} lon={pos.lon} spin orbit scan />
-          ) : (
-            <span className="logo" aria-hidden="true">◎</span>
-          )}
+          <Logo size={76} />
           <div>
             <h1>{t.appName}</h1>
             <p className="tagline">{t.tagline}</p>
@@ -694,16 +686,16 @@ export default function App() {
         <>
           {!online && <div className="fm-offline" role="status">{t.fmOffline}</div>}
           <nav className="tabs" aria-label={t.tabsLabel}>
-            {TABS.filter((id) => id !== "crops" || country === "BD").map((id) => (
+            {TABS.map((id) => (
               <button
                 key={id}
                 className="tab"
-                aria-current={(tab === "crops" && country !== "BD" ? "rotation" : tab) === id ? "page" : undefined}
+                aria-current={tab === id ? "page" : undefined}
                 onClick={() => {
                   window.location.hash = `/${id}`;
                 }}
               >
-                {{ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, assistant: t.tabAssistant, crops: t.tabCrops, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
+                {{ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, assistant: t.tabAssistant, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
               </button>
             ))}
           </nav>
@@ -832,25 +824,6 @@ export default function App() {
         </main>
       )}
 
-      {stage === "app" && tab === "crops" && country === "BD" && (
-        <main className="page">
-          <div className="viewer">
-            <Crops
-              t={t}
-              lang={lang}
-              districtName={country === "BD" && place.district ? place.district.name : ""}
-              soil={soil}
-              soilLabel={soil ? t.soilNames[soil] : ""}
-              forecast={forecast}
-              updatedAt={updatedAt}
-              refreshing={refreshing}
-              onRefresh={refreshForecast}
-              place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
-            />
-          </div>
-        </main>
-      )}
-
       {stage === "app" && tab === "suitability" && (
         <main className="page">
           <Suitability
@@ -893,7 +866,7 @@ export default function App() {
         </main>
       )}
 
-      {stage === "app" && (tab === "rotation" || (tab === "crops" && country !== "BD")) && (
+      {stage === "app" && tab === "rotation" && (
         <main className="page">
           <div className="viewer">
             <h2>{t.rtTitle}</h2>

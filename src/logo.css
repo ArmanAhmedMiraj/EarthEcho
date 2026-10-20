@@ -1,0 +1,20 @@
+/* EarthEcho logo animation (see Logo.jsx) */
+.efl { display: block; flex: none; overflow: visible; }
+.efl-land { animation: efl-spin 16s linear infinite; }
+@keyframes efl-spin { from { transform: translate(0, 6px); } to { transform: translate(-124px, 6px); } }
+.efl-sprout { transform-origin: 100px 40px; animation: efl-grow 6s ease-in-out infinite; }
+@keyframes efl-grow {
+  0% { transform: scale(0.15) rotate(0deg); }
+  35% { transform: scale(1) rotate(0deg); }
+  55% { transform: scale(1) rotate(-4deg); }
+  75% { transform: scale(1) rotate(4deg); }
+  100% { transform: scale(0.15) rotate(0deg); }
+}
+.efl-drop { animation: efl-fall 3s ease-in infinite; }
+@keyframes efl-fall { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+.efl-ring { transform: rotate(-22deg); transform-origin: 100px 106px; }
+@media (prefers-reduced-motion: reduce) {
+  .efl-land, .efl-sprout, .efl-drop { animation: none; }
+}
+.brand .efl { margin: 2px 4px 2px 0; }
+@media (max-width: 600px) { .brand .efl { width: 60px; height: 60px; } }

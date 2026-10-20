@@ -1,7 +1,7 @@
 // EarthEcho service worker: keeps the app and the last data it saw on the phone.
 // Pages: network first, the saved copy when offline. Built files (hashed names): saved after the first use.
 // Data (our /api and the weather, flood and price services): network first, the last saved answer when offline.
-const VERSION = "ef-v1";
+const VERSION = "ef-v2";
 const DATA_HOSTS = ["api.open-meteo.com", "air-quality-api.open-meteo.com", "flood-api.open-meteo.com", "power.larc.nasa.gov", "earthquake.usgs.gov", "eonet.gsfc.nasa.gov", "www.gdacs.org"];
 
 self.addEventListener("install", () => self.skipWaiting());
