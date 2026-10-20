@@ -16,6 +16,19 @@ const KC = {
   potato: { ini: 0.5, mid: 1.15, end: 0.75 },
   mustard: { ini: 0.35, mid: 1.075, end: 0.35 },
   mungbean: { ini: 0.4, mid: 1.05, end: 0.475 },
+  // more crops for the Irrigation page, FAO-56 Table 12 (the middle of a range where the table gives one)
+  wheat: { ini: 0.3, mid: 1.15, end: 0.3 },
+  maize: { ini: 0.3, mid: 1.2, end: 0.35 },
+  tomato: { ini: 0.6, mid: 1.15, end: 0.8 },
+  onion: { ini: 0.7, mid: 1.05, end: 0.75 },
+  cotton: { ini: 0.35, mid: 1.175, end: 0.6 },
+  sugarcane: { ini: 0.4, mid: 1.25, end: 0.75 },
+  soybean: { ini: 0.4, mid: 1.15, end: 0.5 },
+  groundnut: { ini: 0.4, mid: 1.15, end: 0.6 },
+  chickpea: { ini: 0.4, mid: 1.15, end: 0.35 },
+  lentil: { ini: 0.4, mid: 1.1, end: 0.3 },
+  cabbage: { ini: 0.7, mid: 1.05, end: 0.95 },
+  eggplant: { ini: 0.6, mid: 1.05, end: 0.9 },
 };
 
 // Rooting depth Zr (m) and allowed depletion p for upland crops, FAO-56 Table 22 (the smaller Zr, which is the
@@ -24,7 +37,82 @@ const UPLAND = {
   potato: { kc: KC.potato, zr: 0.4, p: 0.35 },
   mustard: { kc: KC.mustard, zr: 1.0, p: 0.6 },
   mungbean: { kc: KC.mungbean, zr: 0.6, p: 0.45 },
+  // Table 22, the smaller rooting depth and the allowed depletion p
+  wheat: { kc: KC.wheat, zr: 1.5, p: 0.55 },
+  maize: { kc: KC.maize, zr: 1.0, p: 0.55 },
+  tomato: { kc: KC.tomato, zr: 0.7, p: 0.4 },
+  onion: { kc: KC.onion, zr: 0.3, p: 0.3 },
+  cotton: { kc: KC.cotton, zr: 1.0, p: 0.65 },
+  sugarcane: { kc: KC.sugarcane, zr: 1.2, p: 0.65 },
+  soybean: { kc: KC.soybean, zr: 0.6, p: 0.5 },
+  groundnut: { kc: KC.groundnut, zr: 0.5, p: 0.5 },
+  chickpea: { kc: KC.chickpea, zr: 0.6, p: 0.45 },
+  lentil: { kc: KC.lentil, zr: 0.6, p: 0.5 },
+  cabbage: { kc: KC.cabbage, zr: 0.5, p: 0.45 },
+  eggplant: { kc: KC.eggplant, zr: 0.7, p: 0.45 },
 };
+
+// every crop the Irrigation page can plan (rice is planned as standing water)
+export const IRRIGATION_CROPS = ["rice", ...Object.keys(UPLAND)];
+
+// Water that the field really needs from the pump or canal, for the way it is irrigated.
+// Typical application efficiency (FAO): surface (flood, furrow) 60 percent, sprinkler 75, drip 90.
+export const METHOD_EFFICIENCY = { surface: 0.6, sprinkler: 0.75, drip: 0.9 };
+
+// A 16-day plan: whenever the crop reaches its limit, irrigate the missing water (refill to field capacity) and carry on.
+export function scheduleUpland({ crop, stage, soil, since, past = [], days = [] }) {
+  const m = UPLAND[crop];
+  const aw = SOIL_AW[soil] || SOIL_AW.loam;
+  const taw = aw * m.zr;
+  const raw = m.p * taw;
+  const kc = kcFor(crop, stage);
+  const t0 = past.length;
+  const series = [...past, ...days];
+  const start = Math.max(0, t0 - (since == null ? 7 : since));
+  let dr = since == null ? raw * 0.5 : 0; // if nobody knows, assume half way to the limit
+  const events = [];
+  const rows = [];
+  for (let i = start; i < series.length; i++) {
+    const d = series[i];
+    const etc = (d.et0 != null ? d.et0 : FALLBACK_ET0) * kc;
+    const eff = effectiveRain(rainCounted(d, i >= t0));
+    dr = clamp(dr + etc - eff, 0, taw);
+    let given = 0;
+    if (i >= t0 && dr >= raw) {
+      given = dr;
+      events.push({ date: d.date, mm: Math.round(dr), day: i - t0 });
+      dr = 0;
+    }
+    if (i >= t0) rows.push({ date: d.date, rain: d.rain || 0, etc, level: 1 - dr / taw, given });
+  }
+  return { taw, raw, kc, soilKnown: !!SOIL_AW[soil], events, rows, totalMm: events.reduce((a, e) => a + e.mm, 0) };
+}
+
+// Rice: when the standing water is gone, flood the field again to a depth of about 5 cm (common practice).
+export const RICE_REFILL = 50;
+export function scheduleRice({ stage, soil, standing, ago = 0, past = [], days = [] }) {
+  const kc = kcFor("rice", stage);
+  const perc = SOIL_PERC[soil] != null ? SOIL_PERC[soil] : 6;
+  const t0 = past.length;
+  const series = [...past, ...days];
+  const start = Math.max(0, t0 - (ago || 0));
+  let h = standing == null ? 0 : standing;
+  const events = [];
+  const rows = [];
+  for (let i = start; i < series.length; i++) {
+    const d = series[i];
+    const etc = (d.et0 != null ? d.et0 : FALLBACK_ET0) * kc;
+    h = Math.min(RICE_CAP, h + rainCounted(d, i >= t0) - etc - perc);
+    let given = 0;
+    if (i >= t0 && h <= 0) {
+      given = RICE_REFILL - h;
+      events.push({ date: d.date, mm: Math.round(given), day: i - t0 });
+      h = RICE_REFILL;
+    }
+    if (i >= t0) rows.push({ date: d.date, rain: d.rain || 0, etc, level: clamp(h, 0, RICE_CAP) / RICE_CAP, given });
+  }
+  return { kc, perc, soilKnown: SOIL_PERC[soil] != null, events, rows, totalMm: events.reduce((a, e) => a + e.mm, 0) };
+}
 
 // Water the soil can hold for plants, mm per metre of soil. Loamy sand 90 is the FAO-56 example (used for sandy and
 // sandy loam); the rest are field capacity minus wilting point from the Saxton and Rawls table: loam 0.16,
@@ -44,6 +132,7 @@ export const WATER_SOURCES = [
   { id: "W4", by: "FAO", title: "Water requirements of rice: seepage and percolation by soil", url: "https://www.fao.org/3/S2022E/s2022e08.htm" },
   { id: "W5", by: "WOCAT", title: "Alternate wetting and drying (AWD) in rice, Bangladesh", url: "https://qcat.wocat.net/en/wocat/technologies/view/permalink/4671" },
   { id: "W6", by: "Bangladesh Agricultural University", title: "Seepage and percolation loss in a rice field (1 to 8.5 mm per day)", url: "https://jsau.sau.ac.bd/?p=302" },
+  { id: "W8", by: "FAO", title: "Irrigation efficiency by method (surface, sprinkler, drip)", url: "https://www.fao.org/4/t7202e/t7202e08.htm" },
   { id: "W7", by: "Open-Meteo", title: "Weather API: rain and FAO-56 reference evapotranspiration (ET0)", url: "https://open-meteo.com/en/docs" },
 ];
 

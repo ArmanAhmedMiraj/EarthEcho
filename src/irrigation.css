@@ -1,0 +1,13 @@
+.ir-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 14px; margin: 12px 0; }
+.ir-form label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.ir-form select, .ir-form input { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+.ir-area { display: flex; gap: 6px; }
+.ir-area input { width: 90px; }
+.ir-head { padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--panel); }
+.ir-head strong { font-size: 1.4rem; color: var(--text); display: block; }
+.ir-head.now strong, .ir-head.today strong { color: var(--warn); }
+.ir-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.ir-table th, .ir-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.ir-table th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.ir-chart { width: 100%; max-width: 760px; height: auto; display: block; }
+.ir-chart text { fill: var(--muted); font-size: 10px; }
