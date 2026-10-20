@@ -25,6 +25,7 @@ import {
 import { nearestPlace } from "./nearby.js";
 import Globe from "./Globe.jsx";
 import Prepare from "./Prepare.jsx";
+import Gallery, { usePlacePhotos } from "./Gallery.jsx";
 import { START_TEXT } from "./i18nStart.js";
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
@@ -519,6 +520,21 @@ export default function App() {
     unionNames,
   };
 
+  // what the photo gallery looks for: the country, or the deepest area chosen
+  const photoTarget = useMemo(() => {
+    if (!admin || !userPicked || country === "other") return null;
+    const info = admin.info;
+    const d = deepestOf(place);
+    if (!d) return { id: info.iso, kind: "country", name: info.name.en, country: info.name.en, bbox: info.bbox, countryBbox: info.bbox };
+    const parents = [];
+    for (let i = d.index - 1; i >= 0; i -= 1) if (place[SLOTS[i]]) parents.push(place[SLOTS[i]].name);
+    return {
+      id: d.item.id, kind: "place", name: d.item.name, parents, country: info.name.en,
+      lat: d.item.lat, lon: d.item.lon, level: d.index, bbox: d.item.bbox, countryBbox: info.bbox,
+    };
+  }, [admin, userPicked, country, place]);
+  const photos = usePlacePhotos(photoTarget);
+
   const picker = (
     <AdminPicker
       t={t}
@@ -644,17 +660,20 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="locbar">
-            <button className="locbar-place" onClick={changeLocation} title={t.changeLocationHint}>
-              <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
-              <span className="muted small">
-                {label.path && label.path !== label.title ? `${label.path} · ` : ""}
-                {pos.lat}, {pos.lon}
-                {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
-                {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
-              </span>
-            </button>
-            <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
+          <div className="placebar panel">
+            <div className="placebar-text">
+              <button className="placebar-place" onClick={changeLocation} title={t.changeLocationHint}>
+                <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
+                <span className="muted small">
+                  {label.path && label.path !== label.title ? `${label.path} · ` : ""}
+                  {pos.lat}, {pos.lon}
+                  {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
+                  {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
+                </span>
+              </button>
+              <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
+            </div>
+            <Gallery t={t} state={photos} banner />
           </div>
         </>
       )}
@@ -732,6 +751,7 @@ export default function App() {
                 onView={setView}
               />
             </div>
+            {userPicked && <Gallery t={t} title={label.title} subtitle={label.path} state={photos} />}
             <ul className="legend" aria-label={t.legendTitle}>
               <li><i style={{ borderTopColor: LEVEL_COLORS.country }} />{t.legendCountry}</li>
               {admin &&

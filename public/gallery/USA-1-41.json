@@ -1,0 +1,113 @@
+{
+ "id": "USA-1-41",
+ "name": "Maryland",
+ "kind": "first-level",
+ "about": "Maryland, United States",
+ "built": "2026-10-20",
+ "photos": [
+  {
+   "title": "Pratt Street skyline from Convention Center, Baltimore, MD",
+   "caption": "Skyscrapers on East Pratt Street in Baltimore 's Inner Harbor , including the Transamerica Tower Bank of America Center and 100 East Pratt Street , se",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Pratt_Street_skyline_from_Convention_Center%2C_Baltimore%2C_MD.jpg/1280px-Pratt_Street_skyline_from_Convention_Center%2C_Baltimore%2C_MD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/0/01/Pratt_Street_skyline_from_Convention_Center%2C_Baltimore%2C_MD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Pratt_Street_skyline_from_Convention_Center,_Baltimore,_MD.jpg",
+   "author": "Daniel Case",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Underground Railroad Tour, landscape (21604295375)",
+   "caption": "A landscape image in Dorchester County taken on an Underground Railroad Tour for Preservation Maryland's annual conference in 2010.",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Underground_Railroad_Tour%2C_landscape_%2821604295375%29.jpg/1280px-Underground_Railroad_Tour%2C_landscape_%2821604295375%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Underground_Railroad_Tour%2C_landscape_%2821604295375%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Underground_Railroad_Tour,_landscape_(21604295375).jpg",
+   "author": "Preservation Maryland",
+   "licence": "CC BY-SA 2.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Lexington Market Baltimore LOC 4a10972u",
+   "caption": "Lexington Market Baltimore LOC 4a10972u",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Lexington_Market_Baltimore_LOC_4a10972u.jpg/1280px-Lexington_Market_Baltimore_LOC_4a10972u.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Lexington_Market_Baltimore_LOC_4a10972u.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Lexington_Market_Baltimore_LOC_4a10972u.jpg",
+   "author": "Unknown author",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Catoctin Mountain and farm MD1",
+   "caption": "A farm in sunlight at the base of Catoctin Mountain between Thurmont and Emmitsburg, Maryland, USA. There is snow on the higher mountain in the backgr",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Catoctin_Mountain_and_farm_MD1.jpg/1280px-Catoctin_Mountain_and_farm_MD1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/6/69/Catoctin_Mountain_and_farm_MD1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Catoctin_Mountain_and_farm_MD1.jpg",
+   "author": "Acroterion",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Best Farm MNB MD3",
+   "caption": "The Best Farm/ L’Hermitage Slave Village site , Monocacy National Battlefield , Frederick, Maryland, USA, in early morning shadows. The house is an un",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Best_Farm_MNB_MD3.jpg/1280px-Best_Farm_MNB_MD3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/6/64/Best_Farm_MNB_MD3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Best_Farm_MNB_MD3.jpg",
+   "author": "Acroterion",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Polish berry pickers color",
+   "caption": "Hand coloured photo. Orginal description: \"Mrs. Bissie and family (Polish). They all work in fields near Baltimore in summer and have worked at Biloxi",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Polish_berry_pickers_color.jpg/1280px-Polish_berry_pickers_color.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Polish_berry_pickers_color.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Polish_berry_pickers_color.jpg",
+   "author": "Lewis Hine , coloured by Robek",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "STS-116 spacewalk 1",
+   "caption": "STS-116 Shuttle Mission Imagery Backdropped by a colorful Earth, NASA astronaut Robert L. Curbeam, Jr. (left) and European Space Agency (ESA) astronau",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/STS-116_spacewalk_1.jpg/1280px-STS-116_spacewalk_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/8/89/STS-116_spacewalk_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:STS-116_spacewalk_1.jpg",
+   "author": "NASA",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  },
+  {
+   "title": "Jonathan's Run Falls",
+   "caption": "Jonathan's Run Falls: A bit of a hike off of the main Rail trail near Ohiopyle State Park , but well worth it.",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Jonathan%27s_Run_Falls.jpg/1280px-Jonathan%27s_Run_Falls.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Jonathan%27s_Run_Falls.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Jonathan%27s_Run_Falls.jpg",
+   "author": "Hubert Stoffels from Pittsburgh, USA",
+   "licence": "CC BY 2.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Maryland"
+  }
+ ]
+}

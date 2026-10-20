@@ -1,0 +1,42 @@
+/* The photo gallery and the bigger location bar. Colours come from styles.css. */
+.gal { margin-top: 14px; }
+.gal-title { margin: 0; font-size: 1.35rem; letter-spacing: -0.02em; }
+.gal-sub { margin: 2px 0 10px; }
+.gal-frame { position: relative; margin: 0; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #0c1a24; touch-action: pan-y; user-select: none; }
+.gal-frame img { width: 100%; height: 100%; object-fit: cover; display: block; animation: gal-in 0.45s ease; }
+@keyframes gal-in { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+.gal-frame figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 14px 10px; color: #fff; display: flex; flex-direction: column; gap: 3px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0)); }
+.gal-chip { align-self: flex-start; font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.gal-chip.region { background: rgba(255, 190, 60, 0.35); }
+.gal-chip.nearby { background: rgba(80, 200, 255, 0.3); }
+.gal-caption { font-weight: 600; font-size: 0.95rem; line-height: 1.25; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+.gal-credit { font-size: 0.7rem; opacity: 0.85; }
+.gal-credit a { color: inherit; text-decoration: underline; }
+.gal-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.38); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.gal-arrow:hover { background: rgba(0, 0, 0, 0.6); }
+.gal-arrow.prev { left: 10px; }
+.gal-arrow.next { right: 10px; }
+.gal-dots { position: absolute; top: 10px; right: 12px; display: flex; gap: 5px; }
+.gal-dots button { width: 8px; height: 8px; padding: 0; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.5); cursor: pointer; }
+.gal-dots button.on { background: #fff; transform: scale(1.25); }
+.gal-skeleton, .gal-empty { display: grid; place-items: center; color: var(--muted); font-weight: 600; text-align: center; padding: 16px;
+  background: linear-gradient(110deg, var(--glass-2) 30%, var(--glass-1) 50%, var(--glass-2) 70%); background-size: 200% 100%; }
+.gal-skeleton { animation: gal-shimmer 1.4s linear infinite; }
+.gal-empty { animation: none; border: 1px dashed var(--border); }
+@keyframes gal-shimmer { to { background-position: -200% 0; } }
+.gal-thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px; }
+.gal-thumbs button { flex: none; width: 84px; height: 56px; padding: 0; border-radius: 10px; overflow: hidden; border: 2px solid transparent; cursor: pointer; opacity: 0.7; background: none; }
+.gal-thumbs button.on { border-color: var(--a1); opacity: 1; }
+.gal-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* the dashboard's bigger location bar: place on the left, photos on the right */
+.placebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 420px); gap: 16px; align-items: center; margin-top: 6px; padding: 14px; border-radius: 22px; }
+.placebar-text { display: flex; flex-direction: column; gap: 10px; min-width: 0; align-items: flex-start; }
+.placebar-place { background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.placebar-place strong { font-size: clamp(1.25rem, 3vw, 1.7rem); font-weight: 800; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.placebar-place:hover strong { text-decoration: underline; }
+.placebar .gal-banner .gal-frame { aspect-ratio: 16 / 9; }
+@media (max-width: 760px) { .placebar { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .gal-frame img, .gal-skeleton { animation: none; } }

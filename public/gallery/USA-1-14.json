@@ -1,0 +1,113 @@
+{
+ "id": "USA-1-14",
+ "name": "Puerto Rico",
+ "kind": "first-level",
+ "about": "Puerto Rico, United States",
+ "built": "2026-10-20",
+ "photos": [
+  {
+   "title": "Vista del area de los Pueblos Cidra y Aguas Buenas - panoramio",
+   "caption": "Vista del area de los Pueblos Cidra y Aguas Buenas",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Vista_del_area_de_los_Pueblos_Cidra_y_Aguas_Buenas_-_panoramio.jpg/1280px-Vista_del_area_de_los_Pueblos_Cidra_y_Aguas_Buenas_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Vista_del_area_de_los_Pueblos_Cidra_y_Aguas_Buenas_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Vista_del_area_de_los_Pueblos_Cidra_y_Aguas_Buenas_-_panoramio.jpg",
+   "author": "José Astacio",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Plaza Colón and Nuestra Señora de la Candelaria c1898 - Mayagüez Puerto Rico",
+   "caption": "The Plaza Colón and Church of Nuestra Señora de la Candelaria . Caption in original publication: The Plaza Principal in Mayaguez, looking toward the C",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Plaza_Col%C3%B3n_and_Nuestra_Se%C3%B1ora_de_la_Candelaria_c1898_-_Mayag%C3%BCez_Puerto_Rico.jpg/1280px-Plaza_Col%C3%B3n_and_Nuestra_Se%C3%B1ora_de_la_Candelaria_c1898_-_Mayag%C3%BCez_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Plaza_Col%C3%B3n_and_Nuestra_Se%C3%B1ora_de_la_Candelaria_c1898_-_Mayag%C3%BCez_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Plaza_Col%C3%B3n_and_Nuestra_Se%C3%B1ora_de_la_Candelaria_c1898_-_Mayag%C3%BCez_Puerto_Rico.jpg",
+   "author": "Unknown (Karl Stephen Herrmann?)",
+   "licence": "Public domain",
+   "licenceUrl": "",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Utuado (Caguana), Lares and San Sebastián, Puerto Rico 12 03 21 883000",
+   "caption": "Utuado (Caguana), Lares and San Sebastián, Puerto Rico",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Utuado_%28Caguana%29%2C_Lares_and_San_Sebasti%C3%A1n%2C_Puerto_Rico_12_03_21_883000.jpeg/1280px-Utuado_%28Caguana%29%2C_Lares_and_San_Sebasti%C3%A1n%2C_Puerto_Rico_12_03_21_883000.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Utuado_%28Caguana%29%2C_Lares_and_San_Sebasti%C3%A1n%2C_Puerto_Rico_12_03_21_883000.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Utuado_(Caguana),_Lares_and_San_Sebasti%C3%A1n,_Puerto_Rico_12_03_21_883000.jpeg",
+   "author": "Ligocsicnarf89",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Surfing in Puerto Rico",
+   "caption": "Surfing in Puerto Rico",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Surfing_in_Puerto_Rico.jpg/1280px-Surfing_in_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/0/01/Surfing_in_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Surfing_in_Puerto_Rico.jpg",
+   "author": "Cody Ryan Reigle",
+   "licence": "CC BY 2.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Beach in Dorado, Puerto Rico",
+   "caption": "Beach in Dorado, Puerto Rico",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Beach_in_Dorado%2C_Puerto_Rico.jpg/1280px-Beach_in_Dorado%2C_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Beach_in_Dorado%2C_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Beach_in_Dorado,_Puerto_Rico.jpg",
+   "author": "MelissasWhimsy",
+   "licence": "CC BY 2.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Arches and walls ruins Vieques PR 2021-08-04 16-34-14 1",
+   "caption": "Some walls are all that remains of this building at the Playa Grande sugar plantation in Vieques, Puerto Rico.",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Arches_and_walls_ruins_Vieques_PR_2021-08-04_16-34-14_1.jpg/1280px-Arches_and_walls_ruins_Vieques_PR_2021-08-04_16-34-14_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/0/07/Arches_and_walls_ruins_Vieques_PR_2021-08-04_16-34-14_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Arches_and_walls_ruins_Vieques_PR_2021-08-04_16-34-14_1.jpg",
+   "author": "G. Edward Johnson",
+   "licence": "CC BY 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Río Guatemala, San Sebastián, Puerto Rico 08",
+   "caption": "Río Guatemala in San Sebastián, Puerto Rico from bridge in Barrio Guatemala",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/R%C3%ADo_Guatemala%2C_San_Sebasti%C3%A1n%2C_Puerto_Rico_08.jpg/1280px-R%C3%ADo_Guatemala%2C_San_Sebasti%C3%A1n%2C_Puerto_Rico_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/7/7b/R%C3%ADo_Guatemala%2C_San_Sebasti%C3%A1n%2C_Puerto_Rico_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:R%C3%ADo_Guatemala,_San_Sebasti%C3%A1n,_Puerto_Rico_08.jpg",
+   "author": "The Eloquent Peasant",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  },
+  {
+   "title": "Quebrada Anones, Naranjito, Puerto Rico",
+   "caption": "Quebrada Anones, Naranjito, Puerto Rico (2023)",
+   "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Quebrada_Anones%2C_Naranjito%2C_Puerto_Rico.jpg/1280px-Quebrada_Anones%2C_Naranjito%2C_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "full": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Quebrada_Anones%2C_Naranjito%2C_Puerto_Rico.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+   "page": "https://commons.wikimedia.org/wiki/File:Quebrada_Anones,_Naranjito,_Puerto_Rico.jpg",
+   "author": "Yarfpr",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "source": "Wikimedia Commons",
+   "match": "place",
+   "about": "Puerto Rico"
+  }
+ ]
+}
