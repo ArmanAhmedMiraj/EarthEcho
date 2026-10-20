@@ -1,0 +1,8 @@
+.mk-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+.mk-bar select { font: inherit; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+.mk-list { display: flex; flex-direction: column; }
+.mk-row { display: grid; grid-template-columns: minmax(160px, 2fr) minmax(130px, 1.2fr) minmax(130px, 1fr) 120px auto; gap: 8px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.mk-name, .mk-price, .mk-change { display: flex; flex-direction: column; }
+.mk-name strong, .mk-price strong { color: var(--text); }
+.mk-spark { width: 120px; height: 32px; }
+@media (max-width: 760px) { .mk-row { grid-template-columns: 1fr 1fr; } }

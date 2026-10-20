@@ -11,6 +11,9 @@
     },
     "api/disasters.js": {
       "maxDuration": 30
+    },
+    "api/markets.js": {
+      "maxDuration": 30
     }
   }
 }
