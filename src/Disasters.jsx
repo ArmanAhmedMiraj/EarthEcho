@@ -4,7 +4,7 @@ import { DISASTER_OFFICES } from "./i18nDisasters.js";
 import { TWO_LETTER } from "./i18nWeather.js";
 
 // the overall level from simple rules on the data
-function levelOf(d) {
+export function levelOf(d) {
   let level = 0;
   for (const a of d.alerts) {
     if (a.alert === "red") level = Math.max(level, 2);
