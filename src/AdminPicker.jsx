@@ -36,6 +36,7 @@ export default function AdminPicker({
   onPickEntry,
   onPickWorld,
   onUseLocation,
+  hideUse,
 }) {
   const [index, setIndex] = useState(null);
   const [query, setQuery] = useState("");
@@ -173,7 +174,7 @@ export default function AdminPicker({
       )}
       {worldMessage && <p className="warn small">{worldMessage}</p>}
 
-      <button className="btn wide" onClick={onUseLocation}>{t.useMyLocation}</button>
+      {!hideUse && <button className="btn wide" onClick={onUseLocation}>{t.useMyLocation}</button>}
       {message && <p className="warn small">{message}</p>}
     </div>
   );

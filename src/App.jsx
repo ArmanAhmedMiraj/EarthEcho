@@ -23,6 +23,9 @@ import {
   titleOf,
 } from "./admin.js";
 import { nearestPlace } from "./nearby.js";
+import Globe from "./Globe.jsx";
+import Prepare from "./Prepare.jsx";
+import { START_TEXT } from "./i18nStart.js";
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
@@ -33,11 +36,11 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["location", "weather", "crops", "data"];
+const TABS = ["weather", "crops", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
-  return TABS.includes(id) ? id : "location";
+  return TABS.includes(id) ? id : "crops";
 }
 
 function readSaved(key, fallback) {
@@ -101,6 +104,15 @@ export default function App() {
   const [tab, setTab] = useState(tabFromHash);
   const [view, setView] = useState(null); // { zoom, bounds } of the map right now
   const started = useRef(false);
+  // The app always opens on the location page. The other pages open only after a place is confirmed
+  // and its data is prepared:  "explore" (choose a place)  >  "prepare" (loading screen)  >  "app" (dashboard)
+  const [stage, setStage] = useState("explore");
+  const stageRef = useRef("explore");
+  stageRef.current = stage;
+  const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
+  const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
+  const [satellite, setSatellite] = useState(null); // NASA SMAP / GPM readings of the confirmed place
+  const snapshot = useRef(null); // the confirmed place, kept while the farmer looks for another one
   const [nearest, setNearest] = useState(null); // nearest named village / neighbourhood, from OpenStreetMap
   const pickToken = useRef(0);
 
@@ -113,7 +125,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -133,19 +145,25 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-    const onHash = () => setTab(tabFromHash());
+    // a link to a dashboard page does not skip the location step
+    if (window.location.hash) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    const onHash = () => {
+      if (stageRef.current === "app") setTab(tabFromHash());
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // The map is built fresh each time the Location page opens, so start it on the current choice.
+  // The map is built fresh each time the Location page opens, so start it on the current choice
+  // (before any choice it is a turning globe).
   useEffect(() => {
-    if (tab !== "location") return;
+    if (stage !== "explore") return;
     const found = deepestOf(place);
-    if (found && found.item.bbox) setFocus({ key: Date.now(), bbox: found.item.bbox });
+    if (!userPicked) setFocus(null);
+    else if (found && found.item.bbox) setFocus({ key: Date.now(), bbox: found.item.bbox });
     else setFocus({ key: Date.now(), center: [pos.lon, pos.lat], zoom: 9 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [stage]);
 
   useEffect(() => {
     loadSoilMap().then(setSoilMap);
@@ -167,7 +185,6 @@ export default function App() {
   useEffect(() => {
     if (admin && !started.current) {
       started.current = true;
-      pickPoint(pos.lat, pos.lon);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin]);
@@ -236,6 +253,7 @@ export default function App() {
   // The nearest named village or neighbourhood of the chosen point (after a short pause, so a fast series of taps asks once)
   useEffect(() => {
     setNearest(null);
+    if (!userPicked) return undefined;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       nearestPlace(pos.lat, pos.lon, lang, controller.signal)
@@ -246,7 +264,7 @@ export default function App() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [pos.lat, pos.lon, lang]);
+  }, [pos.lat, pos.lon, lang, userPicked]);
 
   // Load weather whenever the point changes.
   useEffect(() => {
@@ -324,6 +342,7 @@ export default function App() {
     const token = ++pickToken.current;
     const chain = await buildChain(adm, index, props);
     if (token !== pickToken.current) return;
+    setUserPicked(true);
     setPlace(chain);
     setSelected({ level: SLOTS[index], id: props.id });
     setCountry(adm.iso);
@@ -347,6 +366,7 @@ export default function App() {
       }
     }
     if (token !== pickToken.current) return;
+    setUserPicked(true);
     const info = loaded.info;
     setPlace(EMPTY_CHAIN);
     setSelected(null);
@@ -379,6 +399,7 @@ export default function App() {
     if (token !== pickToken.current) return; // a newer tap replaced this one
 
     const found = deepestOf(chain);
+    if (!options.initial) setUserPicked(true);
     setPlace(chain);
     setSelected(found ? { level: found.level, id: found.item.id } : null);
     setCountry(iso && loaded && loaded.iso === iso ? iso : "other");
@@ -498,11 +519,94 @@ export default function App() {
     unionNames,
   };
 
+  const picker = (
+    <AdminPicker
+      t={t}
+      lang={lang}
+      registry={registry}
+      info={admin ? admin.info : null}
+      admin={admin}
+      adminError={adminError}
+      chainParts={chainParts}
+      place={place}
+      country={country}
+      message={message}
+      onCountry={onCountry}
+      onLevel={onLevel}
+      onPickEntry={onPickEntry}
+      onPickWorld={onPickWorld}
+      onUseLocation={onUseLocation}
+    />
+  );
+
+  // the dashboard's "change location": remember the confirmed place so the farmer can go back to it
+  function changeLocation() {
+    snapshot.current = { pos, place, selected, country, soilChoice, userPicked };
+    window.location.hash = "";
+    setStage("explore");
+  }
+
+  function keepLocation() {
+    const saved = snapshot.current;
+    if (saved) {
+      pickToken.current += 1; // a lookup still running must not undo this
+      setPos(saved.pos);
+      setPlace(saved.place);
+      setSelected(saved.selected);
+      setCountry(saved.country);
+      setSoilChoice(saved.soilChoice);
+      setUserPicked(saved.userPicked);
+    }
+    setMessage("");
+    window.location.hash = `/${tab}`;
+    setStage("app");
+  }
+
+  function confirmLocation() {
+    if (!userPicked) return;
+    // the old place's results must never show for the new one
+    setTerrain(null);
+    setSatellite(null);
+    snapshot.current = null;
+    setStage("prepare");
+  }
+
+  if (stage === "prepare") {
+    return (
+      <Prepare
+        t={t}
+        lat={pos.lat}
+        lon={pos.lon}
+        title={label.title}
+        path={label.path}
+        ready={{
+          soilReady: soilMap !== null,
+          soilText: soil ? t.soilNames[soil] : "",
+          weatherDone: !loading,
+          weatherOk: !error && !!forecast,
+          historyOk: !!history,
+        }}
+        onDone={(found) => {
+          if (stageRef.current !== "prepare") return;
+          setTerrain(found.terrain);
+          setSatellite(found.satellite);
+          window.location.hash = "/crops";
+          setTab("crops");
+          setStage("app");
+        }}
+      />
+    );
+  }
+
   return (
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo" aria-hidden="true">◎</span>
+          {stage === "app" ? (
+            <Globe className="mini" lat={pos.lat} lon={pos.lon} spin orbit scan />
+          ) : (
+            <span className="logo" aria-hidden="true">◎</span>
+          )}
           <div>
             <h1>{t.appName}</h1>
             <p className="tagline">{t.tagline}</p>
@@ -523,83 +627,65 @@ export default function App() {
         </div>
       </header>
 
-      <nav className="tabs" aria-label={t.tabsLabel}>
-        {TABS.map((id) => (
-          <button
-            key={id}
-            className="tab"
-            aria-current={tab === id ? "page" : undefined}
-            onClick={() => {
-              window.location.hash = `/${id}`;
-            }}
-          >
-            {{ location: t.tabLocation, weather: t.tabWeather, crops: t.tabCrops, data: t.tabData }[id]}
-          </button>
-        ))}
-      </nav>
+      {stage === "app" && (
+        <>
+          <nav className="tabs" aria-label={t.tabsLabel}>
+            {TABS.map((id) => (
+              <button
+                key={id}
+                className="tab"
+                aria-current={tab === id ? "page" : undefined}
+                onClick={() => {
+                  window.location.hash = `/${id}`;
+                }}
+              >
+                {{ weather: t.tabWeather, crops: t.tabCrops, data: t.tabData }[id]}
+              </button>
+            ))}
+          </nav>
 
-      <div className="locbar">
-        <div className="locbar-place">
-          <strong>{label.title}</strong>
-          <span className="muted small">
-            {label.path && label.path !== label.title ? `${label.path} · ` : ""}
-            {pos.lat}, {pos.lon}
-            {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
-          </span>
-        </div>
-        {tab !== "location" && (
-          <button
-            className="btn"
-            onClick={() => {
-              window.location.hash = "/location";
-            }}
-          >
-            {t.locbarChange}
-          </button>
-        )}
-      </div>
+          <div className="locbar">
+            <button className="locbar-place" onClick={changeLocation} title={t.changeLocationHint}>
+              <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
+              <span className="muted small">
+                {label.path && label.path !== label.title ? `${label.path} · ` : ""}
+                {pos.lat}, {pos.lon}
+                {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
+                {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
+              </span>
+            </button>
+            <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
+          </div>
+        </>
+      )}
 
-      {tab === "location" && (
+      {stage === "explore" && (
         <main className="layout">
         <section className="panel">
           <h2>{t.step1}</h2>
-          <AdminPicker
-            t={t}
-            lang={lang}
-            registry={registry}
-            info={admin ? admin.info : null}
-            admin={admin}
-            adminError={adminError}
-            chainParts={chainParts}
-            place={place}
-            country={country}
-            message={message}
-            onCountry={onCountry}
-            onLevel={onLevel}
-            onPickEntry={onPickEntry}
-            onPickWorld={onPickWorld}
-            onUseLocation={onUseLocation}
-          />
+          {picker}
           <p className="muted small">{t.tapMap}</p>
-          <p className="small">
-            <strong>{t.selected}:</strong> {label.title}
-            <br />
-            {label.path && (
-              <>
-                <span className="muted">{label.path}</span>
-                <br />
-              </>
-            )}
-            <strong>{t.coordinates}:</strong> {pos.lat}, {pos.lon}
-            {nearest && (
-              <>
-                <br />
-                <strong>{t.nearestPlace}:</strong> {nearest.name}
-                {nearest.postcode ? ` (${nearest.postcode})` : ""}{" "}
-                <span className="muted">· OpenStreetMap</span>
-              </>
-            )}
-          </p>
+          {userPicked && (
+            <p className="small">
+              <strong>{t.selected}:</strong> {label.title}
+              <br />
+              {label.path && (
+                <>
+                  <span className="muted">{label.path}</span>
+                  <br />
+                </>
+              )}
+              <strong>{t.coordinates}:</strong> {pos.lat}, {pos.lon}
+              {nearest && (
+                <>
+                  <br />
+                  <strong>{t.nearestPlace}:</strong> {nearest.name}
+                  {nearest.postcode ? ` (${nearest.postcode})` : ""}{" "}
+                  <span className="muted">· OpenStreetMap</span>
+                </>
+              )}
+            </p>
+          )}
 
           <h2>{t.step2}</h2>
           <select
@@ -624,6 +710,12 @@ export default function App() {
             <button className="btn" onClick={() => setSoilChoice("auto")}>{t.useSuggestion}</button>
           )}
           <p className="muted small">{t.soilTest}</p>
+
+          <div className="confirm-box">
+            {!userPicked && <p className="muted small">{t.confirmFirst}</p>}
+            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{t.confirmLocation}</button>
+            {snapshot.current && <button className="btn" onClick={keepLocation}>{t.keepLocation}</button>}
+          </div>
         </section>
 
         <section className="stage">
@@ -635,7 +727,8 @@ export default function App() {
                 layers={layers}
                 selected={selectedFeature}
                 focus={focus}
-                onPick={(lat, lon) => pickPoint(lat, lon)}
+                chosen={userPicked}
+                onPick={(lat, lon) => pickPoint(lat, lon, { fly: !view || view.zoom < 5 })}
                 onView={setView}
               />
             </div>
@@ -657,7 +750,7 @@ export default function App() {
         </main>
       )}
 
-      {tab === "weather" && (
+      {stage === "app" && tab === "weather" && (
         <main className="page">
           <div className="viewer">
             <h2>{t.step3}</h2>
@@ -673,7 +766,7 @@ export default function App() {
         </main>
       )}
 
-      {tab === "crops" && (
+      {stage === "app" && tab === "crops" && (
         <main className="page">
           <div className="viewer">
             <Crops
@@ -692,7 +785,7 @@ export default function App() {
         </main>
       )}
 
-      {tab === "data" && (
+      {stage === "app" && tab === "data" && (
         <main className="page">
           <Sources t={t} lang={lang} lat={pos.lat} lon={pos.lon} />
         </main>

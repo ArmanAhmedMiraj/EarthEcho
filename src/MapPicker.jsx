@@ -160,7 +160,7 @@ const LAYER_DEFS = [
 
 const count = (d) => (!d ? 0 : d.features ? d.features.length : 1);
 
-export default function MapPicker({ pos, label, layers, selected, focus, onPick, onView }) {
+export default function MapPicker({ pos, label, layers, selected, focus, chosen, onPick, onView }) {
   const box = useRef(null);
   const map = useRef(null);
   const marker = useRef(null);
@@ -171,6 +171,8 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
   const events = useRef([]);
   const notes = useRef([]);
   const dataRef = useRef({});
+  const chosenRef = useRef(chosen);
+  chosenRef.current = chosen;
   const [status, setStatus] = useState("starting…");
   pickRef.current = onPick;
   viewRef.current = onView;
@@ -258,8 +260,9 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
     const m = new maplibregl.Map({
       container: box.current,
       style: STYLE,
-      center: [pos.lon, pos.lat],
-      zoom: 7,
+      // before a place is chosen the map starts as a turning globe; after that it starts at the place
+      center: chosen ? [pos.lon, pos.lat] : [pos.lon, 20],
+      zoom: chosen ? 7 : 1.6,
     });
     map.current = m;
     ready.current = false;
@@ -303,7 +306,26 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
 
     m.on("click", (e) => pickRef.current(e.lngLat.lat, e.lngLat.lng));
 
+    // the globe turns slowly until a place is chosen or the farmer touches it
+    let frame;
+    let last = performance.now();
+    let touched = false;
+    m.on("mousedown", () => (touched = true));
+    m.on("touchstart", () => (touched = true));
+    m.on("wheel", () => (touched = true));
+    const turn = (now) => {
+      const dt = Math.min(now - last, 100);
+      last = now;
+      if (!chosenRef.current && !touched && !m.isMoving() && m.getZoom() < 3) {
+        const c = m.getCenter();
+        m.jumpTo({ center: [c.lng + dt * 0.006, c.lat] });
+      }
+      frame = requestAnimationFrame(turn);
+    };
+    frame = requestAnimationFrame(turn);
+
     return () => {
+      cancelAnimationFrame(frame);
       m.remove();
       map.current = null;
       ready.current = false;
@@ -350,6 +372,12 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
   useEffect(() => {
     if (!map.current || !marker.current || !popup.current) return;
     marker.current.setLngLat([pos.lon, pos.lat]);
+    // no pin and no name label until a place has been chosen
+    marker.current.getElement().style.display = chosen ? "" : "none";
+    if (!chosen) {
+      popup.current.remove();
+      return;
+    }
 
     const el = document.createElement("div");
     el.className = "mini-pop";
@@ -374,7 +402,7 @@ export default function MapPicker({ pos, label, layers, selected, focus, onPick,
 
     popup.current.setLngLat([pos.lon, pos.lat]).setDOMContent(el);
     if (!popup.current.isOpen()) popup.current.addTo(map.current);
-  }, [pos.lat, pos.lon, label.title, label.path]);
+  }, [pos.lat, pos.lon, label.title, label.path, chosen]);
 
   // fly to a chosen area or place
   useEffect(() => {
