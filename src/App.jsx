@@ -660,21 +660,18 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="placebar panel">
-            <div className="placebar-text">
-              <button className="placebar-place" onClick={changeLocation} title={t.changeLocationHint}>
-                <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
-                <span className="muted small">
-                  {label.path && label.path !== label.title ? `${label.path} · ` : ""}
-                  {pos.lat}, {pos.lon}
-                  {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
-                  {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
-                </span>
-              </button>
-              <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
-            </div>
-            <Gallery t={t} state={photos} banner />
-          </div>
+          <Gallery t={t} state={photos} banner>
+            <button className="placebar-place" onClick={changeLocation} title={t.changeLocationHint}>
+              <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
+              <span className="small">
+                {label.path && label.path !== label.title ? `${label.path} · ` : ""}
+                {pos.lat}, {pos.lon}
+                {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
+                {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
+              </span>
+            </button>
+            <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
+          </Gallery>
         </>
       )}
 

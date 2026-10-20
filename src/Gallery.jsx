@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { countryPhotos, photosForPlace } from "./photos.js";
+import { countryPhotos, photosForPlace, usable } from "./photos.js";
 import "./gallery.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -31,7 +31,8 @@ async function fromLibrary(id, signal) {
     const r = await fetch(`${BASE}gallery/${id}.json`, { signal });
     if (!r.ok) return null;
     const lib = await r.json();
-    return lib.photos && lib.photos.length > 0 ? lib.photos : null;
+    const list = (lib.photos || []).filter(usable);
+    return list.length > 0 ? list : null;
   } catch {
     return null;
   }
@@ -48,7 +49,8 @@ export function usePlacePhotos(target) {
       setState({ id: null, status: "idle", photos: [] });
       return undefined;
     }
-    const known = memory.get(target.id) || readCache(target.id);
+    const saved = memory.get(target.id) || readCache(target.id);
+    const known = saved && saved.filter(usable).length > 0 ? saved.filter(usable) : null;
     if (known) {
       memory.set(target.id, known);
       setState({ id: target.id, status: "ok", photos: known });
@@ -93,12 +95,12 @@ function chipText(t, p) {
 
 // A photo carousel: arrows, dots, swipe, and a strip of small pictures. "banner" is the compact one
 // used in the dashboard header; it also moves on by itself every few seconds.
-export default function Gallery({ t, title, subtitle, state, banner }) {
+export default function Gallery({ t, title, subtitle, state, banner, children }) {
   const [index, setIndex] = useState(0);
   const [broken, setBroken] = useState(() => new Set());
   const [hover, setHover] = useState(false);
   const start = useRef(null);
-  const photos = state.photos.filter((p) => !broken.has(p.image));
+  const photos = state.photos.filter((p) => usable(p) && !broken.has(p.image));
   const count = photos.length;
   const current = photos[Math.min(index, Math.max(count - 1, 0))];
 
@@ -168,7 +170,45 @@ export default function Gallery({ t, title, subtitle, state, banner }) {
     );
   }
 
-  if (banner) return <div className="gal gal-banner">{body}</div>;
+  if (banner) {
+    // the whole bar is one picture, slightly blurred and dimmed, with the place name and controls floating on top
+    return (
+      <div className="placebar" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} {...swipe}>
+        <div className="pb-back" aria-hidden="true">
+          {photos.slice(0, 8).map((p, k) => (
+            <div key={p.image} className={`pb-slide${k === index ? " on" : ""}`} style={{ backgroundImage: `url("${p.image}")` }} />
+          ))}
+        </div>
+        <div className="pb-tint" aria-hidden="true" />
+        <div className="pb-content">{children}</div>
+        <div className="pb-meta">
+          {state.status === "loading" && <span className="gal-chip">{t.galLoading}</span>}
+          {current && (
+            <>
+              <span className={`gal-chip ${current.match}`}>{chipText(t, current)}</span>
+              <span className="gal-credit">
+                <a href={current.page} target="_blank" rel="noreferrer">{current.author}</a>
+                {" · "}
+                {current.licenceUrl ? <a href={current.licenceUrl} target="_blank" rel="noreferrer">{current.licence}</a> : current.licence}
+                {" · "}{current.source}
+              </span>
+            </>
+          )}
+          {count > 1 && (
+            <span className="pb-nav">
+              <button onClick={() => go(-1)} aria-label={t.galPrev}>‹</button>
+              <span className="pb-dots">
+                {photos.slice(0, 8).map((p, k) => (
+                  <button key={p.image} className={k === index ? "on" : ""} onClick={() => setIndex(k)} aria-label={`${k + 1} / ${count}`} />
+                ))}
+              </span>
+              <button onClick={() => go(1)} aria-label={t.galNext}>›</button>
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="gal panel">

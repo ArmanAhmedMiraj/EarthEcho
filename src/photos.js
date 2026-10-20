@@ -59,6 +59,10 @@ const BAD_TITLE = /\b(map|flag|logo|seal|coat of arms|emblem|diagram|chart|locat
 const OK_LICENCE = /^(CC[ -]BY(?![ -]NC)|CC[ -]BY[ -]SA|CC0|Public domain|PD|Attribution|GFDL-with|Copyrighted free use)/i;
 const BAD_LICENCE = /(NC|ND|fair use|non-?free)/i;
 
+// Pictures taken from space (astronaut and satellite photos carry a GPS tag too) are not photos of a place on the ground.
+const SPACE = /(earth science and remote sensing|johnson space center|\bNASA\b|astronaut|\bISS\d|expedition \d|international space station|night ?lights|from space|\bSTS-?\d)/i;
+export const usable = (photo) => !SPACE.test(`${photo.author} ${photo.title} ${photo.caption}`);
+
 // Turns one API page into a photo record, or null when it is not a good photo for this use.
 function toPhoto(page, match, about, bounds) {
   const info = page.imageinfo && page.imageinfo[0];
@@ -78,7 +82,7 @@ function toPhoto(page, match, about, bounds) {
   if (info.width < 900 || info.height < 500 || ratio < 1.2 || ratio > 2.4) return null; // a wide, big photo suits the frame
   const description = stripHtml(meta.ImageDescription && meta.ImageDescription.value);
   const author = stripHtml(meta.Artist && meta.Artist.value) || "Unknown author";
-  return {
+  const photo = {
     title,
     caption: (description && description.length > 8 ? description : title).slice(0, 150),
     image: info.thumburl || info.url,
@@ -91,6 +95,7 @@ function toPhoto(page, match, about, bounds) {
     match, // "place" | "nearby" | "region"
     about, // the place this photo is really about
   };
+  return usable(photo) ? photo : null;
 }
 
 function photosFromData(data, match, about, bounds) {
