@@ -44,6 +44,21 @@ async function fetchEnvironment(lat, lon) {
   }
 }
 
+async function fetchSoil(lat, lon) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 40000);
+  try {
+    const r = await fetch(`/api/soil?lat=${lat}&lon=${lon}`, { signal: controller.signal });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data && data.ok ? data : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // The screen between choosing a place and the dashboard. Every step waits for a real result:
 // a step is ticked only when its data arrived, and says plainly when it did not.
 export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
@@ -60,7 +75,7 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
   const [finished, setFinished] = useState(null); // null while running, then { partial }
   const live = useRef(ready);
   live.current = ready;
-  const results = useRef({ terrain: null, satellite: null, env: null });
+  const results = useRef({ terrain: null, satellite: null, env: null, soil: null });
   const ran = useRef(false);
 
   const set = (id, patch) => setSteps((list) => list.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -76,6 +91,7 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
       const satellite = fetchSatellite(lat, lon);
       const terrain = fetchTerrain(lat, lon).catch(() => null);
       const environment = fetchEnvironment(lat, lon);
+      const soilMap = fetchSoil(lat, lon);
       let failures = 0;
 
       await wait(700);
@@ -86,9 +102,16 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
       await waitFor(() => live.current.soilReady, 8000);
       const sat = await satellite;
       results.current.satellite = sat;
+      const grids = await soilMap;
+      results.current.soil = grids;
       if (!alive()) return;
       const parts = [];
-      if (live.current.soilText) parts.push(`${t.stepSoilOk}: ${live.current.soilText}`);
+      if (grids && grids.available && grids.texture) {
+        const conf = grids.texture.groupConfidence != null ? ` (${grids.texture.groupConfidence}%)` : "";
+        parts.push(`${t.stepSoilGrids}: ${t.soilNames[grids.texture.simple]}${conf}`);
+      } else if (grids && grids.available === false) parts.push(t.stepSoilNone);
+      else if (live.current.soilText) parts.push(`${t.stepSoilOk}: ${live.current.soilText}`);
+      if (!grids) parts.push(t.stepSoilGridsFail);
       if (sat && sat.soilRoot) parts.push(`${t.stepSmapOk}: ${sat.soilRoot.volumetric.toFixed(2)} m³/m³`);
       if (sat && sat.rainNow && sat.rainNow.rateMmHr != null) parts.push(`${t.stepRain}: ${sat.rainNow.rateMmHr} mm/h`);
       if (sat && !sat.soilRoot) parts.push(t.stepNoSmap);
