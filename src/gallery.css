@@ -65,3 +65,9 @@
 @media (max-width: 760px) { .placebar { min-height: 270px; } .pb-content { padding: 20px 16px 64px; } .pb-meta { left: 16px; right: 12px; } }
 @media (prefers-reduced-motion: reduce) { .gal-frame img, .gal-skeleton { animation: none; } .pb-slide { transition: none; } }
 .pb-meta .gal-credit a:first-child { display: inline-block; max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
+/* On a phone the photo credit, the photo-type chip and the arrows wrap onto three rows, so leave room for them under the buttons */
+@media (max-width: 600px) {
+  .pb-content { padding-bottom: 118px; }
+  .pb-meta { left: 16px; right: 16px; }
+}

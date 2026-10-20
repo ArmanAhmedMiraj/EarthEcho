@@ -15,3 +15,9 @@
 .rt-profit th { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
 .rt-profit input { width: 84px; font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
 .rt-tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; background: var(--border); color: var(--text); }
+
+/* long Bengali headings made the profit table wider than a phone, so let the table scroll sideways inside its card */
+@media (max-width: 600px) {
+  .rt-profit { display: block; overflow-x: auto; max-width: 100%; }
+  .rt-profit input { width: 64px; }
+}
