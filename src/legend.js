@@ -8,21 +8,21 @@ export const LEVEL_COLORS = {
 };
 
 // Map zoom levels where the border LINES fade in. A smaller number means earlier (further out).
-// Division lines are always shown. About 7.3 = one division fills the screen.
-// About 9 = one or two districts. About 10.3 = a few upazilas.
+// First-level lines are always shown. About 6 = one state or division fills the screen.
+// About 8.2 = a few districts. About 10 = a few sub-districts.
 export const ZOOM = {
-  district: 7.3,
-  upazila: 9,
-  union: 10.3,
+  district: 6.0,
+  upazila: 8.2,
+  union: 10.0,
 };
 
 // Map zoom levels where the NAMES show: [first zoom, last zoom]. null = no last zoom.
 // Each level hands over to the next, so names of different levels do not mix.
 export const LABEL_ZOOM = {
-  division: [3, 7.4],
-  district: [7.0, 9.2],
-  upazila: [9.2, 10.9],
-  union: [10.9, null],
+  division: [3, 6.4],
+  district: [6.0, 8.6],
+  upazila: [8.4, 10.4],
+  union: [10.4, null],
 };
 
 // The colour of the name text for each level (a pale tint of the border colour)

@@ -225,7 +225,7 @@ export default function App() {
           return b[0] <= east && b[2] >= west && b[1] <= north && b[3] >= south;
         })
         .map((f) => f.properties.id);
-      if (ids.length > 0 && ids.length <= 6) wanted.push(`${i}:${ids.join(",")}`);
+      if (ids.length > 0 && ids.length <= 9) wanted.push(`${i}:${ids.join(",")}`);
     });
     return wanted.join("|");
   }, [admin, view]);
