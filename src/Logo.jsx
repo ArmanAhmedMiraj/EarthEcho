@@ -18,9 +18,9 @@ export default function Logo({ size = 52, className = "" }) {
         <radialGradient id={id("halo")} cx="50%" cy="50%" r="50%"><stop offset="0.72" stopColor="#35e0b0" stopOpacity="0.35" /><stop offset="1" stopColor="#35e0b0" stopOpacity="0" /></radialGradient>
         <clipPath id={id("ball")}><circle cx="100" cy="106" r="62" /></clipPath>
       </defs>
-      <circle cx="100" cy="106" r="86" fill={`url(#${id("halo")})`} />
+      <circle className="efl-halo" cx="100" cy="106" r="86" fill={`url(#${id("halo")})`} />
       <g className="efl-ring">
-        <path d="M26 106 a74 24 0 0 1 148 0" fill="none" stroke="#35e0b0" strokeOpacity="0.55" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="1 7" />
+        <path className="efl-ringback" d="M26 106 a74 24 0 0 1 148 0" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeDasharray="1 6" />
       </g>
       <circle cx="100" cy="106" r="62" fill={`url(#${id("sea")})`} />
       <g clipPath={`url(#${id("ball")})`}>
@@ -36,18 +36,18 @@ export default function Logo({ size = 52, className = "" }) {
       </g>
       <circle cx="100" cy="106" r="62" fill={`url(#${id("shade")})`} />
       <circle cx="100" cy="106" r="62" fill={`url(#${id("shine")})`} />
-      <circle cx="100" cy="106" r="62" fill="none" stroke="#9ff5e0" strokeOpacity="0.45" strokeWidth="1.4" />
+      <circle className="efl-rim" cx="100" cy="106" r="62" fill="none" strokeWidth="1.6" />
       <g className="efl-ring">
-        <path d="M174 106 a74 24 0 0 1 -148 0" fill="none" stroke="#35e0b0" strokeWidth="2.6" strokeLinecap="round" />
-        <circle r="5.2" fill="#fff"><animateMotion dur="9s" repeatCount="indefinite" path={ring} /></circle>
-        <circle r="9" fill="#35e0b0" fillOpacity="0.35"><animateMotion dur="9s" repeatCount="indefinite" path={ring} /></circle>
+        <path className="efl-ringfront" d="M174 106 a74 24 0 0 1 -148 0" fill="none" strokeWidth="3" strokeLinecap="round" />
+        <circle className="efl-sat" r="5.6"><animateMotion dur="9s" repeatCount="indefinite" path={ring} /></circle>
+        <circle className="efl-satglow" r="9.5"><animateMotion dur="9s" repeatCount="indefinite" path={ring} /></circle>
       </g>
       <g className="efl-sprout">
-        <path d="M100 44 C100 34 100 26 100 16" stroke="#7be05a" strokeWidth="4.4" strokeLinecap="round" fill="none" />
-        <path d="M100 30 C86 31 76 23 74 10 C89 10 98 17 100 30 Z" fill="#9ef07a" />
-        <path d="M100 24 C113 25 124 17 126 5 C111 5 102 11 100 24 Z" fill="#6fd24f" />
+        <path d="M100 44 C100 34 100 26 100 16" strokeWidth="4.4" strokeLinecap="round" fill="none" className="efl-stem" />
+        <path className="efl-leaf1" d="M100 30 C86 31 76 23 74 10 C89 10 98 17 100 30 Z" />
+        <path className="efl-leaf2" d="M100 24 C113 25 124 17 126 5 C111 5 102 11 100 24 Z" />
       </g>
-      <path className="efl-drop" d="M150 62 C153 67 155 70 155 73 A5 5 0 0 1 145 73 C145 70 147 67 150 62 Z" fill="#59c8ff" />
+      <path className="efl-drop" d="M150 62 C153 67 155 70 155 73 A5 5 0 0 1 145 73 C145 70 147 67 150 62 Z" />
     </svg>
   );
 }

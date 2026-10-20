@@ -1,20 +1,38 @@
-/* EarthEcho logo animation (see Logo.jsx) */
-.efl { display: block; flex: none; overflow: visible; }
+/* EarthEcho logo animation and colours (see Logo.jsx) */
+.efl { display: block; flex: none; overflow: visible;
+  --efl-halo: 1; --efl-ring: #35e0b0; --efl-sat: #ffffff; --efl-glow: rgba(53, 224, 176, 0.35); --efl-stem: #7be05a;
+  --efl-leaf1: #9ef07a; --efl-leaf2: #6fd24f; --efl-drop: #59c8ff; --efl-rim: rgba(159, 245, 224, 0.5); --efl-shadow: none; filter: var(--efl-shadow); }
+/* on a light page the pale greens vanish, so the logo takes deeper colours and a soft shadow for contrast */
+:root[data-theme="light"] .efl {
+  --efl-halo: 0; --efl-ring: #0a7a66; --efl-sat: #0b3d3a; --efl-glow: rgba(10, 122, 102, 0.28); --efl-stem: #1c7a36;
+  --efl-leaf1: #2fa047; --efl-leaf2: #1b7433; --efl-drop: #1a86d0; --efl-rim: rgba(5, 60, 70, 0.7);
+  --efl-shadow: drop-shadow(0 2px 3px rgba(5, 47, 58, 0.4));
+}
+.efl-halo { opacity: var(--efl-halo); }
+.efl-ringback, .efl-ringfront { stroke: var(--efl-ring); }
+.efl-ringback { stroke-opacity: 0.8; }
+.efl-sat { fill: var(--efl-sat); }
+.efl-satglow { fill: var(--efl-glow); }
+.efl-stem { stroke: var(--efl-stem); }
+.efl-leaf1 { fill: var(--efl-leaf1); }
+.efl-leaf2 { fill: var(--efl-leaf2); }
+.efl-drop { fill: var(--efl-drop); animation: efl-fall 3s ease-in infinite; }
+.efl-rim { stroke: var(--efl-rim); }
 .efl-land { animation: efl-spin 16s linear infinite; }
 @keyframes efl-spin { from { transform: translate(0, 6px); } to { transform: translate(-124px, 6px); } }
 .efl-sprout { transform-origin: 100px 40px; animation: efl-grow 6s ease-in-out infinite; }
 @keyframes efl-grow {
   0% { transform: scale(0.15) rotate(0deg); }
-  35% { transform: scale(1) rotate(0deg); }
-  55% { transform: scale(1) rotate(-4deg); }
-  75% { transform: scale(1) rotate(4deg); }
+  22% { transform: scale(1) rotate(0deg); }
+  42% { transform: scale(1) rotate(-4deg); }
+  62% { transform: scale(1) rotate(4deg); }
+  88% { transform: scale(1) rotate(0deg); }
   100% { transform: scale(0.15) rotate(0deg); }
 }
-.efl-drop { animation: efl-fall 3s ease-in infinite; }
 @keyframes efl-fall { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
 .efl-ring { transform: rotate(-22deg); transform-origin: 100px 106px; }
+.brand .efl { margin: 2px 4px 2px 0; }
+@media (max-width: 600px) { .brand .efl { width: 60px; height: 60px; } }
 @media (prefers-reduced-motion: reduce) {
   .efl-land, .efl-sprout, .efl-drop { animation: none; }
 }
-.brand .efl { margin: 2px 4px 2px 0; }
-@media (max-width: 600px) { .brand .efl { width: 60px; height: 60px; } }
