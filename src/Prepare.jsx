@@ -29,6 +29,21 @@ async function fetchSatellite(lat, lon) {
   }
 }
 
+async function fetchEnvironment(lat, lon) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const r = await fetch(`/api/environment?lat=${lat}&lon=${lon}`, { signal: controller.signal });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data && data.ok ? data : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // The screen between choosing a place and the dashboard. Every step waits for a real result:
 // a step is ticked only when its data arrived, and says plainly when it did not.
 export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
@@ -38,12 +53,14 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
     { id: "weather", label: t.stepWeather, state: "wait" },
     { id: "climate", label: t.stepClimate, state: "wait" },
     { id: "terrain", label: t.stepTerrain, state: "wait" },
+    { id: "veg", label: t.stepVeg, state: "wait" },
+    { id: "water", label: t.stepWater, state: "wait" },
     { id: "suit", label: t.stepSuit, state: "wait" },
   ]);
   const [finished, setFinished] = useState(null); // null while running, then { partial }
   const live = useRef(ready);
   live.current = ready;
-  const results = useRef({ terrain: null, satellite: null });
+  const results = useRef({ terrain: null, satellite: null, env: null });
   const ran = useRef(false);
 
   const set = (id, patch) => setSteps((list) => list.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -58,6 +75,7 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
       // the slow downloads start at once, the steps then wait for them one by one
       const satellite = fetchSatellite(lat, lon);
       const terrain = fetchTerrain(lat, lon).catch(() => null);
+      const environment = fetchEnvironment(lat, lon);
       let failures = 0;
 
       await wait(700);
@@ -103,6 +121,24 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
         state: ground ? "ok" : "slow",
         note: ground ? `${t.stepElevation}: ${ground.elevationM} m · ${t.stepSlope}: ${ground.slopePct}%` : t.stepTerrainFail,
       });
+      await wait(300);
+
+      set("veg", { state: "run" });
+      const env = await environment;
+      results.current.env = env;
+      if (!alive()) return;
+      const veg = env && env.vegetation;
+      if (!veg) failures += 1;
+      const temp = env && env.landTemp ? ` · ${env.landTemp.celsius} °C` : "";
+      set("veg", { state: veg ? "ok" : "slow", note: veg ? `${t.stepVegOk}: ${veg.latest.value}${temp}` : t.stepVegFail });
+      await wait(300);
+
+      set("water", { state: "run" });
+      await wait(400);
+      const months = env && env.climate ? env.climate.months : null;
+      if (!months) failures += 1;
+      const dryCount = months ? months.filter((m) => m.balanceMm != null && m.balanceMm < 0).length : 0;
+      set("water", { state: months ? "ok" : "slow", note: months ? `${t.stepWaterOk}: ${dryCount} / 12` : t.stepWaterFail });
       await wait(300);
 
       set("suit", { state: "run" });

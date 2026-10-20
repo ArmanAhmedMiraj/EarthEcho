@@ -1,0 +1,23 @@
+.env-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+.env-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--glass-1), var(--glass-2));
+  box-shadow: inset 0 1px 0 var(--edge);
+}
+.env-card h3 { margin: 0 0 8px; }
+.env-wide { margin-top: 14px; }
+.env-big { font-size: 2rem; font-weight: 800; margin: 4px 0; line-height: 1.1; }
+.env-big small { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 2px 0 0; }
+.env-sentence { margin: 4px 0; }
+.env-list { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 6px; }
+.env-spark { width: 100%; max-width: 280px; height: auto; margin-top: 6px; }
+.env-chart { width: 100%; max-width: 560px; height: auto; }
+.env-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 4px 0 8px; }
+.env-legend .dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; }
+.env-legend .dot.rain { background: #3a8fd9; }
+.env-legend .dot.et { background: var(--clay); }
+.env-source { color: var(--muted); margin: 8px 0 0; }
+.env-source a { color: inherit; }
+.env-months { margin: 2px 0 8px; }

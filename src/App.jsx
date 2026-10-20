@@ -27,6 +27,8 @@ import Globe from "./Globe.jsx";
 import Prepare from "./Prepare.jsx";
 import Gallery, { usePlacePhotos } from "./Gallery.jsx";
 import { START_TEXT } from "./i18nStart.js";
+import { ENV_TEXT } from "./i18nEnv.js";
+import Environment from "./Environment.jsx";
 import AdminPicker from "./AdminPicker.jsx";
 import MapPicker from "./MapPicker.jsx";
 import Weather from "./Weather.jsx";
@@ -37,7 +39,7 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["weather", "crops", "data"];
+const TABS = ["weather", "crops", "environment", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
@@ -112,6 +114,7 @@ export default function App() {
   stageRef.current = stage;
   const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
   const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
+  const [envData, setEnvData] = useState(null); // NASA vegetation, land temperature and climate of the confirmed place
   const [satellite, setSatellite] = useState(null); // NASA SMAP / GPM readings of the confirmed place
   const snapshot = useRef(null); // the confirmed place, kept while the farmer looks for another one
   const [nearest, setNearest] = useState(null); // nearest named village / neighbourhood, from OpenStreetMap
@@ -126,7 +129,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -583,6 +586,7 @@ export default function App() {
     // the old place's results must never show for the new one
     setTerrain(null);
     setSatellite(null);
+    setEnvData(null);
     snapshot.current = null;
     setStage("prepare");
   }
@@ -606,6 +610,7 @@ export default function App() {
           if (stageRef.current !== "prepare") return;
           setTerrain(found.terrain);
           setSatellite(found.satellite);
+          setEnvData(found.env);
           window.location.hash = "/crops";
           setTab("crops");
           setStage("app");
@@ -655,7 +660,7 @@ export default function App() {
                   window.location.hash = `/${id}`;
                 }}
               >
-                {{ weather: t.tabWeather, crops: t.tabCrops, data: t.tabData }[id]}
+                {{ weather: t.tabWeather, crops: t.tabCrops, environment: t.tabEnv, data: t.tabData }[id]}
               </button>
             ))}
           </nav>
@@ -799,6 +804,21 @@ export default function App() {
               place={{ title: label.title, path: label.path, lat: pos.lat, lon: pos.lon }}
             />
           </div>
+        </main>
+      )}
+
+      {stage === "app" && tab === "environment" && (
+        <main className="page">
+          <Environment
+            key={`${pos.lat},${pos.lon}`}
+            t={t}
+            lang={lang}
+            lat={pos.lat}
+            lon={pos.lon}
+            initial={envData}
+            satellite={satellite}
+            terrain={terrain}
+          />
         </main>
       )}
 
