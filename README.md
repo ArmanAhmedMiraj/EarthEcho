@@ -28,7 +28,7 @@ New here? Read [DEMO.md](DEMO.md) for a 5-minute walkthrough.
 | **Market prices** | Recent retail prices for food items where the UN WFP publishes them, with trend | WFP food prices (HDX, CC BY-IGO) |
 | **Suppliers** | Nearby agro shops, seed, fertiliser and equipment sellers on a map | OpenStreetMap |
 | **My farms** | Save several places on the device, see their alerts at a glance, export and import, install the app on a phone | Stored on the device |
-| **Ask EarthEcho** | A question box. Answers use the farm's own live data and a curated knowledge base, cite their sources, and say so when they do not know | Google Gemini, EarthEcho knowledge notes |
+| **Ask EarthEcho** | A question box. Answers use the farm's own live data and a curated knowledge base, cite their sources, and say so when they do not know | Groq (Llama), Google Gemini as backup, EarthEcho knowledge notes |
 | **Crop planner** (Bangladesh) | Three ranked rice-based rotations, named BRRI varieties, year timeline, live irrigation countdown, printable plan | BRRI, FAO, NASA POWER |
 | **Crop suitability** | 67 crops scored for the place month by month, rain-fed and irrigated, with limiting factors | FAO EcoCrop method, NASA POWER |
 | **Soil** | Soil texture and pH with ranges, and a farmer override | ISRIC SoilGrids |
@@ -57,7 +57,7 @@ Everything except the assistant is a transparent rule-based calculation, not a b
 
 ### The assistant (retrieval, not guesswork)
 
-The assistant searches EarthEcho's own knowledge notes (about 19 method notes and one note per crop, each with a source link), adds the farm's live data from the page, and asks Google Gemini to answer only from that material. Answers cite their notes as [S1], [S2]. It is told to say "I don't have that" and send the farmer to the local agriculture officer when the material does not cover the question, and not to give pesticide or fertiliser doses. Bengali questions are turned into English search words first. It can still make mistakes, and the screen says so. The Gemini key lives only on the server.
+The assistant searches EarthEcho's own knowledge notes (about 19 method notes and one note per crop, each with a source link), adds the farm's live data from the page, and asks a free language model (Llama on Groq, with Google Gemini as a backup) to answer only from that material. Answers cite their notes as [S1], [S2]. It is told to say "I don't have that" and send the farmer to the local agriculture officer when the material does not cover the question, and not to give pesticide or fertiliser doses. Bengali questions are turned into English search words first. It can still make mistakes, and the screen says so. The API key lives only on the server.
 
 ## Data sources and licences
 
@@ -80,7 +80,7 @@ The assistant searches EarthEcho's own knowledge notes (about 19 method notes an
 
 - Everything is an **estimate** to help a farmer explore options. Soil is a model map, not a test of the field. Forecasts can be wrong. Confirm big decisions with the local agriculture officer.
 - Market prices exist only where WFP publishes them (not for the USA). News needs a country with headlines in GDELT. Supplier results depend on what volunteers have mapped in OpenStreetMap.
-- The assistant needs internet and a free Gemini quota. Without a key the rest of the app works and the assistant says it is switched off.
+- The assistant needs internet and a free API quota. Without a key the rest of the app works and the assistant says it is switched off.
 - Farm data, rotation choices and irrigation dates are stored only on the farmer's own device. There are no accounts and no personal data is sent to our server; the assistant sends only the question and the farm's weather, soil and crop summary.
 
 ## Run it on your computer
@@ -94,7 +94,7 @@ npm run dev
 
 Open http://localhost:5173. The `/api` folder runs locally the same way it runs on Vercel.
 
-To use the assistant locally, create a file `.env.local` in the project folder with one line `GEMINI_API_KEY=your_key` (a free key from https://aistudio.google.com) and restart `npm run dev`. This file is ignored by git. On Vercel add the same name under Project Settings, Environment Variables, then redeploy. Optional: `GEMINI_MODEL` to choose the first model to try.
+To use the assistant locally, create a file `.env.local` in the project folder with one line `GROQ_API_KEY=your_key` (a free key from https://console.groq.com/keys) and restart `npm run dev`. A `GEMINI_API_KEY` (https://aistudio.google.com) can be added as a backup. This file is ignored by git. On Vercel add the same name under Project Settings, Environment Variables, then redeploy. Optional: `GROQ_MODEL` or `GEMINI_MODEL` to choose the first model to try.
 
 `npm run build` makes the production build in `dist/`. Pushing to `main` deploys it on Vercel.
 
