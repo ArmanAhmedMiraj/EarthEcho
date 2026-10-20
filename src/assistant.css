@@ -1,0 +1,14 @@
+.as-warn { background: var(--panel); border: 1px solid var(--amber); border-radius: 10px; padding: 8px 12px; font-size: 0.85rem; margin: 8px 0; }
+.as-suggest { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+.as-log { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+.as-msg { border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px; background: var(--panel); max-width: 100%; overflow-wrap: anywhere; }
+.as-msg.user { background: var(--bg); align-self: flex-end; max-width: 90%; }
+.as-msg.err { border-color: var(--amber); }
+.as-msg b { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }
+.as-msg p { margin: 4px 0; line-height: 1.5; }
+.as-cite { font-size: 0.7rem; color: var(--accent); font-weight: 700; margin: 0 1px; }
+.as-src { margin-top: 6px; font-size: 0.85rem; }
+.as-src summary { cursor: pointer; color: var(--muted); }
+.as-src ol { margin: 6px 0 0; padding-left: 22px; }
+.as-form { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 8px 0; background: var(--bg); }
+.as-form input { flex: 1 1 220px; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); min-width: 0; }

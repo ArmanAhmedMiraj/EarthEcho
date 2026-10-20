@@ -8,3 +8,6 @@ data-raw
 archive-nisar/data-processed/jamuna/
 archive-nisar/data-processed/jamuna_v3/
 archive-nisar/data-processed/preview_*.png
+.env
+.env.local
+.env.*.local

@@ -37,6 +37,8 @@ import Market from "./Market.jsx";
 import Suppliers from "./Suppliers.jsx";
 import Farms from "./Farms.jsx";
 import { FARMS_TEXT } from "./i18nFarms.js";
+import Assistant from "./Assistant.jsx";
+import { ASSISTANT_TEXT } from "./i18nAssistant.js";
 import { SUPPLIER_TEXT } from "./i18nSuppliers.js";
 import { MARKET_TEXT } from "./i18nMarket.js";
 import { ROTATION_TEXT } from "./i18nRotation.js";
@@ -56,7 +58,7 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["weather", "disasters", "irrigation", "rotation", "market", "suppliers", "farms", "crops", "suitability", "soil", "environment", "data"];
+const TABS = ["weather", "disasters", "irrigation", "rotation", "market", "suppliers", "farms", "assistant", "crops", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
@@ -155,7 +157,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...CROP_TEXT[lang], ...WATER_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -701,7 +703,7 @@ export default function App() {
                   window.location.hash = `/${id}`;
                 }}
               >
-                {{ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, crops: t.tabCrops, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
+                {{ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, assistant: t.tabAssistant, crops: t.tabCrops, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
               </button>
             ))}
           </nav>
@@ -923,6 +925,15 @@ export default function App() {
           <div className="viewer">
             <h2>{t.fmTitle}</h2>
             <Farms t={t} lang={lang} here={{ lat: pos.lat, lon: pos.lon, title: label.title, path: label.path, country }} onOpen={openFarm} />
+          </div>
+        </main>
+      )}
+
+      {stage === "app" && tab === "assistant" && (
+        <main className="page">
+          <div className="viewer">
+            <h2>{t.asTitle}</h2>
+            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} />
           </div>
         </main>
       )}
