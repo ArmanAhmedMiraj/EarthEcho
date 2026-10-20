@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Globe from "./Globe.jsx";
 import { fetchTerrain } from "./terrain.js";
+import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -61,7 +62,7 @@ async function fetchSoil(lat, lon) {
 
 // The screen between choosing a place and the dashboard. Every step waits for a real result:
 // a step is ticked only when its data arrived, and says plainly when it did not.
-export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
+export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone }) {
   const [steps, setSteps] = useState([
     { id: "area", label: t.stepArea, state: "run" },
     { id: "soil", label: t.stepSoil, state: "wait" },
@@ -165,10 +166,25 @@ export default function Prepare({ t, lat, lon, title, path, ready, onDone }) {
       await wait(300);
 
       set("suit", { state: "run" });
-      await wait(800);
+      const table = await loadCropTable();
+      await wait(500);
       if (!alive()) return;
+      let top = [];
+      if (table && env && env.climate) {
+        const months = env.climate.months.map((m) => ({ tmean: m.tmean, rainMm: m.rainMm }));
+        if (!months.some((m) => m.tmean == null || m.rainMm == null)) {
+          top = evaluateCrops(table.crops, months, soilInput(results.current.soil))
+            .sort((a, b) => b.irrigated.best - a.irrigated.best)
+            .slice(0, 3)
+            .map((r) => (lang === "bn" ? r.crop.bn : r.crop.en));
+        }
+      }
+      if (top.length === 0) failures += 1;
       const partial = failures > 0;
-      set("suit", { state: partial ? "slow" : "ok", note: partial ? t.stepSuitPartial : t.stepSuitOk });
+      set("suit", {
+        state: top.length === 0 ? "slow" : partial ? "slow" : "ok",
+        note: top.length === 0 ? t.stepSuitNoClimate : `${t.stepSuitReal}: ${top.join(", ")}${partial ? ` · ${t.stepSuitPartial}` : ""}`,
+      });
       setFinished({ partial });
       await wait(partial ? 4500 : 2200); // let the farmer read the result
       if (alive()) onDone(results.current);

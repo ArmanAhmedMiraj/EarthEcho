@@ -93,20 +93,20 @@ export default async function handler(req, res) {
   // all the reads run together (the helper keeps a few downloads going at once)
   const jobs = PROPS.map((prop) => ({ prop, stat: "mean" }));
   for (const prop of ["clay", "sand", "phh2o", "soc"]) jobs.push({ prop, stat: "Q0.05" }, { prop, stat: "Q0.95" });
-  const readAll = () =>
-    Promise.all(
-      jobs.map(async (job) => {
-        try {
-          const r = await readValue(job.prop, `${DEPTH}_${job.stat}`, X, Y);
-          return { ...job, value: r ? r.value / SCALE[job.prop] : null, half: r ? r.half : null };
-        } catch {
-          return { ...job, value: null, half: null };
-        }
-      }),
-    );
-  let results = await readAll();
-  // an empty answer can also be a dropped connection, so ask once more before saying there is no soil here
-  if (results.every((r) => r.value == null)) results = await readAll();
+  const readOne = async (job) => {
+    try {
+      const r = await readValue(job.prop, `${DEPTH}_${job.stat}`, X, Y);
+      return { ...job, value: r ? r.value / SCALE[job.prop] : null, half: r ? r.half : null };
+    } catch {
+      return { ...job, value: null, half: null };
+    }
+  };
+  let results = await Promise.all(jobs.map(readOne));
+  // an empty answer can also be a dropped connection, so every empty one is asked for again (up to two more times)
+  for (let round = 0; round < 2 && results.some((r) => r.value == null); round += 1) {
+    await new Promise((done) => setTimeout(done, 400));
+    results = await Promise.all(results.map((r) => (r.value == null ? readOne(r) : r)));
+  }
   const get = (prop, stat = "mean") => {
     const r = results.find((x) => x.prop === prop && x.stat === stat);
     return r ? r.value : null;
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
     const groupConfidence = groups && groups[groupName] != null ? groups[groupName] : null;
     texture = {
       clay, sand, silt, class: name, simple: SIMPLE[name] || "loam", group: groupName,
-      confidence, groupConfidence,
+      confidence, groupConfidence, groups,
       confidenceLevel: groupConfidence == null ? null : groupConfidence >= 70 ? "high" : groupConfidence >= 50 ? "medium" : "low",
       alternatives,
     };
@@ -165,10 +165,13 @@ export default async function handler(req, res) {
     cec: pick(cec, [10, 25], ["low", "medium", "high"]),
   };
 
-  cacheFor(res, 7 * 86400); // soil does not change from week to week
+  // when a main reading is still missing, do not let the CDN keep the answer for long
+  const partial = PROPS.some((p) => topsoil[p] == null) || (texture && !intervals.clay);
+  cacheFor(res, partial ? 120 : 7 * 86400); // soil does not change from week to week
   res.status(200).json({
     ok: true,
     available: true,
+    partial,
     location: point,
     depth: "5-15 cm",
     topsoil,

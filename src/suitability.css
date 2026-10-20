@@ -1,0 +1,27 @@
+.suit-basis { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 10px 14px; margin: 12px 0; border-radius: 14px; border: 1px solid var(--border); background: linear-gradient(160deg, var(--glass-1), var(--glass-2)); }
+.suit-now { margin: 14px 0; padding: 12px 16px; border-radius: 18px; border: 1px solid var(--border); background: linear-gradient(160deg, var(--glass-1), var(--glass-2)); box-shadow: inset 0 1px 0 var(--edge); }
+.suit-now h3 { margin: 0 0 6px; }
+.now-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.now-list li { padding: 5px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--glass-1); }
+.suit-list { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.suit-card { padding: 14px 16px; border-radius: 18px; border: 1px solid var(--border); background: linear-gradient(160deg, var(--glass-1), var(--glass-2)); box-shadow: inset 0 1px 0 var(--edge); }
+.suit-card h3 { margin: 0; }
+.suit-card p { margin: 4px 0; }
+.suit-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.suit-score { text-align: right; display: grid; gap: 4px; justify-items: end; }
+.suit-score strong { font-size: 1.6rem; line-height: 1; }
+.pill { font-size: 0.74rem; font-weight: 700; padding: 2px 10px; border-radius: 99px; border: 1px solid var(--border); }
+.pill.veryGood { color: var(--accent); border-color: var(--accent); }
+.pill.good { color: var(--gold); border-color: var(--gold); }
+.pill.marginal { color: var(--amber); border-color: var(--amber); }
+.pill.poor { color: var(--warn); border-color: var(--warn); }
+.month-strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin: 8px 0 4px; }
+.mcell { display: flex; align-items: center; justify-content: center; height: 24px; font-size: 0.7rem; font-weight: 700; border-radius: 6px; color: var(--text); background: color-mix(in srgb, var(--accent) calc(var(--v) * 85%), transparent); border: 1px solid var(--border); }
+.mcell.best { outline: 2px solid var(--accent); outline-offset: -2px; }
+.mcell.now { box-shadow: 0 0 0 2px var(--gold); }
+.suit-card details { margin-top: 6px; }
+.suit-card summary { cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+.suit-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 0.82rem; }
+.suit-table th { text-align: left; vertical-align: top; padding: 5px 8px 5px 0; width: 32%; color: var(--muted); font-weight: 600; }
+.suit-table td { padding: 5px 0; }
+.suit-method { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); }
