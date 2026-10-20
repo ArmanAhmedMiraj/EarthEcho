@@ -9,13 +9,16 @@ export const ADMIN_TEXT = {
     union: "Union / ward area",
     choose: "— choose —",
     chooseAbove: "— choose the one above first —",
-    nameSearchPlaceholder: "Search any name: division, district, upazila, union",
+    nameSearchPlaceholder: "Search any place name",
     searchWorld: "Other places in the world",
     levelNames: { division: "Division", district: "District", upazila: "Upazila / Thana", union: "Union" },
     outsideBD:
       "This point is outside Bangladesh's boundary data. Weather and soil still work here, but there is no division or district to show.",
     otherCountryHint:
-      "Boundaries are built for Bangladesh only so far. For other countries, search a place name or tap the map. Weather and soil still work.",
+      "Boundaries are available for Bangladesh, India, Pakistan, Nepal, Myanmar, Bhutan and the USA. For anywhere else, search a place name or tap the map. Weather and soil still work.",
+    outsideCountry:
+      "This point is outside the 7 countries with boundary data. Weather and soil still work here, but there is no district to show.",
+    boundaryCredits: "Boundary sources and licences",
     pickedPoint: "Selected point",
     latShort: "Lat",
     lonShort: "Lon",
@@ -26,11 +29,11 @@ export const ADMIN_TEXT = {
     legendUpazila: "Upazila / Thana (zoom in)",
     legendUnion: "Union (zoom in)",
     legendSelected: "Selected area",
-    adminLoading: "Loading Bangladesh boundaries…",
+    adminLoading: "Loading boundaries…",
     adminError:
       "Could not load the boundary files. Weather and soil still work. Tap the map to choose a point.",
     footer:
-      "Data: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri imagery. Boundaries: Bangladesh Bureau of Statistics / OCHA ROAP via geoBoundaries (CC BY 3.0 IGO). These are estimates. Please confirm with your local agriculture officer.",
+      "Data: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri imagery. Boundaries: geoBoundaries (Bangladesh: Bangladesh Bureau of Statistics / OCHA ROAP, CC BY 3.0 IGO) and the US Census Bureau. These are estimates. Please confirm with your local agriculture officer.",
   },
   bn: {
     country: "দেশ",
@@ -42,13 +45,16 @@ export const ADMIN_TEXT = {
     union: "ইউনিয়ন / ওয়ার্ড এলাকা",
     choose: "— বেছে নিন —",
     chooseAbove: "— আগে উপরেরটি বেছে নিন —",
-    nameSearchPlaceholder: "যেকোনো নাম খুঁজুন: বিভাগ, জেলা, উপজেলা, ইউনিয়ন",
+    nameSearchPlaceholder: "যেকোনো জায়গার নাম খুঁজুন",
     searchWorld: "বিশ্বের অন্যান্য জায়গা",
     levelNames: { division: "বিভাগ", district: "জেলা", upazila: "উপজেলা / থানা", union: "ইউনিয়ন" },
     outsideBD:
       "এই বিন্দুটি বাংলাদেশের সীমানার তথ্যের বাইরে। এখানে আবহাওয়া ও মাটির তথ্য কাজ করে, কিন্তু দেখানোর মতো বিভাগ বা জেলা নেই।",
     otherCountryHint:
-      "সীমানা এখন শুধু বাংলাদেশের জন্য তৈরি। অন্য দেশের জন্য জায়গার নাম খুঁজুন বা মানচিত্রে ট্যাপ করুন। আবহাওয়া ও মাটি তবুও কাজ করবে।",
+      "সীমানা আছে বাংলাদেশ, ভারত, পাকিস্তান, নেপাল, মিয়ানমার, ভুটান ও যুক্তরাষ্ট্রের। অন্য জায়গার জন্য নাম খুঁজুন বা মানচিত্রে ট্যাপ করুন। আবহাওয়া ও মাটি তবুও কাজ করবে।",
+    outsideCountry:
+      "এই বিন্দুটি সীমানার তথ্য থাকা ৭টি দেশের বাইরে। এখানে আবহাওয়া ও মাটির তথ্য কাজ করে, কিন্তু দেখানোর মতো জেলা নেই।",
+    boundaryCredits: "সীমানার উৎস ও লাইসেন্স",
     pickedPoint: "নির্বাচিত বিন্দু",
     latShort: "অক্ষাংশ",
     lonShort: "দ্রাঘিমাংশ",
@@ -59,10 +65,10 @@ export const ADMIN_TEXT = {
     legendUpazila: "উপজেলা / থানা (জুম করলে)",
     legendUnion: "ইউনিয়ন (জুম করলে)",
     legendSelected: "নির্বাচিত এলাকা",
-    adminLoading: "বাংলাদেশের সীমানা লোড হচ্ছে…",
+    adminLoading: "সীমানা লোড হচ্ছে…",
     adminError:
       "সীমানার ফাইল লোড করা যায়নি। আবহাওয়া ও মাটি তবুও কাজ করবে। মানচিত্রে ট্যাপ করে বিন্দু বেছে নিন।",
     footer:
-      "তথ্য: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri ছবি। সীমানা: বাংলাদেশ পরিসংখ্যান ব্যুরো / OCHA ROAP, geoBoundaries-এর মাধ্যমে (CC BY 3.0 IGO)। এগুলো অনুমান। স্থানীয় কৃষি কর্মকর্তার সাথে নিশ্চিত করুন।",
+      "তথ্য: NASA POWER, Open-Meteo, ISRIC SoilGrids (CC BY 4.0), Esri ছবি। সীমানা: geoBoundaries (বাংলাদেশ: বাংলাদেশ পরিসংখ্যান ব্যুরো / OCHA ROAP, CC BY 3.0 IGO) ও মার্কিন আদমশুমারি ব্যুরো। এগুলো অনুমান। স্থানীয় কৃষি কর্মকর্তার সাথে নিশ্চিত করুন।",
   },
 };

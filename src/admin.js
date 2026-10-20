@@ -1,3 +1,8 @@
+// Boundaries for every country the app knows, behind one set of functions.
+// Each country has up to four levels. The four "slots" below are only names for level 1 to 4:
+// for Bangladesh they are division / district / upazila / union, for the USA they are state / county / ZIP code.
+// What each slot is CALLED for a country comes from that country's own list of level names.
+
 const BASE = `${import.meta.env.BASE_URL}admin/`;
 const cache = new Map();
 
@@ -19,22 +24,161 @@ function getJson(name) {
   return cache.get(name);
 }
 
-export const COUNTRY_BBOX = [88.0, 20.55, 92.75, 26.7];
-export const COUNTRY_CENTER = { lat: 23.7, lon: 90.35 };
+export const SLOTS = ["division", "district", "upazila", "union"];
+export const LEVELS = SLOTS;
+export const EMPTY_CHAIN = { division: null, district: null, upazila: null, union: null };
 
-export const LEVELS = ["division", "district", "upazila", "union"];
+// ---- the list of countries ----
+const BANGLADESH = {
+  iso: "BD",
+  name: { en: "Bangladesh", bn: "বাংলাদেশ" },
+  centre: { lat: 23.7, lon: 90.35 },
+  bbox: [88.0, 20.55, 92.75, 26.7],
+  levels: [
+    { en: "Division", bn: "বিভাগ" },
+    { en: "District", bn: "জেলা" },
+    { en: "Upazila / Thana", bn: "উপজেলা / থানা" },
+    { en: "Union / ward area", bn: "ইউনিয়ন / ওয়ার্ড এলাকা" },
+  ],
+};
+export const COUNTRY_BBOX = BANGLADESH.bbox;
+export const COUNTRY_CENTER = BANGLADESH.centre;
 
-export function loadAdmin() {
-  return Promise.all([
-    getJson("country.json"),
-    getJson("divisions.json"),
-    getJson("districts.json"),
-    getJson("upazilas.json"),
-  ]).then(([country, divisions, districts, upazilas]) => ({ country, divisions, districts, upazilas }));
+const NAME_BN = {
+  IND: "ভারত", PAK: "পাকিস্তান", NPL: "নেপাল", MMR: "মিয়ানমার", BTN: "ভুটান", USA: "যুক্তরাষ্ট্র",
+};
+const LABEL_BN = {
+  "State / Union territory": "রাজ্য / কেন্দ্রশাসিত অঞ্চল",
+  District: "জেলা",
+  "Sub-district / Tehsil / Block": "উপজেলা / তহসিল / ব্লক",
+  "Province / Territory": "প্রদেশ / অঞ্চল",
+  Tehsil: "তহসিল",
+  Province: "প্রদেশ",
+  "Local level (municipality)": "স্থানীয় স্তর (পৌরসভা)",
+  "State / Region": "রাজ্য / অঞ্চল",
+  Township: "টাউনশিপ",
+  Dzongkhag: "জোংখাগ",
+  Gewog: "গেওয়াং",
+  State: "রাজ্য",
+  County: "কাউন্টি",
+  "ZIP code area (ZCTA)": "জিপ কোড এলাকা",
+};
+
+let registryPromise = null;
+// Bangladesh first, then the countries listed in public/admin/world/manifest.json
+export function loadRegistry() {
+  if (!registryPromise) {
+    registryPromise = getJson("world/manifest.json")
+      .then((m) => [
+        BANGLADESH,
+        ...m.countries.map((c) => ({
+          iso: c.iso,
+          name: { en: c.name, bn: NAME_BN[c.iso] || c.name },
+          centre: c.centre,
+          bbox: c.bbox,
+          levels: c.levels.map((l) => ({ en: l.label, bn: LABEL_BN[l.label] || l.label })),
+          meta: c,
+        })),
+      ])
+      .catch(() => {
+        registryPromise = null;
+        return [BANGLADESH];
+      });
+  }
+  return registryPromise;
 }
 
-export const loadUnions = (districtId) => getJson(`unions/${districtId}.json`);
-export const loadSearchIndex = () => getJson("search_index.json");
+// ---- loading one country ----
+const countries = new Map();
+
+// A level is either "all" (one file, loaded at once) or "lazy" (one file per top-level area, loaded when needed).
+export function loadCountry(info) {
+  if (!countries.has(info.iso)) {
+    const job =
+      info.iso === "BD"
+        ? Promise.all([
+            getJson("country.json"),
+            getJson("divisions.json"),
+            getJson("districts.json"),
+            getJson("upazilas.json"),
+          ]).then(([country, divisions, districts, upazilas]) => ({
+            iso: "BD",
+            info,
+            country,
+            levels: [
+              { slot: "division", fc: divisions },
+              { slot: "district", fc: districts },
+              { slot: "upazila", fc: upazilas },
+              { slot: "union", fc: null, lazy: { keySlot: "district", file: (k) => `unions/${k}.json` } },
+            ],
+          }))
+        : Promise.all([
+            getJson(`world/${info.iso}/country.json`),
+            ...info.meta.levels.map((lv, i) =>
+              lv.layout === "all" ? getJson(`world/${info.iso}/L${i + 1}.json`) : Promise.resolve(null)
+            ),
+          ]).then(([country, ...fcs]) => ({
+            iso: info.iso,
+            info,
+            country,
+            levels: info.meta.levels.map((lv, i) => ({
+              slot: SLOTS[i],
+              fc: fcs[i],
+              lazy: fcs[i] ? undefined : { keySlot: "division", file: (k) => `world/${info.iso}/L${i + 1}/${k}.json` },
+            })),
+          }));
+    countries.set(
+      info.iso,
+      job.catch((e) => {
+        countries.delete(info.iso);
+        throw e;
+      })
+    );
+  }
+  return countries.get(info.iso);
+}
+
+// the key of the part file a lazy level needs, taken from the chain (null if the chain has no such area yet)
+export function partKey(admin, index, chain) {
+  const lv = admin.levels[index];
+  if (!lv || !lv.lazy) return null;
+  const parent = chain[lv.lazy.keySlot];
+  return parent ? parent.id : null;
+}
+
+export const loadPart = (admin, index, key) => getJson(admin.levels[index].lazy.file(key));
+
+async function poolOf(admin, index, chain) {
+  const lv = admin.levels[index];
+  if (!lv) return null;
+  if (!lv.lazy) return lv.fc;
+  const key = partKey(admin, index, chain);
+  if (!key) return null;
+  try {
+    return await loadPart(admin, index, key);
+  } catch {
+    return null;
+  }
+}
+
+const searchCache = new Map();
+// the names of one country, for the search box: [{ l: slot, i, n, p, y, x, b }]
+export function loadSearchIndex(info) {
+  if (!searchCache.has(info.iso)) {
+    const job =
+      info.iso === "BD"
+        ? getJson("search_index.json")
+        : getJson(`world/${info.iso}/search.json`).then((list) => list.map((e) => ({ ...e, l: SLOTS[e.l - 1] })));
+    searchCache.set(
+      info.iso,
+      job.catch((e) => {
+        searchCache.delete(info.iso);
+        throw e;
+      })
+    );
+  }
+  return searchCache.get(info.iso);
+}
 
 // ---- point in polygon ----
 function inRing(x, y, ring) {
@@ -89,10 +233,14 @@ function geometryDistance(geometry, x, y) {
 // In that case take the closest one if it is within about 3 km.
 const NEAR = 0.03;
 
-function find(features, x, y) {
+function findInside(features, x, y) {
   for (const f of features) {
     if (inBox(f.properties.bbox, x, y, 0) && contains(f.geometry, x, y)) return f;
   }
+  return null;
+}
+
+function findNear(features, x, y) {
   let best = null;
   let bestDistance = NEAR;
   for (const f of features) {
@@ -106,46 +254,94 @@ function find(features, x, y) {
   return best;
 }
 
-export const EMPTY_CHAIN = { division: null, district: null, upazila: null, union: null };
-
-// Which division, district, upazila and union is this point in? null if it is outside Bangladesh.
-export async function locate(admin, lat, lon) {
-  const district = find(admin.districts.features, lon, lat);
-  if (!district) return null;
-  const d = district.properties;
-
-  const upazila = find(
-    admin.upazilas.features.filter((f) => f.properties.parent === d.id),
-    lon,
-    lat
-  );
-
-  let union = null;
-  if (upazila) {
+// Which country is this point in? Returns its code, or null if it is in none of them.
+export async function detectCountry(registry, lat, lon) {
+  const area = (c) => (c.bbox[2] - c.bbox[0]) * (c.bbox[3] - c.bbox[1]);
+  const outline = async (c) => {
     try {
-      const unions = await loadUnions(d.id);
-      union = find(
-        unions.features.filter((f) => f.properties.parent === upazila.properties.id),
-        lon,
-        lat
-      );
+      return await getJson(c.iso === "BD" ? "country.json" : `world/${c.iso}/country.json`);
     } catch {
-      /* union file missing: stop at upazila */
+      return null;
+    }
+  };
+  const candidates = registry.filter((c) => inBox(c.bbox, lon, lat, 0)).sort((a, b) => area(a) - area(b));
+  for (const c of candidates) {
+    const shape = await outline(c);
+    if (shape && contains(shape.geometry, lon, lat)) return c.iso;
+  }
+  // a tap on the coast or a river mouth can miss the simplified outline: take the closest country within ~5 km
+  let best = null;
+  let bestDistance = 0.05;
+  for (const c of registry.filter((r) => inBox(r.bbox, lon, lat, 0.06))) {
+    const shape = await outline(c);
+    if (!shape) continue;
+    const d = geometryDistance(shape.geometry, lon, lat);
+    if (d < bestDistance) {
+      best = c.iso;
+      bestDistance = d;
     }
   }
+  return best;
+}
 
-  const division = admin.divisions.features.find((f) => f.properties.id === d.parent);
-  return {
-    division: division ? division.properties : null,
-    district: d,
-    upazila: upazila ? upazila.properties : null,
-    union: union ? union.properties : null,
-  };
+// Which area of each level is this point in? null if it is outside the country.
+export async function locate(admin, lat, lon) {
+  const first = findInside(admin.levels[0].fc.features, lon, lat) || findNear(admin.levels[0].fc.features, lon, lat);
+  if (!first) return null;
+  const chain = { ...EMPTY_CHAIN, division: first.properties };
+  let previous = first.properties;
+
+  for (let i = 1; i < admin.levels.length; i++) {
+    const pool = await poolOf(admin, i, chain);
+    if (!pool) break;
+    // the areas of the level above own their children, but a ZIP area may cross a county line,
+    // so look among the children first, then among everything in the file
+    const children = pool.features.filter((f) => f.properties.parent === previous.id);
+    const found =
+      findInside(children, lon, lat) || findInside(pool.features, lon, lat) || findNear(children, lon, lat);
+    if (!found) break;
+    chain[SLOTS[i]] = found.properties;
+    previous = found.properties;
+  }
+
+  // if the area found is listed under a different parent, show that parent so the dropdowns agree
+  for (let i = admin.levels.length - 1; i >= 1; i--) {
+    const current = chain[SLOTS[i]];
+    const above = chain[SLOTS[i - 1]];
+    if (!current || !above || !current.parent || above.id === current.parent) continue;
+    const pool = await poolOf(admin, i - 1, chain);
+    const owner = pool && pool.features.find((f) => f.properties.id === current.parent);
+    if (owner) chain[SLOTS[i - 1]] = owner.properties;
+  }
+  return chain;
+}
+
+// The chain of areas above a chosen area, from its parent ids.
+export async function buildChain(admin, index, props) {
+  const chain = { ...EMPTY_CHAIN };
+  let current = props;
+  for (let i = index; i >= 0 && current; i--) {
+    chain[SLOTS[i]] = current;
+    if (i === 0) break;
+    const level = admin.levels[i - 1];
+    let pool = level.fc;
+    if (!pool) {
+      // a lazy level above: its file is named after the top-level area, which every area carries as "top"
+      try {
+        pool = await loadPart(admin, i - 1, current.top);
+      } catch {
+        pool = null;
+      }
+    }
+    const parent = pool && pool.features.find((f) => f.properties.id === current.parent);
+    current = parent ? parent.properties : null;
+  }
+  return chain;
 }
 
 export function deepestOf(chain) {
-  for (const level of ["union", "upazila", "district", "division"]) {
-    if (chain[level]) return { level, item: chain[level] };
+  for (let i = SLOTS.length - 1; i >= 0; i--) {
+    if (chain[SLOTS[i]]) return { level: SLOTS[i], index: i, item: chain[SLOTS[i]] };
   }
   return null;
 }
@@ -153,29 +349,36 @@ export function deepestOf(chain) {
 export function titleOf(chain) {
   const d = deepestOf(chain);
   if (!d) return null;
-  // many unions are just called "Paurashava" or "Ward No-14", so add the upazila
-  return d.level === "union" && chain.upazila ? `${d.item.name} (${chain.upazila.name})` : d.item.name;
+  // many areas are just called "Paurashava", "Ward No-14" or a ZIP number, so add the area above
+  const above = d.index > 0 ? chain[SLOTS[d.index - 1]] : null;
+  const vague = d.level === "union" || /^[\d\s-]+$/.test(d.item.name);
+  return vague && above ? `${d.item.name} (${above.name})` : d.item.name;
 }
 
 export function pathText(chain) {
-  return LEVELS.map((level) => chain[level] && chain[level].name)
+  return SLOTS.map((slot) => chain[slot] && chain[slot].name)
     .filter(Boolean)
     .join(" › ");
 }
 
 // ---- name search ----
-const ORDER = { division: 0, district: 1, upazila: 2, union: 3 };
-const rank = (a, b) => ORDER[a.l] - ORDER[b.l] || a.n.localeCompare(b.n);
+const rank = (a, b) => SLOTS.indexOf(a.l) - SLOTS.indexOf(b.l) || a.n.localeCompare(b.n);
+
+const fold = (text) =>
+  text
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
 
 export function searchNames(index, query, limit = 8) {
-  const q = query.trim().toLowerCase();
+  const q = fold(query.trim());
   if (q.length < 2) return [];
   const starts = [];
   const inside = [];
   for (const entry of index) {
-    const name = entry.n.toLowerCase();
-    if (name.startsWith(q)) starts.push(entry);
-    else if (name.includes(q)) inside.push(entry);
+    if (entry.s === undefined) entry.s = fold(entry.n);
+    if (entry.s.startsWith(q)) starts.push(entry);
+    else if (entry.s.includes(q)) inside.push(entry);
   }
   return [...starts.sort(rank), ...inside.sort(rank)].slice(0, limit);
 }

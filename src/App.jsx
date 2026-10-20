@@ -9,13 +9,16 @@ import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
 import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
 import { fetchForecast, fetchHistory } from "./weather.js";
 import {
-  COUNTRY_BBOX,
-  COUNTRY_CENTER,
   EMPTY_CHAIN,
+  SLOTS,
+  buildChain,
   deepestOf,
-  loadAdmin,
-  loadUnions,
+  detectCountry,
+  loadCountry,
+  loadPart,
+  loadRegistry,
   locate,
+  partKey,
   pathText,
   titleOf,
 } from "./admin.js";
@@ -35,8 +38,6 @@ function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
   return TABS.includes(id) ? id : "location";
 }
-
-const PARENT = { union: "upazila", upazila: "district", district: "division", division: null };
 
 function readSaved(key, fallback) {
   try {
@@ -85,17 +86,20 @@ export default function App() {
   const [soilChoice, setSoilChoice] = useState("auto"); // "auto" or a soil key
   const [soilMap, setSoilMap] = useState(null);
 
-  const [admin, setAdmin] = useState(null);
+  const [registry, setRegistry] = useState([]); // the countries we have boundaries for
+  const registryRef = useRef([]);
+  const [admin, setAdmin] = useState(null); // the boundaries of the chosen country
   const [adminError, setAdminError] = useState(false);
-  const [unionsFc, setUnionsFc] = useState(null); // unions of the chosen district
+  const [chainParts, setChainParts] = useState({}); // lazy levels of the chosen place: { level index: FeatureCollection }
+  const [viewParts, setViewParts] = useState({}); // lazy levels of what is on screen
   const [place, setPlace] = useState(EMPTY_CHAIN);
   const [selected, setSelected] = useState(null); // { level, id }
-  const [country, setCountry] = useState("BD");
+  const [country, setCountry] = useState("BD"); // a country code, or "other"
   const [focus, setFocus] = useState(null);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState(tabFromHash);
   const [view, setView] = useState(null); // { zoom, bounds } of the map right now
-  const [viewUnions, setViewUnions] = useState(null); // unions of the districts on screen
+  const started = useRef(false);
   const pickToken = useRef(0);
 
   const [forecast, setForecast] = useState(null);
@@ -145,67 +149,87 @@ export default function App() {
     loadSoilMap().then(setSoilMap);
   }, []);
 
-  // boundary files
+  // the list of countries, then the boundaries of Bangladesh (the starting country)
   useEffect(() => {
-    loadAdmin()
+    loadRegistry()
+      .then((list) => {
+        registryRef.current = list;
+        setRegistry(list);
+        return loadCountry(list[0]);
+      })
       .then(setAdmin)
       .catch(() => setAdminError(true));
   }, []);
 
-  // once the boundaries are loaded, work out where the starting point is
+  // once the first boundaries are loaded, work out where the starting point is
   useEffect(() => {
-    if (admin) pickPoint(pos.lat, pos.lon);
+    if (admin && !started.current) {
+      started.current = true;
+      pickPoint(pos.lat, pos.lon);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admin]);
 
-  // unions of the chosen district (for the dropdown)
-  const districtId = place.district ? place.district.id : null;
+  // the big levels are stored one file per top-level area: load the ones of the chosen place (for the dropdowns)
   useEffect(() => {
-    if (!districtId) {
-      setUnionsFc(null);
+    if (!admin) {
+      setChainParts({});
       return undefined;
     }
     let cancelled = false;
-    loadUnions(districtId)
-      .then((fc) => {
-        if (!cancelled) setUnionsFc(fc);
+    const jobs = admin.levels
+      .map((lv, i) => {
+        const key = partKey(admin, i, place);
+        return key ? loadPart(admin, i, key).then((fc) => [i, fc]).catch(() => null) : null;
       })
-      .catch(() => {
-        if (!cancelled) setUnionsFc(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [districtId]);
-
-  // Which districts are on screen once you are zoomed in far enough to see union borders?
-  const unionIds = useMemo(() => {
-    if (!admin || !view || view.zoom < ZOOM.union - 0.6) return "";
-    const [west, south, east, north] = view.bounds;
-    const ids = admin.districts.features
-      .filter((f) => {
-        const b = f.properties.bbox;
-        return b[0] <= east && b[2] >= west && b[1] <= north && b[3] >= south;
-      })
-      .map((f) => f.properties.id);
-    return ids.length > 0 && ids.length <= 6 ? ids.join(",") : "";
-  }, [admin, view]);
-
-  // load union borders for those districts (each file is loaded once and then kept)
-  useEffect(() => {
-    if (!unionIds) {
-      setViewUnions(null);
-      return undefined;
-    }
-    let cancelled = false;
-    Promise.all(unionIds.split(",").map((id) => loadUnions(id).catch(() => null))).then((list) => {
-      if (cancelled) return;
-      setViewUnions(collection(list.filter(Boolean).flatMap((fc) => fc.features)));
+      .filter(Boolean);
+    Promise.all(jobs).then((list) => {
+      if (!cancelled) setChainParts(Object.fromEntries(list.filter(Boolean)));
     });
     return () => {
       cancelled = true;
     };
-  }, [unionIds]);
+  }, [admin, place]);
+
+  // Which top-level areas are on screen once you are zoomed in far enough to see the borders of a big level?
+  const viewKeys = useMemo(() => {
+    if (!admin || !view) return "";
+    const [west, south, east, north] = view.bounds;
+    const wanted = [];
+    admin.levels.forEach((lv, i) => {
+      if (!lv.lazy || view.zoom < ZOOM[SLOTS[i]] - 0.6) return;
+      const keyLevel = admin.levels[SLOTS.indexOf(lv.lazy.keySlot)];
+      const ids = keyLevel.fc.features
+        .filter((f) => {
+          const b = f.properties.bbox;
+          return b[0] <= east && b[2] >= west && b[1] <= north && b[3] >= south;
+        })
+        .map((f) => f.properties.id);
+      if (ids.length > 0 && ids.length <= 6) wanted.push(`${i}:${ids.join(",")}`);
+    });
+    return wanted.join("|");
+  }, [admin, view]);
+
+  // load those files (each file is loaded once and then kept)
+  useEffect(() => {
+    if (!viewKeys) {
+      setViewParts({});
+      return undefined;
+    }
+    let cancelled = false;
+    Promise.all(
+      viewKeys.split("|").map(async (part) => {
+        const [index, ids] = part.split(":");
+        const list = await Promise.all(ids.split(",").map((id) => loadPart(admin, Number(index), id).catch(() => null)));
+        return [Number(index), collection(list.filter(Boolean).flatMap((fc) => fc.features))];
+      })
+    ).then((entries) => {
+      if (!cancelled) setViewParts(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [viewKeys, admin]);
 
   // Load weather whenever the point changes.
   useEffect(() => {
@@ -261,129 +285,141 @@ export default function App() {
   }, [refreshForecast]);
 
   // ---- choosing places ----
-  function buildChain(level, props) {
-    const pools = { upazila: admin.upazilas, district: admin.districts, division: admin.divisions };
-    const chain = { ...EMPTY_CHAIN };
-    let current = props;
-    let currentLevel = level;
-    while (current && currentLevel) {
-      chain[currentLevel] = current;
-      const parentLevel = PARENT[currentLevel];
-      if (!parentLevel) break;
-      const parentId = current.parent;
-      const parent = pools[parentLevel].features.find((f) => f.properties.id === parentId);
-      current = parent ? parent.properties : null;
-      currentLevel = parentLevel;
-    }
-    return chain;
+  const infoOf = (iso) => registryRef.current.find((c) => c.iso === iso);
+
+  async function openCountry(iso) {
+    const info = infoOf(iso);
+    if (!info) throw new Error(`no boundaries for ${iso}`);
+    const loaded = await loadCountry(info);
+    setAdmin(loaded);
+    setAdminError(false);
+    return loaded;
+  }
+
+  // show a whole country on the map (some outlines, like the USA, cross the date line: use a centre and zoom then)
+  function countryFocus(info) {
+    if (info.bbox[2] - info.bbox[0] > 100) return { key: Date.now(), center: [info.centre.lon, info.centre.lat], zoom: 3.4 };
+    return { key: Date.now(), bbox: info.bbox };
   }
 
   // a dropdown choice, a search result: fly to the whole area, pin in its middle
-  function selectArea(level, props) {
-    const chain = buildChain(level, props);
+  async function selectArea(index, props, adm = admin) {
+    const token = ++pickToken.current;
+    const chain = await buildChain(adm, index, props);
+    if (token !== pickToken.current) return;
     setPlace(chain);
-    setSelected({ level, id: props.id });
-    setCountry("BD");
+    setSelected({ level: SLOTS[index], id: props.id });
+    setCountry(adm.iso);
     setMessage("");
     setPos({ lat: props.lat, lon: props.lon, name: titleOf(chain) });
     setSoilChoice("auto");
     setFocus({ key: Date.now(), bbox: props.bbox });
   }
 
-  function resetCountry() {
+  // choosing a country: show it whole, pin in its middle
+  async function resetCountry(iso) {
+    const token = ++pickToken.current;
+    setMessage("");
+    let loaded = admin;
+    if (!admin || admin.iso !== iso) {
+      try {
+        loaded = await openCountry(iso);
+      } catch {
+        setAdminError(true);
+        return;
+      }
+    }
+    if (token !== pickToken.current) return;
+    const info = loaded.info;
     setPlace(EMPTY_CHAIN);
     setSelected(null);
-    setCountry("BD");
-    setMessage("");
-    setPos({ lat: COUNTRY_CENTER.lat, lon: COUNTRY_CENTER.lon, name: "Bangladesh" });
+    setCountry(iso);
+    setPos({ lat: info.centre.lat, lon: info.centre.lon, name: info.name[lang] });
     setSoilChoice("auto");
-    setFocus({ key: Date.now(), bbox: COUNTRY_BBOX });
+    setFocus(countryFocus(info));
   }
 
-  // a tap on the map (or "use my location"): the exact point, and which area it is in
+  // a tap on the map (or "use my location"): the exact point, which country it is in, and which area
   async function pickPoint(lat, lon, options = {}) {
     const latFixed = Number(lat.toFixed(4));
     const lonFixed = Number(lon.toFixed(4));
     const token = ++pickToken.current;
     setMessage("");
 
+    let loaded = admin;
     let chain = EMPTY_CHAIN;
-    if (admin) {
-      try {
-        chain = (await locate(admin, latFixed, lonFixed)) || EMPTY_CHAIN;
-      } catch {
-        chain = EMPTY_CHAIN;
+    let iso = null;
+    try {
+      const list = registryRef.current;
+      iso = list.length > 0 ? await detectCountry(list, latFixed, lonFixed) : admin ? admin.iso : null;
+      if (iso) {
+        if (!loaded || loaded.iso !== iso) loaded = await openCountry(iso);
+        chain = (await locate(loaded, latFixed, lonFixed)) || EMPTY_CHAIN;
       }
+    } catch {
+      chain = EMPTY_CHAIN;
     }
     if (token !== pickToken.current) return; // a newer tap replaced this one
 
     const found = deepestOf(chain);
     setPlace(chain);
     setSelected(found ? { level: found.level, id: found.item.id } : null);
-    setCountry(chain.district ? "BD" : "other");
-    setPos({ lat: latFixed, lon: lonFixed, name: titleOf(chain) });
+    setCountry(iso && loaded && loaded.iso === iso ? iso : "other");
+    setPos({ lat: latFixed, lon: lonFixed, name: titleOf(chain) || options.name || null });
     setSoilChoice("auto");
     if (options.fly) setFocus({ key: Date.now(), center: [lonFixed, latFixed], zoom: found ? 11 : 9 });
-    if (admin && !found) setMessage(t.outsideBD);
+    if (!iso) setMessage(t.outsideCountry);
   }
 
-  function onLevel(level, id) {
+  function onLevel(index, id) {
     if (!admin) return;
     if (!id) {
-      const parentLevel = PARENT[level];
-      const parentProps = parentLevel ? place[parentLevel] : null;
-      if (parentProps) selectArea(parentLevel, parentProps);
-      else resetCountry();
+      const above = index > 0 ? place[SLOTS[index - 1]] : null;
+      if (above) selectArea(index - 1, above);
+      else resetCountry(admin.iso);
       return;
     }
-    const pool = {
-      division: admin.divisions,
-      district: admin.districts,
-      upazila: admin.upazilas,
-      union: unionsFc,
-    }[level];
+    const lv = admin.levels[index];
+    const pool = lv.fc || chainParts[index];
     const found = pool ? pool.features.find((f) => f.properties.id === id) : null;
-    if (found) selectArea(level, found.properties);
+    if (found) selectArea(index, found.properties);
   }
 
   function onCountry(value) {
-    if (value === "BD") {
-      resetCountry();
-    } else {
+    if (value === "other") {
       setCountry("other");
       setPlace(EMPTY_CHAIN);
       setSelected(null);
       setMessage("");
+    } else {
+      resetCountry(value);
     }
   }
 
   async function onPickEntry(entry) {
     if (!admin) return;
-    const pools = { division: admin.divisions, district: admin.districts, upazila: admin.upazilas };
+    const index = SLOTS.indexOf(entry.l);
+    const lv = admin.levels[index];
     let props = null;
-    if (pools[entry.l]) {
-      const f = pools[entry.l].features.find((x) => x.properties.id === entry.i);
+    if (lv.fc) {
+      const f = lv.fc.features.find((x) => x.properties.id === entry.i);
       props = f ? f.properties : null;
     } else {
       try {
+        // the file of a big level is only known by position: find the area at the search result's middle point
         const chain = await locate(admin, entry.y, entry.x);
-        if (chain && chain.union && chain.union.id === entry.i) props = chain.union;
+        if (chain && chain[entry.l] && chain[entry.l].id === entry.i) props = chain[entry.l];
       } catch {
         /* fall through to the search entry itself */
       }
     }
     if (!props) props = { id: entry.i, name: entry.n, parent: null, lat: entry.y, lon: entry.x, bbox: entry.b };
-    selectArea(entry.l, props);
+    selectArea(index, props);
   }
 
+  // a place found by name anywhere in the world: pick its point (inside the 7 countries it also finds the area)
   function onPickWorld(r) {
-    setPlace(EMPTY_CHAIN);
-    setSelected(null);
-    setCountry("other");
-    setMessage("");
-    setPos({ lat: Number(r.lat.toFixed(4)), lon: Number(r.lon.toFixed(4)), name: r.name });
-    setSoilChoice("auto");
-    setFocus({ key: Date.now(), center: [r.lon, r.lat], zoom: 9 });
+    pickPoint(r.lat, r.lon, { fly: true, name: r.name });
   }
 
   function onUseLocation() {
@@ -403,21 +439,29 @@ export default function App() {
   // the chosen area, carrying its level so the map can colour it
   const selectedFeature = useMemo(() => {
     if (!selected || !admin) return null;
-    const pool = {
-      division: admin.divisions,
-      district: admin.districts,
-      upazila: admin.upazilas,
-      union: unionsFc,
-    }[selected.level];
+    const index = SLOTS.indexOf(selected.level);
+    const lv = admin.levels[index];
+    if (!lv) return null;
+    const pool = lv.fc || chainParts[index];
     const found = pool ? pool.features.find((f) => f.properties.id === selected.id) : null;
     return found ? { type: "Feature", properties: { level: selected.level }, geometry: found.geometry } : null;
-  }, [selected, admin, unionsFc]);
+  }, [selected, admin, chainParts]);
+
+  // the borders of each level: a big level is only there for the top-level areas on screen
+  const levelFc = (i) => {
+    const lv = admin && admin.levels[i];
+    return lv ? lv.fc || viewParts[i] || null : null;
+  };
+  const fc0 = levelFc(0);
+  const fc1 = levelFc(1);
+  const fc2 = levelFc(2);
+  const fc3 = levelFc(3);
 
   // place names for the map (built once per file, not on every move)
-  const divisionNames = useMemo(() => (admin ? namePoints(admin.divisions) : null), [admin]);
-  const districtNames = useMemo(() => (admin ? namePoints(admin.districts) : null), [admin]);
-  const upazilaNames = useMemo(() => (admin ? namePoints(admin.upazilas) : null), [admin]);
-  const unionNames = useMemo(() => namePoints(viewUnions), [viewUnions]);
+  const divisionNames = useMemo(() => namePoints(fc0), [fc0]);
+  const districtNames = useMemo(() => namePoints(fc1), [fc1]);
+  const upazilaNames = useMemo(() => namePoints(fc2), [fc2]);
+  const unionNames = useMemo(() => namePoints(fc3), [fc3]);
 
   const label = {
     title: pos.name || t.pickedPoint,
@@ -427,10 +471,10 @@ export default function App() {
 
   const layers = {
     country: admin ? admin.country : null,
-    divisions: admin ? admin.divisions : null, // always on, together with the country border
-    districts: admin ? admin.districts : null, // fade in when you zoom in to a division
-    upazilas: admin ? admin.upazilas : null, // fade in further in
-    unions: viewUnions, // fade in furthest in, loaded for the districts on screen
+    divisions: fc0, // always on, together with the country border
+    districts: fc1, // fade in when you zoom in
+    upazilas: fc2,
+    unions: fc3,
     divisionNames,
     districtNames,
     upazilaNames,
@@ -505,9 +549,11 @@ export default function App() {
           <AdminPicker
             t={t}
             lang={lang}
+            registry={registry}
+            info={admin ? admin.info : null}
             admin={admin}
             adminError={adminError}
-            unionsFc={unionsFc}
+            chainParts={chainParts}
             place={place}
             country={country}
             message={message}
@@ -570,10 +616,14 @@ export default function App() {
             </div>
             <ul className="legend" aria-label={t.legendTitle}>
               <li><i style={{ borderTopColor: LEVEL_COLORS.country }} />{t.legendCountry}</li>
-              <li><i style={{ borderTopColor: LEVEL_COLORS.division }} />{t.legendDivision}</li>
-              <li><i style={{ borderTopColor: LEVEL_COLORS.district }} />{t.legendDistrict}</li>
-              <li><i style={{ borderTopColor: LEVEL_COLORS.upazila }} />{t.legendUpazila}</li>
-              <li><i style={{ borderTopColor: LEVEL_COLORS.union }} />{t.legendUnion}</li>
+              {admin &&
+                admin.info.levels.map((lv, i) => (
+                  <li key={i}>
+                    <i style={{ borderTopColor: LEVEL_COLORS[SLOTS[i]] }} />
+                    {lv[lang]}
+                    {i > 0 ? ` ${t.legendZoomIn}` : ""}
+                  </li>
+                ))}
             </ul>
             <p className="muted small">{t.legendSelected}</p>
             <p className="muted small">{t.legendNames}</p>
@@ -604,7 +654,7 @@ export default function App() {
             <Crops
               t={t}
               lang={lang}
-              districtName={place.district ? place.district.name : ""}
+              districtName={country === "BD" && place.district ? place.district.name : ""}
               soil={soil}
               soilLabel={soil ? t.soilNames[soil] : ""}
               forecast={forecast}
@@ -623,7 +673,10 @@ export default function App() {
         </main>
       )}
 
-      <footer className="footer">{t.footer}</footer>
+      <footer className="footer">
+        {t.footer}{" "}
+        <a href={`${import.meta.env.BASE_URL}admin/world/ATTRIBUTION.md`} target="_blank" rel="noreferrer">{t.boundaryCredits}</a>
+      </footer>
     </div>
   );
 }

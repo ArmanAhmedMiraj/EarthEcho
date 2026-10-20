@@ -41,8 +41,9 @@ export const LEGEND_TEXT = {
     legendUpazila: "Upazila / Thana borders (appear when you zoom in to about one district)",
     legendUnion: "Union / ward borders (appear when you zoom in further)",
     legendSelected: "The area you choose is filled with the colour of its level.",
+    legendZoomIn: "(zoom in)",
     legendNames:
-      "Names: divisions first, then districts, upazilas and unions as you zoom in. Map names are shown in English letters.",
+      "Names appear as you zoom in: the biggest areas first, smaller ones later. Map names are shown in English letters.",
   },
   bn: {
     legendCountry: "দেশের সীমানা (সবসময় দেখা যায়)",
@@ -51,7 +52,8 @@ export const LEGEND_TEXT = {
     legendUpazila: "উপজেলা / থানার সীমানা (প্রায় একটি জেলা দেখা যায় এমন জুমে আসে)",
     legendUnion: "ইউনিয়ন / ওয়ার্ডের সীমানা (আরও জুম করলে আসে)",
     legendSelected: "আপনার বাছাই করা এলাকা তার স্তরের রঙে ভরা থাকে।",
+    legendZoomIn: "(জুম করলে)",
     legendNames:
-      "নাম: প্রথমে বিভাগ, জুম করলে জেলা, উপজেলা ও ইউনিয়ন। মানচিত্রের নাম ইংরেজি অক্ষরে দেখানো হয়।",
+      "নাম: জুম করলে প্রথমে বড় এলাকার নাম, পরে ছোট এলাকার নাম আসে। মানচিত্রের নাম ইংরেজি অক্ষরে দেখানো হয়।",
   },
 };

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { loadSearchIndex, searchNames } from "./admin.js";
+import { SLOTS, loadSearchIndex, searchNames } from "./admin.js";
 import { searchPlace } from "./weather.js";
 
 const byName = (a, b) => a.name.localeCompare(b.name);
@@ -23,9 +23,11 @@ function Field({ label, value, options, onChange, disabled, placeholder }) {
 export default function AdminPicker({
   t,
   lang,
+  registry,
+  info,
   admin,
   adminError,
-  unionsFc,
+  chainParts,
   place,
   country,
   message,
@@ -40,39 +42,39 @@ export default function AdminPicker({
   const [world, setWorld] = useState([]);
   const [worldMessage, setWorldMessage] = useState("");
 
+  // the names of the chosen country, for the search box
   useEffect(() => {
-    loadSearchIndex()
-      .then(setIndex)
-      .catch(() => setIndex([]));
-  }, []);
+    setIndex(null);
+    if (!info) return undefined;
+    let cancelled = false;
+    loadSearchIndex(info)
+      .then((list) => !cancelled && setIndex(list))
+      .catch(() => !cancelled && setIndex([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [info]);
 
   const local = useMemo(() => (index ? searchNames(index, query) : []), [index, query]);
 
-  const divisions = useMemo(
-    () => (admin ? admin.divisions.features.map((f) => f.properties).sort(byName) : []),
-    [admin]
-  );
-  const districts = useMemo(
-    () =>
-      admin && place.division
-        ? admin.districts.features.map((f) => f.properties).filter((p) => p.parent === place.division.id).sort(byName)
-        : [],
-    [admin, place.division]
-  );
-  const upazilas = useMemo(
-    () =>
-      admin && place.district
-        ? admin.upazilas.features.map((f) => f.properties).filter((p) => p.parent === place.district.id).sort(byName)
-        : [],
-    [admin, place.district]
-  );
-  const unions = useMemo(
-    () =>
-      unionsFc && place.upazila
-        ? unionsFc.features.map((f) => f.properties).filter((p) => p.parent === place.upazila.id).sort(byName)
-        : [],
-    [unionsFc, place.upazila]
-  );
+  // the choices of every level: the areas inside the one chosen above
+  const fields = useMemo(() => {
+    if (!admin) return [];
+    return admin.levels.map((lv, i) => {
+      const above = i > 0 ? place[SLOTS[i - 1]] : null;
+      const pool = lv.fc || (chainParts && chainParts[i]) || null;
+      let options = [];
+      if (pool && (i === 0 || above)) {
+        options = pool.features
+          .map((f) => f.properties)
+          .filter((p) => i === 0 || p.parent === above.id)
+          .sort(byName);
+      }
+      const chosen = place[SLOTS[i]];
+      if (chosen && !options.some((o) => o.id === chosen.id)) options = [chosen, ...options];
+      return { index: i, label: info.levels[i][lang], value: chosen ? chosen.id : "", options, enabled: i === 0 || !!above };
+    });
+  }, [admin, info, chainParts, place, lang]);
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -99,26 +101,21 @@ export default function AdminPicker({
       <label className="field">
         <span>{t.country}</span>
         <select value={country} onChange={(e) => onCountry(e.target.value)}>
-          <option value="BD">{t.countryBD}</option>
+          {registry.map((c) => (
+            <option key={c.iso} value={c.iso}>{c.name[lang]}</option>
+          ))}
           <option value="other">{t.countryOther}</option>
         </select>
       </label>
 
-      {country === "BD" &&
+      {country !== "other" &&
         (admin ? (
-          <>
-            <Field label={t.division} value={place.division?.id} options={divisions}
-              placeholder={t.choose} onChange={(id) => onLevel("division", id)} />
-            <Field label={t.district} value={place.district?.id} options={districts}
-              disabled={!place.division} placeholder={place.division ? t.choose : t.chooseAbove}
-              onChange={(id) => onLevel("district", id)} />
-            <Field label={t.upazila} value={place.upazila?.id} options={upazilas}
-              disabled={!place.district} placeholder={place.district ? t.choose : t.chooseAbove}
-              onChange={(id) => onLevel("upazila", id)} />
-            <Field label={t.union} value={place.union?.id} options={unions}
-              disabled={!place.upazila} placeholder={place.upazila ? t.choose : t.chooseAbove}
-              onChange={(id) => onLevel("union", id)} />
-          </>
+          fields.map((f) => (
+            <Field key={f.index} label={f.label} value={f.value} options={f.options}
+              disabled={!f.enabled}
+              placeholder={f.enabled ? t.choose : t.chooseAbove}
+              onChange={(id) => onLevel(f.index, id)} />
+          ))
         ) : (
           <p className="muted small">{adminError ? t.adminError : t.adminLoading}</p>
         ))}
@@ -153,7 +150,7 @@ export default function AdminPicker({
                 <strong>{e.n}</strong>
                 <span className="muted small">
                   {" "}
-                  {t.levelNames[e.l]}
+                  {info ? info.levels[SLOTS.indexOf(e.l)][lang] : ""}
                   {e.p ? ` · ${e.p}` : ""}
                 </span>
               </button>
