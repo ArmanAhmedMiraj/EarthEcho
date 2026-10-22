@@ -263,6 +263,7 @@ export default function MapPicker({ pos, label, layers, selected, focus, chosen,
       // before a place is chosen the map starts as a turning globe; after that it starts at the place
       center: chosen ? [pos.lon, pos.lat] : [pos.lon, 20],
       zoom: chosen ? 7 : 1.6,
+      maxPitch: 0,
     });
     map.current = m;
     ready.current = false;
@@ -317,12 +318,7 @@ export default function MapPicker({ pos, label, layers, selected, focus, chosen,
     m.on("wheel", pause);
     m.on("dragstart", pause);
     m.on("zoomstart", pause);
-    const globeShowing = () => {
-      const z = m.getZoom();
-      const c = m.getCanvas();
-      const diameter = (512 * Math.pow(2, z)) / Math.PI;
-      return z < 3 && diameter <= Math.min(c.clientWidth, c.clientHeight) * 1.1;
-    };
+    const globeShowing = () => m.getZoom() < 2.7;
     const turn = (now) => {
       const dt = Math.min(now - last, 100);
       last = now;
