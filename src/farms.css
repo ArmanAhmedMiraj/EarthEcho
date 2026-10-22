@@ -63,4 +63,17 @@
 .fd-nudge .btn { padding: 8px 14px; }
 .fd-form { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
 .fd-field input, .fd-field select, .fd-field textarea { padding: 8px 10px; font-size: 0.92rem; }
-@media (max-width: 560px) { .fd-line { grid-template-columns: 1fr auto; } .fd-line b { grid-column: 1 / -1; } .fd-seg button { font-size: 0.8rem; } }
+@media (max-width: 560px) { .fd-line { grid-template-columns: 1fr; gap: 4px; } .fd-act { text-align: left; } .fd-act:empty { display: none; } .fd-mini { max-width: 100%; width: 100%; } .fd-seg button { font-size: 0.8rem; } }
+
+/* the form controls of My Farm: one look in light and dark */
+.fd select, .fd input, .fd textarea { color-scheme: light; }
+:root[data-theme="dark"] .fd select, :root[data-theme="dark"] .fd input, :root[data-theme="dark"] .fd textarea { color-scheme: dark; }
+.fd select { appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2373897d' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center; }
+.fd select:hover, .fd input:hover, .fd textarea:hover { border-color: var(--accent); }
+.fd input:focus, .fd select:focus, .fd textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fd-mini { padding-right: 30px; background-position: right 9px center; }
+.fd-seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fd-seg button:focus:not(:focus-visible) { outline: none; }
+.fd-pill-note { display: none; }

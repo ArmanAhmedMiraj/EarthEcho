@@ -814,23 +814,21 @@ export default function App() {
                 {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
                 {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
               </span>
-              {fields.length > 1 && (
-                <label className="fd-switch">
-                  <span className="small">{t.fdSwitch}:</span>
-                  <select
-                    value={activeId}
-                    aria-label={t.fdSwitch}
-                    onChange={(e) => {
-                      const f = fields.find((x) => x.id === e.target.value);
-                      if (f) openField(f, { tab });
-                    }}
+              <div className="fd-pills" role="group" aria-label={t.fdSwitch}>
+                {fields.map((f) => (
+                  <button
+                    key={f.id}
+                    className={`fd-pill${f.id === activeId ? " on" : ""}`}
+                    aria-pressed={f.id === activeId}
+                    title={f.name}
+                    onClick={() => { if (f.id !== activeId) openField(f, { tab }); }}
                   >
-                    {fields.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                  </select>
-                </label>
-              )}
+                    {f.id === activeId ? "✓ " : ""}{f.name}
+                  </button>
+                ))}
+                <button className="fd-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
+              </div>
             </div>
-            <button className="btn" onClick={changeLocation}>＋ {t.fdAdd}</button>
           </Gallery>
         </>
       )}
