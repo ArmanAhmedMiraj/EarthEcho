@@ -116,7 +116,7 @@ export default function App() {
   const [viewParts, setViewParts] = useState({}); // lazy levels of what is on screen
   const [place, setPlace] = useState(EMPTY_CHAIN);
   const [selected, setSelected] = useState(null); // { level, id }
-  const [country, setCountry] = useState("BD"); // a country code, or "other"
+  const [country, setCountry] = useState(""); // "" until the farmer chooses; then a country code, or "other"
   const [focus, setFocus] = useState(null);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState(tabFromHash);
@@ -452,6 +452,7 @@ export default function App() {
   }
 
   function onCountry(value) {
+    if (!value) return;
     if (value === "other") {
       setCountry("other");
       setPlace(EMPTY_CHAIN);
@@ -535,7 +536,7 @@ export default function App() {
     coords: `${t.latShort} ${pos.lat} · ${t.lonShort} ${pos.lon}`,
   };
 
-  const layers = {
+  const layersAll = {
     country: admin ? admin.country : null,
     divisions: fc0, // always on, together with the country border
     districts: fc1, // fade in when you zoom in
@@ -546,6 +547,8 @@ export default function App() {
     upazilaNames,
     unionNames,
   };
+  // nothing is outlined on the globe until a country is chosen
+  const layers = country ? layersAll : Object.fromEntries(Object.keys(layersAll).map((k) => [k, null]));
 
   // what the photo gallery looks for: the country, or the deepest area chosen
   const photoTarget = useMemo(() => {

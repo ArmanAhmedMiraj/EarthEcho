@@ -102,6 +102,7 @@ export default function AdminPicker({
       <label className="field">
         <span>{t.country}</span>
         <select value={country} onChange={(e) => onCountry(e.target.value)}>
+          {!country && <option value="" disabled>{t.choose}</option>}
           {registry.map((c) => (
             <option key={c.iso} value={c.iso}>{c.name[lang]}</option>
           ))}
@@ -109,7 +110,7 @@ export default function AdminPicker({
         </select>
       </label>
 
-      {country !== "other" &&
+      {country && country !== "other" &&
         (admin ? (
           fields.map((f) => (
             <Field key={f.index} label={f.label} value={f.value} options={f.options}
