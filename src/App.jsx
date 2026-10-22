@@ -4,7 +4,7 @@ import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { TABS_TEXT } from "./i18nTabs.js";
 import { DATA_TEXT } from "./i18nData.js";
 import { LEGEND_TEXT, LEVEL_COLORS, ZOOM } from "./legend.js";
-import { SOIL_NOTE, SOIL_TYPES, loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
+import { loadSoilMap, lookupSoil, typicalSoil } from "./soil.js";
 import { fetchForecast, fetchHistory } from "./weather.js";
 import {
   EMPTY_CHAIN,
@@ -159,7 +159,6 @@ export default function App() {
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
   const liveSoil = soilData && soilData.available && soilData.texture ? soilData.texture.simple : null;
   const suggested = liveSoil || mapSoil || typicalSoil(pos.lat, pos.lon);
-  const suggestedFrom = liveSoil ? "live" : mapSoil ? "map" : "region";
   const soil = soilChoice === "auto" ? suggested : soilChoice;
 
   useEffect(() => {
@@ -742,30 +741,6 @@ export default function App() {
               )}
             </p>
           )}
-
-          <h2>{t.step2}</h2>
-          <select
-            className="wide-select"
-            value={soil || ""}
-            onChange={(e) => setSoilChoice(e.target.value)}
-          >
-            {!soil && <option value="" disabled>—</option>}
-            {SOIL_TYPES.map((key) => (
-              <option key={key} value={key}>{t.soilNames[key]}</option>
-            ))}
-          </select>
-          {soil && <p className="small">{t.soilHelp[soil]}</p>}
-          <p className="muted small">
-            {soilChoice !== "auto"
-              ? t.soilChanged
-              : suggested
-                ? (suggestedFrom === "live" ? t.soilNoteLive : SOIL_NOTE[lang][suggestedFrom])
-                : t.soilUnknown}
-          </p>
-          {soilChoice !== "auto" && (
-            <button className="btn" onClick={() => setSoilChoice("auto")}>{t.useSuggestion}</button>
-          )}
-          <p className="muted small">{t.soilTest}</p>
 
           <div className="confirm-box">
             {!userPicked && <p className="muted small">{t.confirmFirst}</p>}

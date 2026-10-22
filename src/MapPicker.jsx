@@ -306,17 +306,27 @@ export default function MapPicker({ pos, label, layers, selected, focus, chosen,
 
     m.on("click", (e) => pickRef.current(e.lngLat.lat, e.lngLat.lng));
 
-    // the globe turns slowly until a place is chosen or the farmer touches it
+    // The globe turns slowly while the whole globe is on screen and no place is chosen.
+    // A touch pauses it for 10 seconds; zoomed in (globe not fully visible) it never turns.
     let frame;
     let last = performance.now();
-    let touched = false;
-    m.on("mousedown", () => (touched = true));
-    m.on("touchstart", () => (touched = true));
-    m.on("wheel", () => (touched = true));
+    let pausedUntil = 0;
+    const pause = () => (pausedUntil = performance.now() + 10000);
+    m.on("mousedown", pause);
+    m.on("touchstart", pause);
+    m.on("wheel", pause);
+    m.on("dragstart", pause);
+    m.on("zoomstart", pause);
+    const globeShowing = () => {
+      const z = m.getZoom();
+      const c = m.getCanvas();
+      const diameter = (512 * Math.pow(2, z)) / Math.PI;
+      return z < 3 && diameter <= Math.min(c.clientWidth, c.clientHeight) * 1.1;
+    };
     const turn = (now) => {
       const dt = Math.min(now - last, 100);
       last = now;
-      if (!chosenRef.current && !touched && !m.isMoving() && m.getZoom() < 3) {
+      if (!chosenRef.current && now >= pausedUntil && !m.isMoving() && globeShowing()) {
         const c = m.getCenter();
         m.jumpTo({ center: [c.lng + dt * 0.006, c.lat] });
       }
