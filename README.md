@@ -1,6 +1,6 @@
 # EarthEcho
 
-**What should I plant next? Plan your field with NASA data.**
+**Plan your field with NASA data.**
 
 EarthEcho is a free, bilingual (English and Bengali) farm-planning web app. A farmer picks their field on a map and gets live weather, hazard watch, an irrigation schedule, a crop rotation for the year, crop suitability from climate and soil, market prices, nearby suppliers, saved farms with alerts, and an assistant that answers farming questions with its sources shown. It works for Bangladesh in the most detail, and for India, Pakistan, Nepal, Myanmar, Bhutan, the USA and other places with the data that exists for them.
 
