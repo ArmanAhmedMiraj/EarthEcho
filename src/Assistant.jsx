@@ -4,8 +4,23 @@ import { buildAlerts, fetchWeatherPlus } from "./weatherPlus.js";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 
 // Everything the assistant is told about this farm. It is built from data the app already has, so the answer is about THIS place.
-async function buildContext({ lat, lon, label, country, soilData, env }) {
+async function buildContext({ lat, lon, label, country, soilData, env, field }) {
   const ctx = { place: label || `${lat.toFixed(2)}, ${lon.toFixed(2)}`, latitude: +lat.toFixed(3), longitude: +lon.toFixed(3), country };
+  // what the farmer told us about this field (the farmer's own words, not measured by EarthEcho)
+  const fd = field && field.details ? field.details : null;
+  if (fd) {
+    const own = {};
+    if (field.name) own.fieldName = field.name;
+    if (fd.area && String(fd.area.value || "").trim()) own.landSize = `${fd.area.value} ${fd.area.unit}`;
+    if (fd.ownership) own.landUse = fd.ownership;
+    if (fd.irrigation) own.irrigation = fd.irrigation;
+    if (fd.currentCrop) own.growingNow = fd.currentCrop;
+    if (fd.plannedCrop) own.wantsToGrowNext = fd.plannedCrop;
+    if (fd.previousCrops) own.grownBefore = fd.previousCrops;
+    if (fd.soil) own.soilTypeSetByFarmer = fd.soil;
+    if (fd.notes) own.notes = String(fd.notes).slice(0, 300);
+    if (Object.keys(own).length > 1) ctx.farmerProvidedDetails = own;
+  }
   const soil = soilInput(soilData);
   if (soil) {
     ctx.soil = { pH: soil.ph != null ? +Number(soil.ph).toFixed(1) : null, texture: soil.simple || null, source: "ISRIC SoilGrids (250 m model)" };
@@ -41,7 +56,7 @@ function renderAnswer(text) {
   ));
 }
 
-export default function Assistant({ t, lang, lat, lon, label, country, soilData, env }) {
+export default function Assistant({ t, lang, lat, lon, label, country, soilData, env, field }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -49,9 +64,9 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
   const endRef = useRef(null);
   // the farm's weather and best crops are gathered as soon as the tab opens, so the first question does not wait for them
   useEffect(() => {
-    ctxRef.current = buildContext({ lat, lon, label, country, soilData, env });
+    ctxRef.current = buildContext({ lat, lon, label, country, soilData, env, field });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lon, env, soilData]);
+  }, [lat, lon, env, soilData, JSON.stringify(field && field.details), field && field.name]);
   useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ block: "nearest" }); }, [messages, busy]);
 
   async function ask(q) {
@@ -65,7 +80,7 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
     }
     setBusy(true);
     try {
-      if (!ctxRef.current) ctxRef.current = buildContext({ lat, lon, label, country, soilData, env });
+      if (!ctxRef.current) ctxRef.current = buildContext({ lat, lon, label, country, soilData, env, field });
       const context = await ctxRef.current;
       const response = await fetch("/api/assistant", {
         method: "POST",

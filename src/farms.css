@@ -11,3 +11,33 @@
 .fm-alert.severe b { background: #c0392b; color: #fff; }
 .fm-alert.warning b { background: var(--amber); color: #1b1b1b; }
 .fm-offline { background: var(--amber); color: #1b1b1b; padding: 8px 14px; font-size: 0.88rem; text-align: center; }
+
+/* My Farm hub */
+.fd-card { border: 1px solid var(--accent); border-radius: 16px; background: var(--panel); padding: 14px 16px; margin: 12px 0; }
+.fd-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.fd-badge { background: var(--accent); color: #fff; font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.fd-card h3 { margin: 16px 0 4px; font-size: 1.02rem; }
+.fd-where { margin: 4px 0 0; }
+.fd-chip { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; vertical-align: middle; white-space: nowrap; }
+.fd-chip.you { background: rgba(46, 160, 110, 0.18); color: var(--text); border: 1px solid rgba(46, 160, 110, 0.5); }
+.fd-chip.system { background: rgba(70, 130, 220, 0.16); color: var(--text); border: 1px solid rgba(70, 130, 220, 0.5); }
+.fd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 8px; }
+.fd-item { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.fd-item .wide-select { width: 100%; }
+.fd-value { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.fd-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+.fd-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.84rem; color: var(--muted); }
+.fd-field.wide { grid-column: 1 / -1; }
+.fd-field input, .fd-field select, .fd-field textarea { font: inherit; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); width: 100%; box-sizing: border-box; }
+.fd-row { display: flex; gap: 8px; }
+.fd-row input { flex: 1 1 90px; min-width: 0; }
+.fd-row select { flex: 1 1 120px; min-width: 0; }
+.fd-more { margin-top: 12px; }
+.fd-more summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.fd-add { margin: 14px 0; }
+.fd-guide { border: 1px solid var(--accent); border-radius: 14px; padding: 10px 14px; background: var(--panel); margin: 0 0 12px; }
+.fd-guide h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.fd-guide p { margin: 0; }
+.fd-switch { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fd-switch select { font: inherit; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); max-width: 100%; }
+.boot { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }

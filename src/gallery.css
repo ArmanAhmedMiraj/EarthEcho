@@ -71,3 +71,6 @@
   .pb-content { padding-bottom: 118px; }
   .pb-meta { left: 16px; right: 16px; }
 }
+.placebar .fd-switch select { background: rgba(0, 0, 0, 0.35); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); }
+.placebar .fd-switch select option { color: #111; background: #fff; }
+.placebar .fd-switch { margin-top: 4px; }

@@ -34,6 +34,8 @@ import Market from "./Market.jsx";
 import Suppliers from "./Suppliers.jsx";
 import Farms from "./Farms.jsx";
 import { FARMS_TEXT } from "./i18nFarms.js";
+import { FIELDS_TEXT } from "./i18nFields.js";
+import { keepStorage, loadActiveId, loadFields, newId, saveActiveId, saveFields, sameSpot } from "./fields.js";
 import Assistant from "./Assistant.jsx";
 import { ASSISTANT_TEXT } from "./i18nAssistant.js";
 import { SUPPLIER_TEXT } from "./i18nSuppliers.js";
@@ -54,11 +56,11 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
-const TABS = ["weather", "disasters", "irrigation", "rotation", "market", "suppliers", "farms", "assistant", "suitability", "soil", "environment", "data"];
+const TABS = ["farms", "weather", "disasters", "irrigation", "rotation", "market", "suppliers", "assistant", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
   const id = window.location.hash.replace(/^#\/?/, "");
-  return TABS.includes(id) ? id : "rotation";
+  return TABS.includes(id) ? id : "farms";
 }
 
 function readSaved(key, fallback) {
@@ -132,8 +134,14 @@ export default function App() {
   const started = useRef(false);
   // The app always opens on the location page. The other pages open only after a place is confirmed
   // and its data is prepared:  "explore" (choose a place)  >  "prepare" (loading screen)  >  "app" (dashboard)
-  const [stage, setStage] = useState("explore");
-  const stageRef = useRef("explore");
+  // "boot": saved fields exist, so the app opens the active one straight away
+  const [fields, setFields] = useState(loadFields);
+  const [activeId, setActiveId] = useState(loadActiveId);
+  const bootRef = useRef(fields.length > 0);
+  const nextTab = useRef("farms"); // the tab to open once a field has been prepared
+  const [newName, setNewName] = useState(""); // the name typed for a field that is about to be saved
+  const [stage, setStage] = useState(() => (fields.length > 0 ? "boot" : "explore"));
+  const stageRef = useRef(stage);
   stageRef.current = stage;
   const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
   const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
@@ -153,13 +161,42 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
   const liveSoil = soilData && soilData.available && soilData.texture ? soilData.texture.simple : null;
   const suggested = liveSoil || mapSoil || typicalSoil(pos.lat, pos.lon);
   const soil = soilChoice === "auto" ? suggested : soilChoice;
+
+  // ---- My Farm: the saved fields, and the one that is open ----
+  const activeField = fields.find((f) => f.id === activeId) || null;
+  useEffect(() => { saveFields(fields); }, [fields]);
+  useEffect(() => { saveActiveId(activeId); }, [activeId]);
+  useEffect(() => { keepStorage(); }, []);
+  const updateField = (id, patch) =>
+    setFields((list) => list.map((f) => (f.id === id ? { ...f, ...patch, updatedAt: Date.now() } : f)));
+  // what EarthEcho worked out for the open field (kept apart from what the farmer types)
+  const systemNow = useMemo(() => {
+    if (stage !== "app" || !activeId) return null;
+    const tex = soilData && soilData.available ? soilData.texture : null;
+    return {
+      soil: suggested
+        ? { key: suggested, source: liveSoil ? "satellite" : mapSoil ? "map" : "region", confidence: tex && tex.groupConfidence != null ? Math.round(tex.groupConfidence) : null, level: tex ? tex.confidenceLevel || null : null }
+        : null,
+      elevationM: terrain ? terrain.elevationM : null,
+      slopePct: terrain ? terrain.slopePct : null,
+    };
+  }, [stage, activeId, suggested, liveSoil, mapSoil, soilData, terrain]);
+  const systemKey = JSON.stringify(systemNow);
+  useEffect(() => {
+    if (!systemNow || !activeField) return;
+    if (JSON.stringify(activeField.system) !== systemKey) updateField(activeField.id, { system: systemNow });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [systemKey, activeId]);
+  // the farmer's own soil replaces the estimate for every tab (the estimate itself stays saved)
+  const soilOverride = activeField && activeField.details ? activeField.details.soil || "" : "";
+  useEffect(() => { if (activeId) setSoilChoice(soilOverride || "auto"); }, [soilOverride, activeId]);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -208,6 +245,16 @@ export default function App() {
       .then(setAdmin)
       .catch(() => setAdminError(true));
   }, []);
+
+  // saved fields: once the country list is ready, open the field that was open last time
+  useEffect(() => {
+    if (!bootRef.current || (registry.length === 0 && !adminError)) return;
+    bootRef.current = false;
+    const f = fields.find((x) => x.id === activeId) || fields[0];
+    if (!f) { setStage("explore"); return; }
+    openField(f, { tab: "farms" }).catch(() => setStage("explore"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registry, adminError]);
 
   // once the first boundaries are loaded, work out where the starting point is
   useEffect(() => {
@@ -618,15 +665,58 @@ export default function App() {
     setStage("prepare");
   }
 
+  // saving the chosen place as a field (or opening the field that is already saved there)
   function confirmLocation() {
     if (!userPicked) return;
+    const here = { lat: pos.lat, lon: pos.lon };
+    const existing = fields.find((f) => sameSpot(f, here));
+    if (existing) {
+      setActiveId(existing.id);
+      setSoilChoice((existing.details && existing.details.soil) || "auto");
+    } else {
+      const field = {
+        id: newId(),
+        name: (newName.trim() || label.title || "Field").slice(0, 80),
+        lat: pos.lat,
+        lon: pos.lon,
+        country,
+        path: label.path || "",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        details: {},
+        system: null,
+      };
+      setFields((list) => [...list, field]);
+      setActiveId(field.id);
+    }
+    setNewName("");
+    nextTab.current = "farms";
     startPrepare();
   }
 
-  // a saved farm: find its country and area, then prepare it like a place confirmed on the map
-  async function openFarm(farm) {
-    await pickPoint(farm.lat, farm.lon, { name: farm.name });
+  // a saved field: find its country and area, then prepare it like a place confirmed on the map
+  async function openField(field, opts = {}) {
+    setActiveId(field.id);
+    await pickPoint(field.lat, field.lon, { name: field.name });
+    setSoilChoice((field.details && field.details.soil) || "auto");
+    nextTab.current = opts.tab || "farms";
     startPrepare();
+  }
+
+  function removeField(field) {
+    if (!window.confirm(t.fdConfirmDelete)) return;
+    const rest = fields.filter((f) => f.id !== field.id);
+    setFields(rest);
+    if (field.id !== activeId) return;
+    if (rest.length > 0) {
+      openField(rest[0], { tab: "farms" });
+    } else {
+      setActiveId("");
+      setUserPicked(false);
+      snapshot.current = null;
+      window.location.hash = "";
+      setStage("explore");
+    }
   }
 
   if (stage === "prepare") {
@@ -651,11 +741,24 @@ export default function App() {
           setSatellite(found.satellite);
           setEnvData(found.env);
           setSoilData(found.soil);
-          window.location.hash = "/rotation";
-          setTab("rotation");
+          const next = nextTab.current;
+          nextTab.current = "farms";
+          window.location.hash = `/${next}`;
+          setTab(next);
           setStage("app");
         }}
       />
+    );
+  }
+
+  if (stage === "boot") {
+    return (
+      <div className="app">
+        <div className="boot" role="status">
+          <Logo size={96} />
+          <p>{t.fdLoadingField}</p>
+        </div>
+      </div>
     );
   }
 
@@ -703,16 +806,31 @@ export default function App() {
           </nav>
 
           <Gallery t={t} state={photos} banner>
-            <button className="placebar-place" onClick={changeLocation} title={t.changeLocationHint}>
-              <strong>{label.title} <span className="locbar-edit">✎ {t.changeLocationHint}</span></strong>
+            <div className="placebar-place">
+              <strong>{activeField ? activeField.name : label.title}</strong>
               <span className="small">
                 {label.path && label.path !== label.title ? `${label.path} · ` : ""}
                 {pos.lat}, {pos.lon}
                 {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
                 {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
               </span>
-            </button>
-            <button className="btn" onClick={changeLocation}>{t.locbarChange}</button>
+              {fields.length > 1 && (
+                <label className="fd-switch">
+                  <span className="small">{t.fdSwitch}:</span>
+                  <select
+                    value={activeId}
+                    aria-label={t.fdSwitch}
+                    onChange={(e) => {
+                      const f = fields.find((x) => x.id === e.target.value);
+                      if (f) openField(f, { tab });
+                    }}
+                  >
+                    {fields.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                  </select>
+                </label>
+              )}
+            </div>
+            <button className="btn" onClick={changeLocation}>＋ {t.fdAdd}</button>
           </Gallery>
         </>
       )}
@@ -720,6 +838,10 @@ export default function App() {
       {stage === "explore" && (
         <main className="layout">
         <section className="panel">
+          <div className="fd-guide">
+            <h2>{fields.length === 0 ? t.fdFirstTitle : t.fdAnotherTitle}</h2>
+            <p className="small">{fields.length === 0 ? t.fdFirstHelp : t.fdAnotherHelp}</p>
+          </div>
           <h2>{t.step1}</h2>
           {picker}
           <p className="muted small">{t.tapMap}</p>
@@ -747,7 +869,14 @@ export default function App() {
 
           <div className="confirm-box">
             {!userPicked && <p className="muted small">{t.confirmFirst}</p>}
-            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{t.confirmLocation}</button>
+            {userPicked && !fields.some((f) => sameSpot(f, pos)) && (
+              <label className="fd-field">
+                <span>{t.fdNameLabel}</span>
+                <input value={newName} maxLength={80} placeholder={label.title} onChange={(e) => setNewName(e.target.value)} />
+                <span className="small muted">{t.fdNameHint}</span>
+              </label>
+            )}
+            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{t.fdSaveOpen}</button>
             {snapshot.current && <button className="btn" onClick={keepLocation}>{t.keepLocation}</button>}
           </div>
         </section>
@@ -874,8 +1003,19 @@ export default function App() {
       {stage === "app" && tab === "farms" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.fmTitle}</h2>
-            <Farms t={t} lang={lang} here={{ lat: pos.lat, lon: pos.lon, title: label.title, path: label.path, country }} onOpen={openFarm} />
+            <h2>{t.fdTitle}</h2>
+            <Farms
+              t={t}
+              lang={lang}
+              fields={fields}
+              active={activeField}
+              system={systemNow}
+              onUpdate={updateField}
+              onRemove={removeField}
+              onOpen={(f) => openField(f, { tab: "farms" })}
+              onAdd={changeLocation}
+              onImport={(list) => setFields((cur) => [...cur, ...list])}
+            />
           </div>
         </main>
       )}
@@ -884,7 +1024,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.asTitle}</h2>
-            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} />
+            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={activeField} />
           </div>
         </main>
       )}
