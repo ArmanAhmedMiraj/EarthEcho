@@ -24,6 +24,7 @@ const Chip = ({ kind, children }) => <span className={`fd-chip ${kind}`}>{childr
 export default function Farms({ t, lang, fields, active, system, onUpdate, onRemove, onOpen, onAdd, onImport }) {
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
   const [note, setNote] = useState("");
+  const [section, setSection] = useState("overview");
   const [crops, setCrops] = useState([]);
   const fileInput = useRef(null);
   const [installEvent, setInstallEvent] = useState(window.__efInstall || null);
@@ -103,58 +104,84 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
     return a && String(a.value || "").trim() ? fill(t.fdAreaLine, { v: a.value, u: t[`fdUnit_${a.unit}`] || a.unit }) : "";
   };
 
+  const st0 = (active && status[active.id]) || {};
+  const alertBlock = (st) => (
+    <>
+      {st.state === "loading" && <p className="muted small">{t.fmChecking}</p>}
+      {st.state === "failed" && <p className="warn small">{t.fmAlertFail}</p>}
+      {st.state === "ok" && (
+        <>
+          {st.alerts.length === 0 && st.hazardDone && st.hazard !== "alert" && st.hazard !== "watch" && <p className="muted small">{t.fmNoAlerts}</p>}
+          {!st.hazardDone && <p className="muted small">{t.fmChecking}</p>}
+          {st.alerts.map((a) => <div key={a.id} className={`fm-alert ${a.level}`}><b>{t[`level_${a.level}`]}</b><span>{alertText(a)}</span></div>)}
+          {(st.hazard === "alert" || st.hazard === "watch") && <div className={`fm-alert ${st.hazard === "alert" ? "severe" : "warning"}`}><b>{st.hazard === "alert" ? t.level_warning : t.level_watch}</b><span>{t[`fmHazard_${st.hazard}`]}</span></div>}
+          <p className="muted small">{fill(t.fmUpdated, { time: timeFmt.format(new Date(st.at)) })}</p>
+        </>
+      )}
+    </>
+  );
+  const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["fields", `${t.fdSecFields} (${num.format(fields.length)})`]];
+
   return (
     <div className="fd">
-      <p className="muted">{t.fdIntro}</p>
+      <p className="muted small fd-intro">{t.fdIntro}</p>
+      <div className="fd-seg" role="tablist">
+        {SECTIONS.map(([id, text]) => (
+          <button key={id} role="tab" aria-selected={section === id} className={section === id ? "on" : ""} onClick={() => setSection(id)}>
+            {text}
+            {id === "details" && active && <Chip kind="you">{num.format(detailCount(d))}/8</Chip>}
+          </button>
+        ))}
+      </div>
 
-      {active && (
+      {active && section === "overview" && (
         <section className="fd-card" aria-label={t.fdCurrent}>
-          <div className="fd-top">
-            <span className="fd-badge">{t.fdCurrent}</span>
-            <span className="muted small">✓ {t.fdSaved}</span>
-          </div>
-
           <label className="fd-field">
-            <span>{t.fdName} <Chip kind="you">{t.fdYou}</Chip></span>
+            <span>{t.fdName} <Chip kind="you">{t.fdYou}</Chip> <span className="muted">✓ {t.fdSaved}</span></span>
             <input value={active.name} maxLength={80} onChange={(e) => onUpdate(active.id, { name: e.target.value })} onBlur={(e) => { if (!e.target.value.trim()) onUpdate(active.id, { name: active.path.split("›").pop().trim() || "Field" }); }} />
           </label>
-          <p className="small muted fd-where"><strong>{t.fdWhereTitle}:</strong> {active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)}</p>
+          <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)}</p>
 
           <h3>{t.fdFoundTitle} <Chip kind="system">{t.fdSystem}</Chip></h3>
-          <p className="small muted">{t.fdFoundHelp}</p>
-          <div className="fd-grid">
-            <div className="fd-item">
+          <div className="fd-rows">
+            <div className="fd-line">
               <b>{t.fdSoil}</b>
-              {d.soil ? (
-                <>
-                  <p className="fd-value">{t.soilNames[d.soil]} <Chip kind="you">{t.fdYou}</Chip></p>
-                  {sysSoil && <p className="small muted">{t.fdWasEstimate}: {t.soilNames[sysSoil.key]}{sysSoil.confidence != null ? ` (${num.format(sysSoil.confidence)}%)` : ""}</p>}
-                  <button className="tab" onClick={() => setDetail("soil", "")}>{t.fdUseEstimate}</button>
-                </>
-              ) : sysSoil ? (
-                <>
-                  <p className="fd-value">{t.soilNames[sysSoil.key]} <Chip kind="system">{t.fdSystem}</Chip></p>
-                  <p className="small muted">{soilSource}{confWord ? ` · ${t.fdConfidence}: ${confWord}${sysSoil.confidence != null ? ` (${num.format(sysSoil.confidence)}%)` : ""}` : ""}</p>
-                </>
-              ) : (
-                <p className="small muted">{t.fdWaiting}</p>
-              )}
-              <select className="wide-select" value={d.soil || ""} onChange={(e) => setDetail("soil", e.target.value)} aria-label={t.fdKnowSoil}>
-                <option value="">{d.soil ? t.fdUseEstimate : t.fdKnowSoil}</option>
-                {SOIL_TYPES.map((k) => <option key={k} value={k}>{t.soilNames[k]}</option>)}
-              </select>
+              <span className="fd-v">
+                {d.soil ? (
+                  <>{t.soilNames[d.soil]} <Chip kind="you">{t.fdYou}</Chip>
+                    {sysSoil && <span className="small muted"> · {t.fdWasEstimate}: {t.soilNames[sysSoil.key]}{sysSoil.confidence != null ? ` (${num.format(sysSoil.confidence)}%)` : ""}</span>}</>
+                ) : sysSoil ? (
+                  <>{t.soilNames[sysSoil.key]} <Chip kind="system">{confWord ? `${confWord}${sysSoil.confidence != null ? ` ${num.format(sysSoil.confidence)}%` : ""}` : t.fdSystem}</Chip>
+                    <span className="small muted"> · {soilSource}</span></>
+                ) : <span className="muted">{t.fdWaiting}</span>}
+              </span>
+              <span className="fd-act">
+                {d.soil
+                  ? <button className="fd-link" onClick={() => setDetail("soil", "")}>{t.fdUseEstimate}</button>
+                  : (
+                    <select className="fd-mini" value="" onChange={(e) => setDetail("soil", e.target.value)} aria-label={t.fdKnowSoil}>
+                      <option value="">{t.fdKnowSoil}</option>
+                      {SOIL_TYPES.map((k) => <option key={k} value={k}>{t.soilNames[k]}</option>)}
+                    </select>
+                  )}
+              </span>
             </div>
-            <div className="fd-item">
-              <b>{t.fdElevation}</b>
-              <p className="fd-value">{sys && sys.elevationM != null ? `${num.format(sys.elevationM)} m` : "—"} <Chip kind="system">{t.fdSystem}</Chip></p>
-            </div>
-            <div className="fd-item">
-              <b>{t.fdSlope}</b>
-              <p className="fd-value">{sys && sys.slopePct != null ? `${num1.format(sys.slopePct)} %` : "—"} <Chip kind="system">{t.fdSystem}</Chip></p>
-            </div>
+            <div className="fd-line"><b>{t.fdElevation}</b><span className="fd-v">{sys && sys.elevationM != null ? `${num.format(sys.elevationM)} m` : "—"}</span><span className="fd-act" /></div>
+            <div className="fd-line"><b>{t.fdSlope}</b><span className="fd-v">{sys && sys.slopePct != null ? `${num1.format(sys.slopePct)} %` : "—"}</span><span className="fd-act" /></div>
           </div>
 
-          <h3>{t.fdAboutTitle}</h3>
+          <h3>{t.fdFieldAlerts}</h3>
+          {alertBlock(st0)}
+
+          <div className="fd-nudge">
+            <span className="small">{t.fdAboutHelp}</span>
+            <button className="btn" onClick={() => setSection("details")}>{t.fdSecDetails} → ({num.format(detailCount(d))}/8)</button>
+          </div>
+        </section>
+      )}
+
+      {active && section === "details" && (
+        <section className="fd-card">
           <p className="small muted">{t.fdAboutHelp}</p>
           <div className="fd-form">
             <label className="fd-field">
@@ -168,6 +195,13 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
               {hectares != null && <span className="small muted">{t.fdAbout} {fill(t.fdHectares, { h: num1.format(hectares) })}</span>}
             </label>
             <label className="fd-field">
+              <span>{t.fdIrrigation} {d.irrigation && <Chip kind="you">{t.fdYou}</Chip>}</span>
+              <select value={d.irrigation || ""} onChange={(e) => setDetail("irrigation", e.target.value)}>
+                <option value="">{t.fdChoose}</option>
+                {IRRIGATION.map((k) => <option key={k} value={k}>{t[`fdIrr_${k}`]}</option>)}
+              </select>
+            </label>
+            <label className="fd-field">
               <span>{t.fdCurrentCrop} {d.currentCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
               <input list="fd-crops" value={d.currentCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("currentCrop", e.target.value)} />
             </label>
@@ -175,16 +209,8 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
               <span>{t.fdPlannedCrop} {d.plannedCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
               <input list="fd-crops" value={d.plannedCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("plannedCrop", e.target.value)} />
             </label>
-            <label className="fd-field">
-              <span>{t.fdIrrigation} {d.irrigation && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <select value={d.irrigation || ""} onChange={(e) => setDetail("irrigation", e.target.value)}>
-                <option value="">{t.fdChoose}</option>
-                {IRRIGATION.map((k) => <option key={k} value={k}>{t[`fdIrr_${k}`]}</option>)}
-              </select>
-            </label>
             <datalist id="fd-crops">{crops.map((c) => <option key={c} value={c} />)}</datalist>
           </div>
-
           <details className="fd-more">
             <summary>{t.fdMore}</summary>
             <div className="fd-form">
@@ -201,15 +227,16 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
               </label>
               <label className="fd-field wide">
                 <span>{t.fdNotes} {d.notes && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <textarea rows={3} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />
+                <textarea rows={2} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />
               </label>
             </div>
           </details>
-          <p className="small muted">{fill(t.fdDetailsCount, { n: num.format(detailCount(d)) })}</p>
+          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d)) })}</p>
         </section>
       )}
 
-      <h3>{t.fdFieldsTitle}</h3>
+      {section === "fields" && (
+        <section className="fd-card">
       {fields.length === 0 && <p className="muted">{t.fdNoneYet}</p>}
       {fields.map((farm) => {
         const st = status[farm.id] || {};
@@ -222,17 +249,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
               <span className="muted small">{current ? `${t.fdCurrent} · ` : ""}{farm.path || `${farm.lat.toFixed(2)}, ${farm.lon.toFixed(2)}`}</span>
             </div>
             {line && <p className="small">{line}</p>}
-            {st.state === "loading" && <p className="muted small">{t.fmChecking}</p>}
-            {st.state === "failed" && <p className="warn small">{t.fmAlertFail}</p>}
-            {st.state === "ok" && (
-              <>
-                {st.alerts.length === 0 && st.hazardDone && st.hazard !== "alert" && st.hazard !== "watch" && <p className="muted small">{t.fmNoAlerts}</p>}
-                {!st.hazardDone && <p className="muted small">{t.fmChecking}</p>}
-                {st.alerts.map((a) => <div key={a.id} className={`fm-alert ${a.level}`}><b>{t[`level_${a.level}`]}</b><span>{alertText(a)}</span></div>)}
-                {(st.hazard === "alert" || st.hazard === "watch") && <div className={`fm-alert ${st.hazard === "alert" ? "severe" : "warning"}`}><b>{st.hazard === "alert" ? t.level_warning : t.level_watch}</b><span>{t[`fmHazard_${st.hazard}`]}</span></div>}
-                <p className="muted small">{fill(t.fmUpdated, { time: timeFmt.format(new Date(st.at)) })}</p>
-              </>
-            )}
+            {alertBlock(st)}
             <div className="fm-actions">
               {!current && <button className="tab" onClick={() => onOpen(farm)}>{t.fdUse}</button>}
               <button className="tab" onClick={() => check([farm])}>{t.fmRefresh}</button>
@@ -262,6 +279,8 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
         <p><button className="tab" onClick={() => { installEvent.prompt(); window.__efInstall = null; setInstallEvent(null); }}>{t.fmInstall}</button></p>
       )}
       <p className="small muted">{t.fmInstallHelp}</p>
+        </section>
+      )}
     </div>
   );
 }

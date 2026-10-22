@@ -41,3 +41,26 @@
 .fd-switch { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .fd-switch select { font: inherit; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); max-width: 100%; }
 .boot { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }
+
+/* My Farm: compact layout with sections */
+.fd-intro { margin: 0 0 8px; }
+.fd-seg { display: flex; gap: 4px; background: rgba(46, 160, 110, 0.12); border-radius: 12px; padding: 4px; margin: 0 0 10px; }
+.fd-seg button { flex: 1; font: inherit; font-size: 0.86rem; font-weight: 600; padding: 8px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.fd-seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); }
+.fd-card { border-color: var(--border); padding: 12px 14px; margin: 0 0 12px; }
+.fd-card h3 { margin: 14px 0 6px; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.fd-rows { border: 1px solid var(--border); border-radius: 12px; padding: 0 12px; }
+.fd-line { display: grid; grid-template-columns: 130px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+.fd-line:last-child { border-bottom: 0; }
+.fd-line b { color: var(--muted); font-weight: 600; font-size: 0.82rem; }
+.fd-v { font-weight: 600; }
+.fd-v .small { font-weight: 400; }
+.fd-act { text-align: right; }
+.fd-link { background: none; border: 0; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--accent); cursor: pointer; padding: 0; }
+.fd-mini { font: inherit; font-size: 0.82rem; padding: 6px 8px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel); color: var(--accent); font-weight: 700; max-width: 190px; }
+.fd-nudge { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: rgba(46, 160, 110, 0.1); }
+.fd-nudge .small { flex: 1 1 240px; }
+.fd-nudge .btn { padding: 8px 14px; }
+.fd-form { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.fd-field input, .fd-field select, .fd-field textarea { padding: 8px 10px; font-size: 0.92rem; }
+@media (max-width: 560px) { .fd-line { grid-template-columns: 1fr auto; } .fd-line b { grid-column: 1 / -1; } .fd-seg button { font-size: 0.8rem; } }
