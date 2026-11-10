@@ -113,9 +113,12 @@ export default async function handler(req, res) {
   const point = readPoint(req.query || {});
   if (!point) return badRequest(res, "Give a real place: ?lat=25.75&lon=89.25");
 
+  // The two NASA GIBS pictures can be slow. The climate (needed by Suitability and Rotation) is fast,
+  // so a slow picture is given up after a time limit and the page gets the climate straight away.
+  const within = (promise, ms) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error("too slow")), ms))]);
   const [veg, temp, clim] = await Promise.allSettled([
-    vegetation(point.lat, point.lon),
-    landTemperature(point.lat, point.lon),
+    within(vegetation(point.lat, point.lon), 14000),
+    within(landTemperature(point.lat, point.lon), 14000),
     climate(point.lat, point.lon),
   ]);
   const take = (r) => (r.status === "fulfilled" ? r.value : null);
@@ -123,7 +126,8 @@ export default async function handler(req, res) {
     return res.status(502).json({ ok: false, error: "NASA did not answer." });
   }
 
-  cacheFor(res, 6 * 3600);
+  // a complete answer is kept for 6 hours; one with a missing picture only for 5 minutes, so it is tried again soon
+  cacheFor(res, take(veg) && take(temp) ? 6 * 3600 : 300);
   res.status(200).json({
     ok: true,
     location: point,
