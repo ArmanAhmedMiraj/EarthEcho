@@ -4,6 +4,7 @@ import { evaluateCrops, findCrop, loadCropTable, rating, soilInput } from "./sui
 import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
 import FieldNote from "./FieldNote.jsx";
 import StrategyCompare from "./StrategyCompare.jsx";
+import Scenario from "./Scenario.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 function readStore(key) {
@@ -20,6 +21,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   const [attempt, setAttempt] = useState(0);
   const [mode, setMode] = useState(() => (field && field.details && field.details.irrigation === "none" ? "rainfed" : "irrigated"));
   const [rank, setRank] = useState("fit");
+  const [scn, setScn] = useState({ rain: 0, temp: 0 }); // what-if: rain change in percent, warming in degrees
   const [kind, setKind] = useState("all");
   const store = `ef-rotation-${country}`;
   const [inputs, setInputs] = useState(() => readStore(store));
@@ -39,14 +41,23 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
     return () => { cancelled = true; };
   }, [lat, lon, env, attempt]);
 
+  // normal climate and the what-if climate (monthly averages shifted by the sliders)
+  const baseMonths = useMemo(() => (climate ? climate.months.map((m) => ({ tmean: m.tmean, rainMm: m.rainMm })) : null), [climate]);
+  const usable = baseMonths && !baseMonths.some((m) => m.tmean == null || m.rainMm == null);
+  const baseResults = useMemo(() => (table && usable ? evaluateCrops(table.crops, baseMonths, soilInput(soilData)) : null), [table, usable, baseMonths, soilData]);
   const results = useMemo(() => {
-    if (!table || !climate) return null;
-    const months = climate.months.map((m) => ({ tmean: m.tmean, rainMm: m.rainMm }));
-    if (months.some((m) => m.tmean == null || m.rainMm == null)) return null;
-    return evaluateCrops(table.crops, months, soilInput(soilData));
-  }, [table, climate, soilData]);
+    if (!table || !usable) return null;
+    if (scn.rain === 0 && scn.temp === 0) return baseResults;
+    const shifted = baseMonths.map((m) => ({ tmean: m.tmean + scn.temp, rainMm: Math.max(0, m.rainMm * (1 + scn.rain / 100)) }));
+    return evaluateCrops(table.crops, shifted, soilInput(soilData));
+  }, [table, usable, baseMonths, baseResults, scn, soilData]);
+  const scenarioClimate = useMemo(() => {
+    if (!climate) return null;
+    return { ...climate, months: climate.months.map((m) => ({ ...m, tmean: m.tmean == null ? m.tmean : m.tmean + scn.temp, rainMm: m.rainMm == null ? m.rainMm : Math.max(0, Math.round(m.rainMm * (1 + scn.rain / 100))) })) };
+  }, [climate, scn]);
 
   const rotations = useMemo(() => (results ? planRotations(results, mode, kind) : []), [results, mode, kind]);
+  const baseRotations = useMemo(() => (baseResults ? planRotations(baseResults, mode, kind) : []), [baseResults, mode, kind]);
 
   const setField = (id, field, value) => {
     const next = { ...inputs, [id]: { ...(inputs[id] || {}), [field]: value } };
@@ -111,7 +122,8 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
         </label>
       </div>
 
-      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} climate={climate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} />}
+      <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
+      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {
         // the next sowing from this month on

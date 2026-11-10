@@ -28,3 +28,15 @@
   .st-grid { grid-template-columns: 1fr; }
   .st-table th, .st-table td { padding: 8px 9px; }
 }
+
+/* scenario sliders */
+.sc-wrap { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px 16px; margin: 14px 0; }
+.sc-wrap h3 { margin: 0 0 6px; }
+.sc-wrap h4 { margin: 10px 0 4px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+.sc-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.sc-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 8px 0; }
+.sc-sliders label { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.sc-sliders input[type="range"] { width: 100%; accent-color: var(--accent); min-height: 28px; }
+.sc-result ul { margin: 0; padding-left: 18px; font-size: 0.9rem; }
+.sc-result li { margin: 3px 0; }
+.sc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
