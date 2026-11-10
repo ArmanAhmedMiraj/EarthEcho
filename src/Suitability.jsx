@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { bestMonths, evaluateCrops, limiting, loadCropTable, rating, soilInput } from "./suitability.js";
 import "./suitability.css";
+import FieldNote from "./FieldNote.jsx";
 
 const GROUPS = ["cereal", "pulse", "oilseed", "vegetable", "root", "fruit", "fibre", "cash"];
 
-export default function Suitability({ t, lang, lat, lon, env, soilData }) {
+export default function Suitability({ t, lang, lat, lon, env, soilData, field }) {
   const [table, setTable] = useState(null);
   const [climate, setClimate] = useState(env && env.climate ? env.climate : null);
   const [state, setState] = useState(env && env.climate ? "ok" : "loading");
   const [attempt, setAttempt] = useState(0);
-  const [mode, setMode] = useState("irrigated");
+  const [mode, setMode] = useState(() => (field && field.details && field.details.irrigation === "none" ? "rainfed" : "irrigated"));
   const [group, setGroup] = useState("all");
   const [shown, setShown] = useState(15);
 
@@ -191,6 +192,8 @@ export default function Suitability({ t, lang, lat, lon, env, soilData }) {
     <div className="viewer suit">
       <h2>{t.suitTitle}</h2>
       <p className="muted">{t.suitIntro}</p>
+
+      <FieldNote t={t} lang={lang} field={field} results={results} mode={key} locale={locale} />
 
       <div className="suit-basis small">
         <strong>{t.suitBasis}</strong>

@@ -21,3 +21,5 @@
   .rt-profit { display: block; overflow-x: auto; max-width: 100%; }
   .rt-profit input { width: 64px; }
 }
+
+.rt-tag.mine { background: var(--accent); color: #fff; margin-left: 6px; }

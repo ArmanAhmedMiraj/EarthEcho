@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { countryPhotos, photosForPlace, usable } from "./photos.js";
+import { countryPhotos, orderPhotos, photosForPlace, usable } from "./photos.js";
 import "./gallery.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -100,7 +100,7 @@ export default function Gallery({ t, title, subtitle, state, banner, children })
   const [broken, setBroken] = useState(() => new Set());
   const [hover, setHover] = useState(false);
   const start = useRef(null);
-  const photos = state.photos.filter((p) => usable(p) && !broken.has(p.image));
+  const photos = orderPhotos(state.photos.filter((p) => usable(p) && !broken.has(p.image)));
   const count = photos.length;
   const current = photos[Math.min(index, Math.max(count - 1, 0))];
 

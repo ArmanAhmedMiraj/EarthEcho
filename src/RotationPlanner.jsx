@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import "./rotation.css";
-import { evaluateCrops, loadCropTable, rating, soilInput } from "./suitability.js";
+import { evaluateCrops, findCrop, loadCropTable, rating, soilInput } from "./suitability.js";
 import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
+import FieldNote from "./FieldNote.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 function readStore(key) {
@@ -11,12 +12,12 @@ function writeStore(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
 
-export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData }) {
+export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData, field }) {
   const [table, setTable] = useState(null);
   const [climate, setClimate] = useState(env && env.climate ? env.climate : null);
   const [state, setState] = useState(env && env.climate ? "ok" : "loading");
   const [attempt, setAttempt] = useState(0);
-  const [mode, setMode] = useState("irrigated");
+  const [mode, setMode] = useState(() => (field && field.details && field.details.irrigation === "none" ? "rainfed" : "irrigated"));
   const [rank, setRank] = useState("fit");
   const [kind, setKind] = useState("all");
   const store = `ef-rotation-${country}`;
@@ -76,11 +77,17 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   const month = (m) => monthNames[((m % 12) + 12) % 12];
   const nowMonth = new Date().getMonth();
   const ranked = rotations.map((r) => ({ r, p: profitOf(r, effective) }));
+  // the farmer's own next crop: rotations that include it come first, and are tagged
+  const plannedHit = field && field.details && field.details.plannedCrop ? results.find((r) => findCrop([r.crop], field.details.plannedCrop)) : null;
+  const hasNext = (r) => !!plannedHit && r.steps.some((o) => o.crop.id === plannedHit.crop.id);
   if (rank === "profit") ranked.sort((a, b) => (b.p.complete ? b.p.total : -Infinity) - (a.p.complete ? a.p.total : -Infinity));
+
+  if (rank !== "profit" && plannedHit) ranked.sort((a, b) => Number(hasNext(b.r)) - Number(hasNext(a.r)));
 
   return (
     <div>
       <p className="muted">{t.rtIntro}</p>
+      <FieldNote t={t} lang={lang} field={field} results={results} mode={mode} locale={locale} />
       <div className="rt-controls">
         <label>{t.rtMode}
           <select value={mode} onChange={(e) => setMode(e.target.value)}>
@@ -114,6 +121,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
             <div className="rt-head">
               <strong>{fill(t.rtRotation, { n: idx + 1 })}: {r.steps.map((o) => name(o.crop)).join(" → ")}</strong>
               <span className="rt-tag">{fill(t.rtFit, { p: whole.format(Math.round(r.score * 100)) })}</span>
+              {hasNext(r) && <span className="rt-tag mine">{t.fdIncludesNext}</span>}
             </div>
             <div className="rt-tl" aria-hidden="true">
               {monthNames.map((m) => <span className="m" key={m}>{m}</span>)}

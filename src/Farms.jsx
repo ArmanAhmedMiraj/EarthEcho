@@ -21,7 +21,7 @@ function checkFarm(farm, onPart) {
 // a small label that says where a value comes from
 const Chip = ({ kind, children }) => <span className={`fd-chip ${kind}`}>{children}</span>;
 
-export default function Farms({ t, lang, fields, active, system, onUpdate, onRemove, onOpen, onAdd, onImport }) {
+export default function Farms({ t, lang, fields, active, system, onUpdate, onRemove, onOpen, onAdd, onMove, onImport }) {
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
   const [note, setNote] = useState("");
   const [section, setSection] = useState("overview");
@@ -140,7 +140,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
             <span>{t.fdName} <Chip kind="you">{t.fdYou}</Chip> <span className="muted">✓ {t.fdSaved}</span></span>
             <input value={active.name} maxLength={80} onChange={(e) => onUpdate(active.id, { name: e.target.value })} onBlur={(e) => { if (!e.target.value.trim()) onUpdate(active.id, { name: active.path.split("›").pop().trim() || "Field" }); }} />
           </label>
-          <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)}</p>
+          <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)} · <button className="fd-link" onClick={onMove}>{t.fdMove}</button></p>
 
           <h3>{t.fdFoundTitle} <Chip kind="system">{t.fdSystem}</Chip></h3>
           <div className="fd-rows">

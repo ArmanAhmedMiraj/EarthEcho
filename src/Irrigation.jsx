@@ -6,7 +6,7 @@ import { IRR_CROP_NAMES } from "./i18nIrrigation.js";
 import { moistureClass } from "./soilNames.js";
 
 const SOILS = Object.keys(SOIL_AW);
-const SQUARE_METRES = { hectare: 10000, acre: 4046.86, decimal: 40.4686, bigha: 1337.8 };
+const SQUARE_METRES = { hectare: 10000, acre: 4046.86, decimal: 40.4686, bigha: 1337.8, katha: 66.89, sqm: 1 };
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
 function readStore(key) {
@@ -35,7 +35,14 @@ function Chart({ rows, events, rice, t, locale }) {
   );
 }
 
-export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, soilMapped, satellite }) {
+// the irrigation crop a farmer's typed crop name belongs to (by English or Bengali name)
+function cropIdFrom(text) {
+  const q = String(text || "").toLowerCase().trim();
+  if (!q) return null;
+  return IRRIGATION_CROPS.find((id) => id === q || [IRR_CROP_NAMES[id].en, IRR_CROP_NAMES[id].bn].some((n) => String(n || "").toLowerCase() === q)) || null;
+}
+
+export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, soilMapped, satellite, field, onFieldChange }) {
   const placeKey = `${lat},${lon}`;
   const store = `ef-irrigation-${placeKey}`;
   const [plus, setPlus] = useState(null);
@@ -55,12 +62,17 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
     writeStore(store, merged);
   };
 
-  const crop = saved.crop || "rice";
+  // My Farm is the one place the crop and land size are kept: what the farmer entered there is used here,
+  // and a change made here is written back to the field
+  const fd = (field && field.details) || {};
+  const farmCrop = cropIdFrom(fd.currentCrop);
+  const farmArea = fd.area && String(fd.area.value || "").trim() ? fd.area : null;
+  const crop = farmCrop || saved.crop || "rice";
   const stage = saved.stage != null ? Number(saved.stage) : 1;
-  const method = saved.method || "surface";
+  const method = saved.method || (fd.irrigation === "drip" ? "drip" : "surface");
   const soil = saved.soil || appSoil || "loam";
-  const unit = saved.unit || (country === "BD" ? "decimal" : "hectare");
-  const area = saved.area != null ? saved.area : "";
+  const unit = (farmArea && SQUARE_METRES[farmArea.unit] ? farmArea.unit : null) || saved.unit || (country === "BD" ? "decimal" : "hectare");
+  const area = farmArea ? farmArea.value : saved.area != null ? saved.area : "";
   const rice = crop === "rice";
   const todayDate = plus ? plus.days[0].date : null;
   const dayNum = (iso) => { const [y, m, d] = iso.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
@@ -118,9 +130,13 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   return (
     <div>
       <p className="muted">{t.irIntro}</p>
+      {field && (farmCrop || farmArea) && (
+        <p className="fd-note small"><strong>{t.fdFromFarm}</strong>: {field.name}{farmCrop ? ` · ${cropName(farmCrop)}` : ""}{farmArea ? ` · ${farmArea.value} ${t[`unit_${unit}`] || unit}` : ""}</p>
+      )}
+      {fd.irrigation === "none" && <p className="muted small">{t.fdIrrNoneNote}</p>}
       <div className="ir-form">
         <label>{t.irCrop}
-          <select value={crop} onChange={(e) => set({ crop: e.target.value })}>
+          <select value={crop} onChange={(e) => { set({ crop: e.target.value }); if (onFieldChange) onFieldChange({ currentCrop: cropName(e.target.value) }); }}>
             {IRRIGATION_CROPS.map((c) => <option key={c} value={c}>{cropName(c)}</option>)}
           </select>
         </label>
@@ -157,8 +173,8 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         )}
         <label>{t.irArea}
           <span className="ir-area">
-            <input type="number" min="0" step="any" value={area} onChange={(e) => set({ area: e.target.value })} />
-            <select value={unit} onChange={(e) => set({ unit: e.target.value })}>
+            <input type="number" min="0" step="any" value={area} onChange={(e) => { set({ area: e.target.value }); if (onFieldChange) onFieldChange({ area: { value: e.target.value, unit } }); }} />
+            <select value={unit} onChange={(e) => { set({ unit: e.target.value }); if (onFieldChange && area !== "") onFieldChange({ area: { value: area, unit: e.target.value } }); }}>
               {Object.keys(SQUARE_METRES).map((u) => <option key={u} value={u}>{t[`unit_${u}`]}</option>)}
             </select>
           </span>

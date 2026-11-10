@@ -25,3 +25,7 @@
 .suit-table th { text-align: left; vertical-align: top; padding: 5px 8px 5px 0; width: 32%; color: var(--muted); font-weight: 600; }
 .suit-table td { padding: 5px 0; }
 .suit-method { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+.fd-note { border: 1px solid var(--accent); border-radius: 14px; padding: 10px 14px; margin: 10px 0; background: rgba(46, 160, 110, 0.08); }
+.fd-note ul { margin: 6px 0 0; padding-left: 18px; }
+.fd-note p { margin: 6px 0 0; }

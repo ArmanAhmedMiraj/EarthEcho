@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import Globe from "./Globe.jsx";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
+const Globe = lazy(() => import("./Globe.jsx"));
 import { fetchTerrain } from "./terrain.js";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 
@@ -200,7 +200,7 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
   return (
     <main className="prepare">
       <div className="prepare-card panel">
-        <Globe className="big" lat={lat} lon={lon} pin orbit scan flyKey={1} />
+        <Suspense fallback={null}><Globe className="big" lat={lat} lon={lon} pin orbit scan flyKey={1} /></Suspense>
         <h1 className="prepare-title">{t.prepTitle}</h1>
         <p className="muted">
           {t.prepRunning} <strong>{title}</strong>

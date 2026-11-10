@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LANGUAGES, TEXT } from "./i18n.js";
 import { ADMIN_TEXT } from "./i18nAdmin.js";
 import { TABS_TEXT } from "./i18nTabs.js";
@@ -28,30 +28,30 @@ import { ENV_TEXT } from "./i18nEnv.js";
 import { WEATHER_TEXT } from "./i18nWeather.js";
 import { DISASTER_TEXT } from "./i18nDisasters.js";
 import Disasters from "./Disasters.jsx";
-import Irrigation from "./Irrigation.jsx";
-import RotationPlanner from "./RotationPlanner.jsx";
-import Market from "./Market.jsx";
-import Suppliers from "./Suppliers.jsx";
+const Irrigation = lazy(() => import("./Irrigation.jsx"));
+const RotationPlanner = lazy(() => import("./RotationPlanner.jsx"));
+const Market = lazy(() => import("./Market.jsx"));
+const Suppliers = lazy(() => import("./Suppliers.jsx"));
 import Farms from "./Farms.jsx";
 import { FARMS_TEXT } from "./i18nFarms.js";
 import { FIELDS_TEXT } from "./i18nFields.js";
 import { keepStorage, loadActiveId, loadFields, newId, saveActiveId, saveFields, sameSpot } from "./fields.js";
-import Assistant from "./Assistant.jsx";
+const Assistant = lazy(() => import("./Assistant.jsx"));
 import { ASSISTANT_TEXT } from "./i18nAssistant.js";
 import { SUPPLIER_TEXT } from "./i18nSuppliers.js";
 import { MARKET_TEXT } from "./i18nMarket.js";
 import { ROTATION_TEXT } from "./i18nRotation.js";
 import { IRRIGATION_TEXT } from "./i18nIrrigation.js";
 import { SOIL_TEXT } from "./i18nSoil.js";
-import Soil from "./Soil.jsx";
+const Soil = lazy(() => import("./Soil.jsx"));
 import { SUIT_TEXT } from "./i18nSuit.js";
-import Suitability from "./Suitability.jsx";
-import Environment from "./Environment.jsx";
+const Suitability = lazy(() => import("./Suitability.jsx"));
+const Environment = lazy(() => import("./Environment.jsx"));
 import AdminPicker from "./AdminPicker.jsx";
-import MapPicker from "./MapPicker.jsx";
-import Weather from "./Weather.jsx";
+const MapPicker = lazy(() => import("./MapPicker.jsx"));
+const Weather = lazy(() => import("./Weather.jsx"));
 import Logo from "./Logo.jsx";
-import Sources from "./Sources.jsx";
+const Sources = lazy(() => import("./Sources.jsx"));
 import "./tabs.css";
 import "./sources.css";
 
@@ -139,6 +139,7 @@ export default function App() {
   const [activeId, setActiveId] = useState(loadActiveId);
   const bootRef = useRef(fields.length > 0);
   const nextTab = useRef("farms"); // the tab to open once a field has been prepared
+  const [movingId, setMovingId] = useState(""); // a saved field whose pin is being moved
   const [newName, setNewName] = useState(""); // the name typed for a field that is about to be saved
   const [stage, setStage] = useState(() => (fields.length > 0 ? "boot" : "explore"));
   const stageRef = useRef(stage);
@@ -639,7 +640,15 @@ export default function App() {
     setStage("explore");
   }
 
+  // move the open field to another place on the map (its name and details stay)
+  function startMove() {
+    if (!activeField) return;
+    setMovingId(activeField.id);
+    changeLocation();
+  }
+
   function keepLocation() {
+    setMovingId("");
     const saved = snapshot.current;
     if (saved) {
       pickToken.current += 1; // a lookup still running must not undo this
@@ -669,6 +678,17 @@ export default function App() {
   function confirmLocation() {
     if (!userPicked) return;
     const here = { lat: pos.lat, lon: pos.lon };
+    if (movingId) {
+      const moved = fields.find((f) => f.id === movingId);
+      if (moved) {
+        updateField(moved.id, { lat: pos.lat, lon: pos.lon, country, path: label.path || "", system: null });
+        setActiveId(moved.id);
+      }
+      setMovingId("");
+      nextTab.current = "farms";
+      startPrepare();
+      return;
+    }
     const existing = fields.find((f) => sameSpot(f, here));
     if (existing) {
       setActiveId(existing.id);
@@ -787,6 +807,7 @@ export default function App() {
         </div>
       </header>
 
+      <Suspense fallback={<p className="muted page-loading" role="status">{t.fdLoadingField}</p>}>
       {stage === "app" && (
         <>
           {!online && <div className="fm-offline" role="status">{t.fmOffline}</div>}
@@ -837,8 +858,8 @@ export default function App() {
         <main className="layout">
         <section className="panel">
           <div className="fd-guide">
-            <h2>{fields.length === 0 ? t.fdFirstTitle : t.fdAnotherTitle}</h2>
-            <p className="small">{fields.length === 0 ? t.fdFirstHelp : t.fdAnotherHelp}</p>
+            <h2>{movingId ? t.fdMoveTitle : fields.length === 0 ? t.fdFirstTitle : t.fdAnotherTitle}</h2>
+            <p className="small">{movingId ? t.fdMoveHelp : fields.length === 0 ? t.fdFirstHelp : t.fdAnotherHelp}</p>
           </div>
           <h2>{t.step1}</h2>
           {picker}
@@ -867,14 +888,14 @@ export default function App() {
 
           <div className="confirm-box">
             {!userPicked && <p className="muted small">{t.confirmFirst}</p>}
-            {userPicked && !fields.some((f) => sameSpot(f, pos)) && (
+            {userPicked && !movingId && !fields.some((f) => sameSpot(f, pos)) && (
               <label className="fd-field">
                 <span>{t.fdNameLabel}</span>
                 <input value={newName} maxLength={80} placeholder={label.title} onChange={(e) => setNewName(e.target.value)} />
                 <span className="small muted">{t.fdNameHint}</span>
               </label>
             )}
-            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{t.fdSaveOpen}</button>
+            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{movingId ? t.fdMoveSave : t.fdSaveOpen}</button>
             {snapshot.current && <button className="btn" onClick={keepLocation}>{t.keepLocation}</button>}
           </div>
         </section>
@@ -939,6 +960,7 @@ export default function App() {
             lon={pos.lon}
             env={envData}
             soilData={soilData}
+            field={activeField}
           />
         </main>
       )}
@@ -966,6 +988,8 @@ export default function App() {
               soil={soil}
               soilMapped={suggested}
               satellite={satellite}
+              field={activeField}
+              onFieldChange={(patch) => activeField && updateField(activeField.id, { details: { ...activeField.details, ...patch } })}
             />
           </div>
         </main>
@@ -975,7 +999,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.rtTitle}</h2>
-            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} />
+            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} />
           </div>
         </main>
       )}
@@ -1012,6 +1036,7 @@ export default function App() {
               onRemove={removeField}
               onOpen={(f) => openField(f, { tab: "farms" })}
               onAdd={changeLocation}
+              onMove={startMove}
               onImport={(list) => setFields((cur) => [...cur, ...list])}
             />
           </div>
@@ -1064,6 +1089,8 @@ export default function App() {
           <Sources t={t} lang={lang} lat={pos.lat} lon={pos.lon} />
         </main>
       )}
+
+      </Suspense>
 
       <footer className="footer">
         {t.footer}{" "}

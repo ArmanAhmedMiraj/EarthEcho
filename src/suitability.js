@@ -177,3 +177,16 @@ export function soilInput(soilData) {
   };
 }
 
+
+
+// match what a farmer typed ("rice", "ধান", "Rice, paddy") to a crop of the table
+const norm = (v) => String(v || "").toLowerCase().replace(/\s+/g, " ").trim();
+export function findCrop(crops, text) {
+  const q = norm(text);
+  if (!q || !crops) return null;
+  const names = (c) => [c.en, c.bn, c.id].map(norm).filter(Boolean);
+  const exact = crops.find((c) => names(c).includes(q));
+  if (exact) return exact;
+  if (q.length < 3) return null;
+  return crops.find((c) => names(c).some((n) => n.startsWith(q) || q.startsWith(n) || n.split(/[ ,]+/).includes(q))) || null;
+}

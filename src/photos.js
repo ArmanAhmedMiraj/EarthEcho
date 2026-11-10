@@ -61,7 +61,21 @@ const BAD_LICENCE = /(NC|ND|fair use|non-?free)/i;
 
 // Pictures taken from space (astronaut and satellite photos carry a GPS tag too) are not photos of a place on the ground.
 const SPACE = /(earth science and remote sensing|johnson space center|\bNASA\b|astronaut|\bISS\d|expedition \d|international space station|night ?lights|from space|\bSTS-?\d)/i;
-export const usable = (photo) => !SPACE.test(`${photo.author} ${photo.title} ${photo.caption}`);
+// Signs, shops, offices and vehicles say little about a farming place. Photos of them are left out
+// (also from the prepared galleries, because this check runs when photos are shown).
+const NOT_THE_PLACE = /\b(signs?|signboards?|signposts?|street ?signs?|road ?signs?|milestones?|nameplates?|shops?|shopfronts?|storefronts?|stores?|supermarkets?|malls?|showrooms?|offices?|clinics?|hospitals?|pharmacy|buses|bus|trucks?|vehicles?|traffic|toll|petrol|filling station|gas station|selfies?|billboards?|restaurants?|bank (ltd|limited|branch))\b/i;
+export const usable = (photo) =>
+  !SPACE.test(`${photo.author} ${photo.title} ${photo.caption}`) && !NOT_THE_PLACE.test(`${photo.title} ${photo.caption}`);
+
+// Pictures of the land itself (fields, rivers, villages, crops) come first within the same distance group.
+const LAND = /\b(fields?|paddy|rice|farm(s|ing|land|er|ers)?|crops?|harvest|agricultur\w*|village|rural|river|pond|lake|canal|hills?|tea|garden|landscape|wetland|haor|delta|forest|jungle|mangrove|sunset|sunrise|countryside|plantation|orchard|mustard|wheat|jute|market)\b/i;
+const TIER = { place: 0, nearby: 1, region: 2 };
+export function orderPhotos(list) {
+  return list
+    .map((p, i) => ({ p, i, tier: TIER[p.match] != null ? TIER[p.match] : 3, land: LAND.test(`${p.title} ${p.caption}`) ? 0 : 1 }))
+    .sort((a, b) => a.tier - b.tier || a.land - b.land || a.i - b.i)
+    .map((x) => x.p);
+}
 
 // Turns one API page into a photo record, or null when it is not a good photo for this use.
 function toPhoto(page, match, about, bounds) {
