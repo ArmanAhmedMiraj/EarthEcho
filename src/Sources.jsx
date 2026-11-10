@@ -153,12 +153,14 @@ export default function Sources({ t, lang, lat, lon }) {
           <section key={g.id}>
             <h3 className="group-title">{g[lang] || g.en}</h3>
             <div className="src-grid">
-              {items.map((s) => (
+              {items.map((raw) => {
+                const s = { ...raw, ...(raw[lang] || raw.en) };
+                return (
                 <article key={s.id} className="src">
                   <header>
                     <strong>{s.name}</strong>
                     <span className={`badge ${s.status}`}>
-                      {s.status === "live" ? t.statusLive : t.statusPlanned(s.stage)}
+                      {s.status === "live" ? t.statusLive : t.statusPlanned}
                     </span>
                   </header>
                   <p className="small muted">{s.publisher}</p>
@@ -176,7 +178,8 @@ export default function Sources({ t, lang, lat, lon }) {
                   </dl>
                   <a className="small" href={s.url} target="_blank" rel="noreferrer">{t.open} ↗</a>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         );

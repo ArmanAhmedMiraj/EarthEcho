@@ -3,6 +3,7 @@ import "./rotation.css";
 import { evaluateCrops, findCrop, loadCropTable, rating, soilInput } from "./suitability.js";
 import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
 import FieldNote from "./FieldNote.jsx";
+import StrategyCompare from "./StrategyCompare.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 function readStore(key) {
@@ -110,6 +111,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
         </label>
       </div>
 
+      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} climate={climate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {
         // the next sowing from this month on

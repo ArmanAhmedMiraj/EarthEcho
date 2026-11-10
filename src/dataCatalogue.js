@@ -1,200 +1,314 @@
-// The data catalogue: every source EarthEcho uses or plans to use, with its licence and limits.
-// status "live" = the app already uses it today. "planned" = built in the named stage.
-// licenceChecked: false means we still have to read the exact terms before we ship it.
+// The data catalogue: every source EarthEcho uses, with its licence and limits, in English and Bengali.
+// status "live" = the app uses it today. "planned" = considered, not used yet (shown as "Not used yet").
+// licenceChecked: false means we still have to read the exact terms in full.
+// Names of organisations and datasets stay in English on purpose, so a farmer or judge can search for them.
 export const GROUPS = [
   { id: "nasa", en: "NASA Earth observation", bn: "নাসার পৃথিবী পর্যবেক্ষণ" },
-  { id: "soil", en: "Soil", bn: "মাটি" },
-  { id: "weather", en: "Weather and hazards", bn: "আবহাওয়া ও দুর্যোগ" },
-  { id: "farm", en: "Crops and markets", bn: "ফসল ও বাজার" },
-  { id: "geo", en: "Maps and boundaries", bn: "মানচিত্র ও সীমানা" },
+  { id: "soil", en: "Soil and crops", bn: "মাটি ও ফসল" },
+  { id: "weather", en: "Weather, hazards and prices", bn: "আবহাওয়া, দুর্যোগ ও দাম" },
+  { id: "geo", en: "Maps, boundaries and photos", bn: "মানচিত্র, সীমানা ও ছবি" },
+  { id: "ai", en: "AI assistant", bn: "এআই সহকারী" },
 ];
 
 export const SOURCES = [
-  // ---- NASA ----
+  // ---- NASA, used today ----
   {
     id: "power", group: "nasa", name: "NASA POWER", publisher: "NASA Langley Research Center",
-    provides: "Daily and monthly temperature, rain, humidity, wind, sunshine, and model soil wetness; ten years of history.",
-    resolution: "About 55 km cell", update: "Daily, about 2 to 3 days behind", licence: "NASA open data, credit NASA POWER",
-    access: "Open API", url: "https://power.larc.nasa.gov/docs/", status: "live", stage: 3, licenceChecked: true,
-    limit: "Too coarse for one field. Soil wetness is a model estimate, not a measurement.",
-  },
-  {
-    id: "gpm", group: "nasa", name: "GPM IMERG rain rate", publisher: "NASA Global Precipitation Measurement",
-    provides: "Satellite estimate of how hard it is raining, in 30-minute slots. Daily rain totals come from NASA POWER.",
-    resolution: "About 10 km", update: "Every 30 minutes, about 5 to 6 hours behind", licence: "NASA open data",
-    access: "Read through NASA GIBS", url: "https://gpm.nasa.gov/data", status: "live", stage: 3, licenceChecked: true,
-    limit: "One half-hour slot, not a daily total. Values are rounded to a colour step. Not a forecast.",
+    url: "https://power.larc.nasa.gov/docs/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Long-term monthly temperature, rain and sunshine (used for crop suitability, rotations and the water balance), and the last 14 days of rain and soil wetness.",
+      resolution: "About 55 km cell", update: "Daily, about 2 to 3 days behind", licence: "NASA open data, credit NASA POWER",
+      access: "Open API", limit: "Too coarse for one field. Soil wetness is a model estimate, not a measurement.",
+    },
+    bn: {
+      provides: "দীর্ঘমেয়াদি মাসিক তাপমাত্রা, বৃষ্টি ও রোদ (ফসলের উপযোগিতা, শস্যাবর্তন ও পানির হিসাবে ব্যবহার হয়), এবং গত ১৪ দিনের বৃষ্টি ও মাটির ভেজা ভাব।",
+      resolution: "প্রায় ৫৫ কিমি চওড়া ঘর", update: "প্রতিদিন, প্রায় ২–৩ দিন পিছিয়ে", licence: "নাসার উন্মুক্ত তথ্য, নাসা POWER-কে কৃতিত্ব দিতে হবে",
+      access: "উন্মুক্ত API", limit: "একটি মাঠের জন্য খুব মোটা মাপের। মাটির ভেজা ভাব মডেলের অনুমান, মাপা মান নয়।",
+    },
   },
   {
     id: "smap", group: "nasa", name: "SMAP Level 4 soil moisture", publisher: "NASA Soil Moisture Active Passive",
-    provides: "Soil moisture of the top 5 cm and top 1 m, from SMAP satellite readings combined with a land model.",
-    resolution: "About 9 km", update: "Daily, a few days behind", licence: "NASA open data",
-    access: "Read through NASA GIBS", url: "https://smap.jpl.nasa.gov/data/", status: "live", stage: 3, licenceChecked: true,
-    limit: "Regional estimate for a 9 km cell. It cannot tell the moisture of one handful of soil. Rounded to a colour step.",
+    url: "https://smap.jpl.nasa.gov/data/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Soil moisture of the top 5 cm and the top 1 m, from SMAP satellite readings combined with a land model.",
+      resolution: "About 9 km", update: "Daily, a few days behind", licence: "NASA open data",
+      access: "Read through NASA GIBS", limit: "A regional estimate for a 9 km cell. It cannot tell the moisture of one handful of soil. Rounded to a colour step.",
+    },
+    bn: {
+      provides: "মাটির উপরের ৫ সেমি এবং ১ মিটার গভীর পর্যন্ত আর্দ্রতা; SMAP স্যাটেলাইটের পাঠ ও একটি ভূমি-মডেল মিলিয়ে তৈরি।",
+      resolution: "প্রায় ৯ কিমি", update: "প্রতিদিন, কয়েক দিন পিছিয়ে", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "নাসা GIBS-এর মাধ্যমে পড়া", limit: "৯ কিমি এলাকার আঞ্চলিক অনুমান। এক মুঠো মাটির আর্দ্রতা বলতে পারে না। একটি রঙের ধাপ অনুযায়ী গোল করা।",
+    },
+  },
+  {
+    id: "gpm", group: "nasa", name: "GPM IMERG rain rate", publisher: "NASA Global Precipitation Measurement",
+    url: "https://gpm.nasa.gov/data", status: "live", licenceChecked: true,
+    en: {
+      provides: "Satellite estimate of how hard it is raining, in 30-minute slots. Daily rain totals come from NASA POWER.",
+      resolution: "About 10 km", update: "Every 30 minutes, about 5 to 6 hours behind", licence: "NASA open data",
+      access: "Read through NASA GIBS", limit: "One half-hour slot, not a daily total. Values are rounded to a colour step. Not a forecast.",
+    },
+    bn: {
+      provides: "বৃষ্টি কত জোরে হচ্ছে তার স্যাটেলাইট-অনুমান, ৩০ মিনিটের ঘরে। দৈনিক মোট বৃষ্টি আসে নাসা POWER থেকে।",
+      resolution: "প্রায় ১০ কিমি", update: "প্রতি ৩০ মিনিটে, প্রায় ৫–৬ ঘণ্টা পিছিয়ে", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "নাসা GIBS-এর মাধ্যমে পড়া", limit: "একটি আধঘণ্টার হার, দৈনিক মোট নয়। মান একটি রঙের ধাপে গোল করা। পূর্বাভাস নয়।",
+    },
+  },
+  {
+    id: "modis-ndvi", group: "nasa", name: "MODIS vegetation index (NDVI), monthly", publisher: "NASA LP DAAC",
+    url: "https://lpdaac.usgs.gov/products/mod13a3v061/", status: "live", licenceChecked: true,
+    en: {
+      provides: "How green the land is, month by month, compared with the same month in earlier years.",
+      resolution: "About 5 km here (1 km product)", update: "Monthly", licence: "NASA open data",
+      access: "Read through NASA GIBS", limit: "Shows greenness of the whole area, so it mixes fields, trees and buildings. It does not identify the crop.",
+    },
+    bn: {
+      provides: "জমি কতটা সবুজ, মাসে মাসে, আগের বছরগুলোর একই মাসের সঙ্গে তুলনা করে।",
+      resolution: "এখানে প্রায় ৫ কিমি (১ কিমি পণ্য)", update: "মাসিক", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "নাসা GIBS-এর মাধ্যমে পড়া", limit: "পুরো এলাকার সবুজ ভাব দেখায়, তাই মাঠ, গাছ ও দালান মিশে যায়। কোন ফসল তা বলে না।",
+    },
+  },
+  {
+    id: "lst", group: "nasa", name: "MODIS land surface temperature (8-day, daytime)", publisher: "NASA LP DAAC",
+    url: "https://lpdaac.usgs.gov/products/mod11a2v061/", status: "live", licenceChecked: true,
+    en: {
+      provides: "How hot the ground surface was at about 10:30 in the morning, averaged over 8 days.",
+      resolution: "About 5 km here (1 km product)", update: "Every 8 days", licence: "NASA open data",
+      access: "Read through NASA GIBS", limit: "Ground temperature is not air temperature, and afternoons are hotter. Clouds leave gaps.",
+    },
+    bn: {
+      provides: "সকাল প্রায় ১০:৩০-এ মাটির উপরিতল কতটা গরম ছিল, ৮ দিনের গড়।",
+      resolution: "এখানে প্রায় ৫ কিমি (১ কিমি পণ্য)", update: "প্রতি ৮ দিনে", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "নাসা GIBS-এর মাধ্যমে পড়া", limit: "মাটির তাপমাত্রা বাতাসের তাপমাত্রা নয়, আর বিকেলে আরও গরম থাকে। মেঘ থাকলে ফাঁক পড়ে।",
+    },
+  },
+  {
+    id: "gibs", group: "nasa", name: "GIBS (Global Imagery Browse Services)", publisher: "NASA Earthdata",
+    url: "https://nasa-gibs.github.io/gibs-api-docs/", status: "live", licenceChecked: true,
+    en: {
+      provides: "NASA's satellite picture service. EarthEcho reads SMAP, IMERG, NDVI and temperature numbers from its map tiles.",
+      resolution: "Varies by layer", update: "Daily for most layers", licence: "NASA open data",
+      access: "Open map service", limit: "Numbers are decoded from colours, so they are rounded to one colour step. Shown to the user.",
+    },
+    bn: {
+      provides: "নাসার স্যাটেলাইট-ছবি সেবা। EarthEcho এর মানচিত্র-টাইল থেকে SMAP, IMERG, NDVI ও তাপমাত্রার সংখ্যা পড়ে।",
+      resolution: "স্তর অনুযায়ী আলাদা", update: "বেশিরভাগ স্তরে প্রতিদিন", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "উন্মুক্ত মানচিত্র সেবা", limit: "সংখ্যা রং থেকে পড়া হয়, তাই একটি রঙের ধাপে গোল করা। ব্যবহারকারীকে তা দেখানো হয়।",
+    },
+  },
+  {
+    id: "eonet", group: "nasa", name: "NASA EONET natural events", publisher: "NASA Goddard",
+    url: "https://eonet.gsfc.nasa.gov/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Current storms, floods, wildfires and other natural events, for the Disaster watch tab.",
+      resolution: "By event", update: "As events are reported", licence: "NASA open data",
+      access: "Open API", limit: "A listed event is not an official warning. Always follow national warnings.",
+    },
+    bn: {
+      provides: "চলমান ঝড়, বন্যা, দাবানল ও অন্যান্য প্রাকৃতিক ঘটনা, দুর্যোগ নজরদারি ট্যাবের জন্য।",
+      resolution: "ঘটনা অনুযায়ী", update: "ঘটনা জানানোর সঙ্গে সঙ্গে", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "উন্মুক্ত API", limit: "তালিকার ঘটনা সরকারি সতর্কবার্তা নয়। সবসময় জাতীয় সতর্কবার্তা মানুন।",
+    },
+  },
+  // ---- NASA, not used yet ----
+  {
+    id: "grace", group: "nasa", name: "GRACE and GRACE-FO groundwater", publisher: "NASA JPL",
+    url: "https://grace.jpl.nasa.gov/", status: "planned", licenceChecked: false,
+    en: {
+      provides: "Changes in water stored underground, for long-term water trends.",
+      resolution: "Several hundred km", update: "Monthly", licence: "NASA open data",
+      access: "Free Earthdata login", limit: "Far too coarse for one field. Useful only as a regional trend.",
+    },
+    bn: {
+      provides: "ভূগর্ভে জমা পানির পরিবর্তন, দীর্ঘমেয়াদি পানির প্রবণতা দেখতে।",
+      resolution: "কয়েকশো কিমি", update: "মাসিক", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "বিনামূল্যে Earthdata লগইন", limit: "একটি মাঠের জন্য একেবারেই মোটা। শুধু আঞ্চলিক প্রবণতা হিসেবে কাজের।",
+    },
+  },
+  {
+    id: "ecostress", group: "nasa", name: "ECOSTRESS plant heat stress", publisher: "NASA JPL",
+    url: "https://ecostress.jpl.nasa.gov/", status: "planned", licenceChecked: false,
+    en: {
+      provides: "Surface temperature and plant water stress from the space station.",
+      resolution: "About 70 m", update: "Irregular passes", licence: "NASA open data",
+      access: "Free Earthdata login", limit: "Passes are irregular, so many places have few images.",
+    },
+    bn: {
+      provides: "মহাকাশ স্টেশন থেকে ভূপৃষ্ঠের তাপমাত্রা ও গাছের পানির চাপ।",
+      resolution: "প্রায় ৭০ মি", update: "অনিয়মিত ফেরা", licence: "নাসার উন্মুক্ত তথ্য",
+      access: "বিনামূল্যে Earthdata লগইন", limit: "ফেরা অনিয়মিত, তাই অনেক জায়গায় ছবি কম।",
+    },
   },
   {
     id: "nisar", group: "nasa", name: "NISAR radar", publisher: "NASA and ISRO",
-    provides: "Radar images that see through cloud: floods, crop and land change, soil moisture as products are released.",
-    resolution: "Tens of metres", update: "Every 12 days", licence: "Open through NASA Earthdata and ASF",
-    access: "Free Earthdata login", url: "https://nisar.jpl.nasa.gov/", status: "planned", stage: 5, licenceChecked: false,
-    limit: "Soil moisture is not valid over snow, frozen ground and very dense forest.",
+    url: "https://nisar.jpl.nasa.gov/", status: "planned", licenceChecked: false,
+    en: {
+      provides: "Radar images that see through cloud: floods, crop and land change.",
+      resolution: "Tens of metres", update: "Every 12 days", licence: "Open through NASA Earthdata and ASF",
+      access: "Free Earthdata login", limit: "Soil moisture is not valid over snow, frozen ground and very dense forest.",
+    },
+    bn: {
+      provides: "মেঘ ভেদ করে দেখা রাডার-ছবি: বন্যা, ফসল ও জমির পরিবর্তন।",
+      resolution: "কয়েক দশ মিটার", update: "প্রতি ১২ দিনে", licence: "নাসা Earthdata ও ASF-এর মাধ্যমে উন্মুক্ত",
+      access: "বিনামূল্যে Earthdata লগইন", limit: "তুষার, জমাট মাটি ও খুব ঘন বনে আর্দ্রতার মান বৈধ নয়।",
+    },
   },
-  {
-    id: "nasadem", group: "nasa", name: "NASADEM elevation", publisher: "NASA LP DAAC",
-    provides: "Height above sea level, slope and aspect, for steep land and mountain checks.",
-    resolution: "About 30 m", update: "Fixed map", licence: "NASA open data",
-    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/products/nasadem_hgtv001/", status: "planned", stage: 5, licenceChecked: false,
-    limit: "Does not show buildings or trees, and is older in places.",
-  },
-  {
-    id: "modis-snow", group: "nasa", name: "MODIS snow cover", publisher: "NASA NSIDC",
-    provides: "Daily snow cover, to tell permanent snow from seasonal snow in Nepal, Bhutan and the mountains.",
-    resolution: "About 500 m", update: "Daily", licence: "NASA open data",
-    access: "Free Earthdata login", url: "https://nsidc.org/data/mod10a1", status: "planned", stage: 5, licenceChecked: false,
-    limit: "Clouds leave gaps, so we combine many days.",
-  },
-  {
-    id: "modis-ndvi", group: "nasa", name: "MODIS and VIIRS vegetation (NDVI, EVI)", publisher: "NASA LP DAAC",
-    provides: "How green the land is, season by season, compared with its normal.",
-    resolution: "250 m to 1 km", update: "Every 16 days", licence: "NASA open data",
-    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/product_search/?collections=Combined+MODIS", status: "planned", stage: 5, licenceChecked: false,
-    limit: "Shows greenness. It does not identify the crop or its variety.",
-  },
-  {
-    id: "lst", group: "nasa", name: "MODIS and VIIRS land surface temperature", publisher: "NASA LP DAAC",
-    provides: "How hot the ground surface is, for heat and frost screening.",
-    resolution: "About 1 km", update: "Daily", licence: "NASA open data",
-    access: "Free Earthdata login", url: "https://lpdaac.usgs.gov/products/mod11a1v061/", status: "planned", stage: 5, licenceChecked: false,
-    limit: "Ground temperature is not air temperature, and clouds leave gaps.",
-  },
-  {
-    id: "gldas", group: "nasa", name: "GLDAS land model", publisher: "NASA GSFC",
-    provides: "Modelled soil moisture, runoff and evaporation for drought and water-balance checks.",
-    resolution: "About 25 km", update: "Daily to monthly", licence: "NASA open data",
-    access: "Free Earthdata login", url: "https://ldas.gsfc.nasa.gov/gldas", status: "planned", stage: 5, licenceChecked: false,
-    limit: "A model, not a direct observation.",
-  },
-  {
-    id: "gibs", group: "nasa", name: "GIBS and Worldview imagery", publisher: "NASA Earthdata",
-    provides: "NASA's satellite picture service. We read SMAP and IMERG numbers from it now, and will use the pictures for the Earth Explorer globe.",
-    resolution: "Varies by layer", update: "Daily for most layers", licence: "NASA open data",
-    access: "Open map service", url: "https://nasa-gibs.github.io/gibs-api-docs/", status: "live", stage: 3, licenceChecked: true,
-    limit: "Numbers are decoded from colours, so they are rounded to one colour step.",
-  },
-  {
-    id: "firms", group: "nasa", name: "FIRMS fire detections", publisher: "NASA",
-    provides: "Satellite fire and heat detections for the disaster page.",
-    resolution: "375 m to 1 km", update: "About 3 hours", licence: "NASA open data",
-    access: "Free map key", url: "https://firms.modaps.eosdis.nasa.gov/", status: "planned", stage: 9, licenceChecked: false,
-    limit: "A detection is not a confirmed fire report.",
-  },
-  // ---- Soil ----
+  // ---- Soil and crops ----
   {
     id: "soilgrids", group: "soil", name: "SoilGrids", publisher: "ISRIC World Soil Information",
-    provides: "Sand, silt, clay, pH, carbon and more at six depths. Already used for the Bangladesh soil map.",
-    resolution: "250 m", update: "Fixed map", licence: "CC BY 4.0",
-    access: "Open", url: "https://soilgrids.org/", status: "live", stage: 6, licenceChecked: true,
-    limit: "ISRIC warns it is not a farm-level map. Always show its uncertainty.",
+    url: "https://soilgrids.org/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Sand, silt, clay, pH, carbon and more at six depths. Gives the soil estimate for each field and the Soil tab.",
+      resolution: "250 m", update: "Fixed map", licence: "CC BY 4.0",
+      access: "Open", limit: "ISRIC warns it is not a farm-level map. The app shows the uncertainty and lets the farmer set the soil.",
+    },
+    bn: {
+      provides: "ছয়টি গভীরতায় বালি, পলি, কাদা, pH, কার্বন ইত্যাদি। প্রতিটি মাঠের মাটির অনুমান ও মাটি ট্যাব এ থেকেই আসে।",
+      resolution: "২৫০ মি", update: "স্থির মানচিত্র", licence: "CC BY 4.0",
+      access: "উন্মুক্ত", limit: "ISRIC সতর্ক করে এটি খামার-স্তরের মানচিত্র নয়। অ্যাপ অনিশ্চয়তা দেখায় এবং কৃষককে মাটি নিজে ঠিক করতে দেয়।",
+    },
   },
   {
-    id: "openlandmap", group: "soil", name: "OpenLandMap", publisher: "OpenGeoHub",
-    provides: "More global soil and land layers to cross-check SoilGrids.",
-    resolution: "250 m", update: "Fixed map", licence: "Differs by layer, mostly CC BY 4.0",
-    access: "Open", url: "https://openlandmap.org/", status: "planned", stage: 6, licenceChecked: false,
-    limit: "Read the licence of each layer before using it.",
+    id: "ecocrop", group: "soil", name: "FAO EcoCrop", publisher: "FAO",
+    url: "https://gaez.fao.org/pages/ecocrop", status: "live", licenceChecked: false,
+    en: {
+      provides: "The temperature, rain and soil limits of each crop, used to score every crop for your place and plan rotations.",
+      resolution: "Per crop", update: "Fixed table", licence: "FAO data, check terms of reuse",
+      access: "Bundled in the app", limit: "General limits for a crop, not for each variety or local practice.",
+    },
+    bn: {
+      provides: "প্রতিটি ফসলের তাপমাত্রা, বৃষ্টি ও মাটির সীমা; আপনার জায়গার জন্য ফসলের নম্বর দিতে ও শস্যাবর্তন সাজাতে ব্যবহার হয়।",
+      resolution: "ফসল অনুযায়ী", update: "স্থির তালিকা", licence: "FAO-র তথ্য, পুনর্ব্যবহারের শর্ত দেখে নিন",
+      access: "অ্যাপের ভেতরে রাখা", limit: "ফসলের সাধারণ সীমা, প্রতিটি জাত বা স্থানীয় চাষপদ্ধতির জন্য নয়।",
+    },
+  },
+  // ---- Weather, hazards and prices ----
+  {
+    id: "open-meteo", group: "weather", name: "Open-Meteo", publisher: "Open-Meteo",
+    url: "https://open-meteo.com/", status: "live", licenceChecked: true,
+    en: {
+      provides: "The 16-day forecast, the last 7 days of weather, air quality, river flood outlook and elevation.",
+      resolution: "About 2 to 11 km", update: "Hourly", licence: "CC BY 4.0, free for non-commercial use",
+      access: "Open API", limit: "Not a NASA source. Commercial use needs a paid plan.",
+    },
+    bn: {
+      provides: "১৬ দিনের পূর্বাভাস, গত ৭ দিনের আবহাওয়া, বাতাসের মান, নদীর বন্যা-পূর্বাভাস ও উচ্চতা।",
+      resolution: "প্রায় ২–১১ কিমি", update: "ঘণ্টায় ঘণ্টায়", licence: "CC BY 4.0, অবাণিজ্যিক ব্যবহারে বিনামূল্যে",
+      access: "উন্মুক্ত API", limit: "নাসার উৎস নয়। বাণিজ্যিক ব্যবহারে অর্থ দিয়ে প্ল্যান লাগে।",
+    },
   },
   {
-    id: "gssurgo", group: "soil", name: "gSSURGO and Web Soil Survey", publisher: "USDA NRCS",
-    provides: "Detailed soil series and properties for the United States.",
-    resolution: "Mapped at about 1:12,000 to 1:24,000", update: "Yearly", licence: "US government data, open",
-    access: "Open", url: "https://websoilsurvey.nrcs.usda.gov/", status: "planned", stage: 6, licenceChecked: false,
-    limit: "United States only.",
+    id: "usgs-gdacs", group: "weather", name: "USGS earthquakes and GDACS alerts", publisher: "US Geological Survey; UN and EU GDACS",
+    url: "https://www.gdacs.org/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Recent earthquakes and the international cyclone, flood and drought alerts shown on Disaster watch.",
+      resolution: "By event", update: "As issued", licence: "Free to use with credit",
+      access: "Open feeds", limit: "International alerts are not national warnings. Follow BMD, FFWC, IMD and your local authority.",
+    },
+    bn: {
+      provides: "সাম্প্রতিক ভূমিকম্প এবং দুর্যোগ নজরদারিতে দেখানো আন্তর্জাতিক ঘূর্ণিঝড়, বন্যা ও খরার সতর্কবার্তা।",
+      resolution: "ঘটনা অনুযায়ী", update: "প্রকাশের সঙ্গে সঙ্গে", licence: "কৃতিত্ব দিয়ে বিনামূল্যে ব্যবহার",
+      access: "উন্মুক্ত ফিড", limit: "আন্তর্জাতিক সতর্কবার্তা জাতীয় সতর্কবার্তা নয়। BMD, FFWC, IMD ও স্থানীয় কর্তৃপক্ষের কথা মানুন।",
+    },
   },
   {
-    id: "srdi", group: "soil", name: "SRDI soil resources", publisher: "Soil Resource Development Institute, Bangladesh",
-    provides: "Soil nutrient information by upazila and union.",
-    resolution: "Union level", update: "Irregular", licence: "To be confirmed with SRDI",
-    access: "Public pages", url: "https://srdi.gov.bd/", status: "planned", stage: 6, licenceChecked: false,
-    limit: "We must confirm reuse terms before copying any data.",
+    id: "wfp-prices", group: "weather", name: "WFP food prices", publisher: "World Food Programme, via Humanitarian Data Exchange",
+    url: "https://data.humdata.org/", status: "live", licenceChecked: false,
+    en: {
+      provides: "Prices of food crops from markets near the field, for the Market prices tab.",
+      resolution: "By market", update: "Monthly or as published", licence: "Open licence on each dataset, credit WFP",
+      access: "Open download", limit: "Some countries and markets have old or missing records. The app shows the date of each price.",
+    },
+    bn: {
+      provides: "মাঠের কাছের বাজারের খাদ্যশস্যের দাম, বাজারদর ট্যাবের জন্য।",
+      resolution: "বাজার অনুযায়ী", update: "মাসিক বা প্রকাশ অনুযায়ী", licence: "প্রতিটি ডেটাসেটে উন্মুক্ত লাইসেন্স, WFP-কে কৃতিত্ব",
+      access: "উন্মুক্ত ডাউনলোড", limit: "কিছু দেশ ও বাজারের তথ্য পুরোনো বা অনুপস্থিত। অ্যাপ প্রতিটি দামের তারিখ দেখায়।",
+    },
   },
   {
-    id: "shc", group: "soil", name: "Soil Health Card", publisher: "Government of India",
-    provides: "Soil-test nutrient results and advice, in many languages.",
-    resolution: "Farm and village level", update: "Regular cycles", licence: "To be confirmed",
-    access: "Public portal", url: "https://soilhealth.dac.gov.in/", status: "planned", stage: 6, licenceChecked: false,
-    limit: "Bulk reuse needs permission.",
+    id: "gdelt", group: "weather", name: "GDELT news", publisher: "The GDELT Project",
+    url: "https://www.gdeltproject.org/", status: "live", licenceChecked: false,
+    en: {
+      provides: "Recent news headlines about farming near the place.",
+      resolution: "By news story", update: "Every 15 minutes", licence: "Free to use with credit",
+      access: "Open API", limit: "Headlines are machine-picked and may be off-topic. We link to the original and never rewrite it.",
+    },
+    bn: {
+      provides: "জায়গাটির কাছের কৃষি-সংক্রান্ত সাম্প্রতিক সংবাদের শিরোনাম।",
+      resolution: "সংবাদ অনুযায়ী", update: "প্রতি ১৫ মিনিটে", licence: "কৃতিত্ব দিয়ে বিনামূল্যে ব্যবহার",
+      access: "উন্মুক্ত API", limit: "শিরোনাম যন্ত্র বাছাই করে, তাই অপ্রাসঙ্গিক হতে পারে। আমরা মূল লেখার লিংক দিই, নিজে বদলাই না।",
+    },
   },
+  // ---- Maps, boundaries and photos ----
   {
-    id: "wosis", group: "soil", name: "WoSIS soil profiles", publisher: "ISRIC",
-    provides: "Real soil laboratory profiles to train and test our soil model.",
-    resolution: "Point samples", update: "Periodic", licence: "Per record, mostly open",
-    access: "Open", url: "https://www.isric.org/explore/wosis", status: "planned", stage: 6, licenceChecked: false,
-    limit: "Not every record may be redistributed.",
-  },
-  // ---- Weather and hazards ----
-  {
-    id: "open-meteo", group: "weather", name: "Open-Meteo forecast", publisher: "Open-Meteo",
-    provides: "The 16-day forecast and last 7 days of weather in the app today.",
-    resolution: "About 2 to 11 km", update: "Hourly", licence: "CC BY 4.0, free for non-commercial use",
-    access: "Open API", url: "https://open-meteo.com/", status: "live", stage: 8, licenceChecked: true,
-    limit: "Not a NASA source. Commercial use needs a paid plan.",
-  },
-  {
-    id: "official-warnings", group: "weather", name: "National weather and flood warnings", publisher: "BMD, FFWC, IMD, NDMA, NWS and others",
-    provides: "Official cyclone, flood and storm warnings. We never turn a rumour into a warning.",
-    resolution: "By warning area", update: "As issued", licence: "Different for each service",
-    access: "Public pages and feeds", url: "https://www.gdacs.org/", status: "planned", stage: 9, licenceChecked: false,
-    limit: "Coverage and formats differ by country.",
-  },
-  {
-    id: "sentinel", group: "weather", name: "Sentinel-1 and Sentinel-2", publisher: "Copernicus (ESA)",
-    provides: "Radar for floods and optical images for crop condition.",
-    resolution: "10 m", update: "Every 5 to 6 days", licence: "Free, full and open",
-    access: "Free account", url: "https://dataspace.copernicus.eu/", status: "planned", stage: 5, licenceChecked: false,
-    limit: "European data, not NASA. Optical images are blocked by cloud.",
-  },
-  // ---- Crops ----
-  {
-    id: "bd-crops", group: "farm", name: "BRRI, BARI and DAE crop guidance", publisher: "Bangladesh research institutes",
-    provides: "Crop varieties, planting months and growing days used by the crop planner today.",
-    resolution: "Country and district", update: "Reviewed by us", licence: "Public guidance, cited",
-    access: "Public pages", url: "https://brri.gov.bd/", status: "live", stage: 11, licenceChecked: false,
-    limit: "Hand-entered. We will add yield and cost data in Stage 11.",
-  },
-  {
-    id: "faostat", group: "farm", name: "FAOSTAT", publisher: "FAO",
-    provides: "Crop area, yield and production by country and year.",
-    resolution: "Country", update: "Yearly", licence: "Mostly CC BY 4.0, check each dataset",
-    access: "Open", url: "https://www.fao.org/faostat/", status: "planned", stage: 12, licenceChecked: false,
-    limit: "Country totals, not village yields.",
-  },
-  {
-    id: "wapor", group: "farm", name: "FAO WaPOR", publisher: "FAO",
-    provides: "Water use and crop water productivity.",
-    resolution: "30 m to 250 m", update: "10 days", licence: "Open, check terms",
-    access: "Open API", url: "https://www.fao.org/in-action/remote-sensing-for-water-productivity/", status: "planned", stage: 10, licenceChecked: false,
-    limit: "Covers Africa and the Near East fully, and South Asia only partly. We must check coverage.",
-  },
-  // ---- Maps ----
-  {
-    id: "bd-admin", group: "geo", name: "Bangladesh boundaries", publisher: "Administrative boundary files",
-    provides: "Division, district, upazila and union borders used by the map today.",
-    resolution: "Union level", update: "Fixed", licence: "Open boundary data",
-    access: "Bundled in the app", url: "https://github.com/ArmanAhmedMiraj/EarthEcho", status: "live", stage: 4, licenceChecked: false,
-    limit: "Other countries arrive in Stage 4.",
-  },
-  {
-    id: "geoboundaries", group: "geo", name: "geoBoundaries", publisher: "William & Mary geoLab",
-    provides: "Borders for India, Pakistan, Nepal, Myanmar, Bhutan and the USA.",
-    resolution: "Varies by country", update: "Periodic", licence: "Mostly CC BY 4.0, check each country",
-    access: "Open", url: "https://www.geoboundaries.org/", status: "planned", stage: 4, licenceChecked: false,
-    limit: "Completeness and age differ by country.",
+    id: "geoboundaries", group: "geo", name: "geoBoundaries and Bangladesh Bureau of Statistics", publisher: "William & Mary geoLab; BBS and OCHA ROAP",
+    url: "https://www.geoboundaries.org/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Borders for Bangladesh (down to union), India, Nepal, Myanmar, Pakistan, Bhutan and the USA, used to pick and name a place.",
+      resolution: "Varies by country", update: "Fixed files", licence: "CC BY 3.0 IGO (Bangladesh) and open licences for the others",
+      access: "Bundled in the app", limit: "Completeness and age differ by country. Borders are not legal land records.",
+    },
+    bn: {
+      provides: "বাংলাদেশ (ইউনিয়ন পর্যন্ত), ভারত, নেপাল, মিয়ানমার, পাকিস্তান, ভুটান ও যুক্তরাষ্ট্রের সীমানা; জায়গা বেছে নিতে ও নাম দেখাতে ব্যবহার হয়।",
+      resolution: "দেশ অনুযায়ী আলাদা", update: "স্থির ফাইল", licence: "CC BY 3.0 IGO (বাংলাদেশ) এবং অন্যদের জন্য উন্মুক্ত লাইসেন্স",
+      access: "অ্যাপের ভেতরে রাখা", limit: "সম্পূর্ণতা ও বয়স দেশ ভেদে আলাদা। সীমানা আইনি ভূমি-রেকর্ড নয়।",
+    },
   },
   {
     id: "osm", group: "geo", name: "OpenStreetMap", publisher: "OpenStreetMap contributors",
-    provides: "Shops, roads and points of interest for the supplier map.",
-    resolution: "Point data", update: "Continuous", licence: "ODbL, credit required",
-    access: "Open", url: "https://www.openstreetmap.org/copyright", status: "planned", stage: 13, licenceChecked: false,
-    limit: "A shop on the map is not proof of what it has in stock.",
+    url: "https://www.openstreetmap.org/copyright", status: "live", licenceChecked: true,
+    en: {
+      provides: "Place search, map labels, and shops, roads and points of interest for the Suppliers map.",
+      resolution: "Point data", update: "Continuous", licence: "ODbL, credit required",
+      access: "Open", limit: "A shop on the map is not proof of what it has in stock.",
+    },
+    bn: {
+      provides: "জায়গা খোঁজা, মানচিত্রের লেবেল এবং সরবরাহকারী মানচিত্রের জন্য দোকান, রাস্তা ও গুরুত্বপূর্ণ স্থান।",
+      resolution: "বিন্দু-তথ্য", update: "নিরন্তর", licence: "ODbL, কৃতিত্ব দিতে হবে",
+      access: "উন্মুক্ত", limit: "মানচিত্রে দোকান থাকা মানে সেখানে মাল আছে তার প্রমাণ নয়।",
+    },
+  },
+  {
+    id: "esri", group: "geo", name: "Esri World Imagery", publisher: "Esri and its data providers",
+    url: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9", status: "live", licenceChecked: false,
+    en: {
+      provides: "The satellite photo base map when you pick or move a field.",
+      resolution: "Sharper near towns, softer in the countryside", update: "Varies", licence: "Esri terms of use, credit shown on the map",
+      access: "Map tiles", limit: "The photo may be a year or more old.",
+    },
+    bn: {
+      provides: "মাঠ বাছাই বা সরানোর সময় স্যাটেলাইট-ছবির পটভূমি মানচিত্র।",
+      resolution: "শহরের কাছে স্পষ্ট, গ্রামে কিছুটা ঝাপসা", update: "ভিন্ন ভিন্ন", licence: "Esri-র ব্যবহারের শর্ত, মানচিত্রে কৃতিত্ব দেখানো হয়",
+      access: "মানচিত্র-টাইল", limit: "ছবিটি এক বছর বা তারও বেশি পুরোনো হতে পারে।",
+    },
+  },
+  {
+    id: "commons", group: "geo", name: "Wikimedia Commons photographs", publisher: "Wikimedia Commons contributors",
+    url: "https://commons.wikimedia.org/", status: "live", licenceChecked: true,
+    en: {
+      provides: "Real photographs of the place for the banner. Only free licences are used, and the photographer and licence are shown on each picture.",
+      resolution: "Per photo", update: "Continuous", licence: "Free licences such as CC BY and CC BY-SA, credit shown",
+      access: "Open API", limit: "A photo may be from a nearby place, not your exact spot. The banner says how near it is.",
+    },
+    bn: {
+      provides: "ব্যানারের জন্য জায়গাটির আসল ছবি। শুধু মুক্ত লাইসেন্সের ছবি নেওয়া হয়, প্রতিটি ছবিতে আলোকচিত্রী ও লাইসেন্স দেখানো হয়।",
+      resolution: "ছবি অনুযায়ী", update: "নিরন্তর", licence: "CC BY ও CC BY-SA-র মতো মুক্ত লাইসেন্স, কৃতিত্ব দেখানো হয়",
+      access: "উন্মুক্ত API", limit: "ছবি কাছের কোনো জায়গার হতে পারে, ঠিক আপনার জমির নয়। ব্যানারে কত কাছের তা লেখা থাকে।",
+    },
+  },
+  // ---- AI ----
+  {
+    id: "llm", group: "ai", name: "Groq and Google Gemini language models", publisher: "Groq; Google",
+    url: "https://groq.com/", status: "live", licenceChecked: false,
+    en: {
+      provides: "Write the answers of Ask EarthEcho in plain words, in the language of the app, from the retrieved sources and your field's data.",
+      resolution: "Not applicable", update: "Per question", licence: "Service terms of each provider",
+      access: "Server-side, key never in the app", limit: "A language model can be wrong. Answers must cite a source, and the assistant says when it does not know.",
+    },
+    bn: {
+      provides: "খুঁজে পাওয়া উৎস ও আপনার মাঠের তথ্য থেকে অ্যাপের ভাষায় সহজ কথায় ‘Ask EarthEcho’-র উত্তর লেখে।",
+      resolution: "প্রযোজ্য নয়", update: "প্রতিটি প্রশ্নে", licence: "প্রতিটি প্রদানকারীর সেবার শর্ত",
+      access: "সার্ভার থেকে, চাবি অ্যাপে থাকে না", limit: "ভাষা-মডেল ভুল করতে পারে। উত্তরে উৎস উল্লেখ থাকতে হয়, আর না জানলে সহকারী তা বলে।",
+    },
   },
 ];
