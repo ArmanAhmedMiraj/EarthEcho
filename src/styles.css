@@ -213,3 +213,8 @@ select:focus-visible, .search:focus-visible, .btn:focus-visible, .tab:focus-visi
 .bar .lab { color: var(--muted); }
 
 .footer { margin: 18px 0 10px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+
+/* map credit links: underlined, so they are not told apart by colour alone */
+.maplibregl-ctrl-attrib a, .maplibregl-ctrl-attrib-inner a { text-decoration: underline !important; }
+/* while a page chunk loads, keep the page tall so the footer does not jump */
+.page-loading { min-height: 60vh; }
