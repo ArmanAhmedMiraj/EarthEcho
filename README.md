@@ -2,9 +2,17 @@
 
 **What should I plant next?** EarthEcho is a free, bilingual (English and Bengali) farm-planning web app. A farmer saves their fields once. The app then reads NASA satellite and climate data for each field and answers in plain words: how suitable the crops are, when to sow, when to irrigate, what hazards are coming, and what prices are. It also has an AI assistant that answers from a sourced knowledge base.
 
-Built by team **Frontier Zero** for the NASA Space Apps Challenge 2026 (Field Shift).
+![React 19](https://img.shields.io/badge/React-19-61dafb) ![Vite 8](https://img.shields.io/badge/Vite-8-646cff) ![MapLibre](https://img.shields.io/badge/MapLibre-GL-396cb2) ![Languages](https://img.shields.io/badge/languages-English%20%7C%20Bengali-2e9e6b) ![Deployed on Vercel](https://img.shields.io/badge/deployed-Vercel-000000)
 
-Live: https://earth-echo-nine.vercel.app/
+Built by team **Frontier Zero** for the NASA Space Apps Challenge 2026, challenge **Field Shift: Adapting Farms with NASA Data**. Now in the final round.
+
+**Live app: https://earth-echo-nine.vercel.app/** (works on a phone, installs like an app, opens offline with the last data it saw)
+
+Demo script for judges: [docs/DEMO.md](docs/DEMO.md)
+
+## Status
+
+All twelve tabs are built and live. Farmers keep many fields; every tab follows the open field. The app is bilingual, works in light and dark mode, passes Lighthouse accessibility, best-practices and SEO checks at 100 on desktop, and works offline after the first visit.
 
 ## How a farmer uses it
 

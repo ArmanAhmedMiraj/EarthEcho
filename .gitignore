@@ -1,13 +1,8 @@
 node_modules
 dist
-.venv
-__pycache__
-data-raw
-.dodsrc
-.DS_Store
-archive-nisar/data-processed/jamuna/
-archive-nisar/data-processed/jamuna_v3/
-archive-nisar/data-processed/preview_*.png
 .env
 .env.local
-.env.*.local
+.vercel
+npm.log
+*.zip
+.DS_Store
