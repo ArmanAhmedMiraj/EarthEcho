@@ -2,7 +2,7 @@
 //   SMAP Level 4 soil moisture (surface and root zone) and GPM IMERG rain rate.
 // Example: /api/satellite?lat=25.75&lon=89.25
 import { badRequest, cacheFor, readPoint } from "./_lib/answer.js";
-import { dayBack, layerHasData, loadColormap, readPixel, valueOf } from "./_lib/gibs.js";
+import { dayBack, loadColormap, readTilePixel, tileHasData, valueOf } from "./_lib/gibs.js";
 
 const SMAP = {
   surface: "SMAP_L4_Analyzed_Surface_Soil_Moisture",
@@ -16,7 +16,12 @@ async function readSmap(layer, lat, lon) {
   const table = await loadColormap(SMAP.colormap);
   for (let back = 1; back <= 8; back += 1) {
     const date = dayBack(back);
-    const colour = await readPixel(layer, date, lat, lon);
+    let colour = null;
+    try {
+      colour = await readTilePixel(layer, date, lat, lon, { set: "2km", level: 5 });
+    } catch {
+      continue; // no picture for that day (GIBS answers 404): try the day before
+    }
     if (colour && table.has(colour)) {
       const v = valueOf(table.get(colour));
       return { date, volumetric: v.mid, low: v.low, high: v.high, unit: "m³/m³" };
@@ -31,8 +36,8 @@ async function readRain(lat, lon) {
   const start = Math.floor((Date.now() - 4 * 3600e3) / 1800e3) * 1800e3;
   for (let k = 0; k < 24; k += 1) {
     const time = new Date(start - k * 1800e3).toISOString().slice(0, 19) + "Z";
-    if (!(await layerHasData(IMERG.layer, time))) continue;
-    const colour = await readPixel(IMERG.layer, time, lat, lon);
+    if (!(await tileHasData(IMERG.layer, time))) continue;
+    const colour = await readTilePixel(IMERG.layer, time, lat, lon, { set: "2km", level: 5 });
     if (!colour) return { time, rateMmHr: 0, below: 0.1, unit: "mm/hr" }; // transparent = under 0.1 mm/hr
     const range = table.get(colour);
     if (!range) return { time, rateMmHr: null, unit: "mm/hr" };

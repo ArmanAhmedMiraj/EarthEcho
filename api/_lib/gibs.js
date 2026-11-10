@@ -74,3 +74,37 @@ export function valueOf(range) {
 }
 
 export const dayBack = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+// Fast way to read one number: GIBS also serves the same pictures as ready-made map tiles, which it keeps cached
+// (about half a second, where a one-off picture request can take 30 seconds). We fetch the one tile that
+// holds the point, pick the pixel at the point, and use the same colour table as above.
+const TILE_PIXELS = 512;
+const TOP_TILE_DEGREES = 288; // a level-0 tile covers 288 degrees; every level halves it
+
+export async function readTilePixel(layer, time, lat, lon, { set = "1km", level = 5 } = {}) {
+  const tile = TOP_TILE_DEGREES / 2 ** level;
+  const col = Math.floor((lon + 180) / tile);
+  const row = Math.floor((90 - lat) / tile);
+  const url = `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/${layer}/default/${time}/${set}/${level}/${row}/${col}.png`;
+  const png = PNG.sync.read(await getBytes(url, 12000));
+  const x = Math.min(png.width - 1, Math.max(0, Math.floor(((lon + 180 - col * tile) / tile) * png.width)));
+  const y = Math.min(png.height - 1, Math.max(0, Math.floor(((90 - lat - row * tile) / tile) * png.height)));
+  const i = (y * png.width + x) * 4;
+  if (png.data[i + 3] === 0) return null;
+  return `${png.data[i]},${png.data[i + 1]},${png.data[i + 2]}`;
+}
+
+// Does this layer have any picture at this time? Same idea as layerHasData, but through the fast cached tiles:
+// the two whole-world tiles of level 0 are checked for any coloured pixel.
+export async function tileHasData(layer, time, set = "2km") {
+  for (const col of [0, 1]) {
+    const url = `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/${layer}/default/${time}/${set}/0/0/${col}.png`;
+    let png;
+    try {
+      png = PNG.sync.read(await getBytes(url, 12000));
+    } catch {
+      continue; // GIBS answers 404 when there is no picture for that time
+    }
+    for (let i = 3; i < png.data.length; i += 4) if (png.data[i] !== 0) return true;
+  }
+  return false;
+}

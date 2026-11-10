@@ -52,6 +52,15 @@ const MapPicker = lazy(() => import("./MapPicker.jsx"));
 const Weather = lazy(() => import("./Weather.jsx"));
 import Logo from "./Logo.jsx";
 const Sources = lazy(() => import("./Sources.jsx"));
+
+// The pages load when first opened. So that every tab also opens with no internet, they are all fetched once
+// in the background a few seconds after the app starts (the service worker keeps them). Skipped on "Data Saver".
+const PAGE_LOADERS = [
+  () => import("./Irrigation.jsx"), () => import("./RotationPlanner.jsx"), () => import("./Market.jsx"),
+  () => import("./Suppliers.jsx"), () => import("./Assistant.jsx"), () => import("./Soil.jsx"),
+  () => import("./Suitability.jsx"), () => import("./Environment.jsx"), () => import("./Weather.jsx"),
+  () => import("./Sources.jsx"),
+];
 import "./tabs.css";
 import "./sources.css";
 
@@ -173,6 +182,12 @@ export default function App() {
   // ---- My Farm: the saved fields, and the one that is open ----
   const activeField = fields.find((f) => f.id === activeId) || null;
   useEffect(() => { saveFields(fields); }, [fields]);
+  useEffect(() => {
+    const saveData = navigator.connection && navigator.connection.saveData;
+    if (saveData) return undefined;
+    const timer = setTimeout(() => PAGE_LOADERS.forEach((load) => load().catch(() => {})), 4000);
+    return () => clearTimeout(timer);
+  }, []);
   useEffect(() => { saveActiveId(activeId); }, [activeId]);
   useEffect(() => { keepStorage(); }, []);
   const updateField = (id, patch) =>

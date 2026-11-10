@@ -3,7 +3,7 @@
 //   with a monthly water balance (rain minus evapotranspiration).
 // Example: /api/environment?lat=25.75&lon=89.25
 import { badRequest, cacheFor, fetchJson, readPoint } from "./_lib/answer.js";
-import { loadColormap, readPixel, valueOf } from "./_lib/gibs.js";
+import { loadColormap, readTilePixel, valueOf } from "./_lib/gibs.js";
 
 const NDVI = { layer: "MODIS_Terra_L3_NDVI_Monthly", colormap: "MODIS_L3_NDVI.xml" };
 const LST = { layer: "MODIS_Terra_L3_Land_Surface_Temp_8Day_Day", colormap: "MODIS_Land_Surface_Temp.xml" };
@@ -21,7 +21,7 @@ function monthsBack(n) {
 
 async function readNdvi(table, year, month, lat, lon) {
   try {
-    const colour = await readPixel(NDVI.layer, monthStart(year, month), lat, lon);
+    const colour = await readTilePixel(NDVI.layer, monthStart(year, month), lat, lon);
     const range = colour && table.get(colour);
     if (!range) return null;
     return { year, month, value: Number(valueOf(range).mid.toFixed(2)) };
@@ -67,7 +67,7 @@ async function landTemperature(lat, lon) {
     if (k < 0) break;
     const date = new Date(Date.UTC(year, 0, 1 + 8 * k)).toISOString().slice(0, 10);
     try {
-      const colour = await readPixel(LST.layer, date, lat, lon);
+      const colour = await readTilePixel(LST.layer, date, lat, lon);
       const range = colour && table.get(colour);
       if (range) return { date, celsius: Number((valueOf(range).mid - 273.15).toFixed(1)) };
     } catch {
