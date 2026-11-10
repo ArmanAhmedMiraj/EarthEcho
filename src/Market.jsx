@@ -2,6 +2,30 @@ import { useCallback, useEffect, useState } from "react";
 import "./market.css";
 import { IRR_CROP_NAMES } from "./i18nIrrigation.js";
 
+// Bengali names for the foods the price data lists (the data itself is in English). Anything not listed stays as it is.
+const COMMODITY_BN = {
+  "Bananas (ripe)": "কলা (পাকা)",
+  "Chili (green)": "কাঁচা মরিচ",
+  "Eggs (brown)": "ডিম (বাদামি)",
+  "Fish (live, pangasius)": "মাছ (জীবিত পাঙাশ)",
+  "Garlic (imported, China)": "রসুন (আমদানি, চীন)",
+  "Gourd (bottle)": "লাউ",
+  "Lentils (masur)": "মসুর ডাল",
+  "Meat (chicken, broiler)": "মাংস (ব্রয়লার মুরগি)",
+  "Milk (cow, pasteurized)": "দুধ (গরু, পাস্তুরিত)",
+  "Oil (palm)": "পাম তেল",
+  "Oil (soybean, fortified)": "সয়াবিন তেল (ফর্টিফাইড)",
+  "Onions (imported, China)": "পেঁয়াজ (আমদানি, চীন)",
+  "Papaya (green)": "কাঁচা পেঁপে",
+  "Potatoes (Holland, white)": "আলু (হল্যান্ড, সাদা)",
+  "Rice (coarse)": "চাল (মোটা)",
+  "Snake gourd": "চিচিঙ্গা",
+  "Spinach (malabar)": "পুঁইশাক",
+  "Spinach (red)": "লাল শাক",
+  "Sugar": "চিনি",
+  "Wheat flour": "আটা",
+};
+
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 function readStore(key) {
   try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch { return {}; }
@@ -96,7 +120,7 @@ export default function Market({ t, lang, lat, lon, country }) {
         {shown.map((i) => (
           <div className="mk-row" key={`${i.commodity}|${i.unit}|${i.type}`}>
             <div className="mk-name">
-              <strong>{i.commodity}</strong>
+              <strong>{lang === "bn" && COMMODITY_BN[i.commodity] ? COMMODITY_BN[i.commodity] : i.commodity}</strong>
               <span className="muted small">{i.crop ? `${cropName(i.crop)} · ` : ""}{fill(t.mkMarket, { market: i.market, km: num.format(i.km) })} · {i.type}</span>
             </div>
             <div className="mk-price">
