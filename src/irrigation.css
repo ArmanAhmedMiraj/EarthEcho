@@ -11,3 +11,8 @@
 .ir-table th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
 .ir-chart { width: 100%; max-width: 760px; height: auto; display: block; }
 .ir-chart text { fill: var(--muted); font-size: 10px; }
+
+/* phones: the form controls never push the page wider than the screen */
+.ir-form label { min-width: 0; }
+.ir-form select, .ir-form input { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.ir-area select { flex: 1 1 auto; min-width: 0; }

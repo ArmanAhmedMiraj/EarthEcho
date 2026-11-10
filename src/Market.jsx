@@ -112,7 +112,7 @@ export default function Market({ t, lang, lat, lon, country }) {
             <option value="all">{t.mkFilterAll}</option>
           </select>
         </label>
-        <button className="tab" onClick={useAll}>{t.mkUseAll}</button>
+        <button className="tab mk-wrap" onClick={useAll}>{t.mkUseAll}</button>
       </div>
       {savedAll && <p className="small">{t.mkUseAllDone}</p>}
       <p className="muted small">{t.mkUseNote}</p>
