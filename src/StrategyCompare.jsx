@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import "./strategy.css";
 import { currentRotation, explain, matchScore, measure, priorityParts, profitOf } from "./strategy.js";
 import { strategyPayload, uncertainty } from "./trust.js";
+import { recentFamily } from "./history.js";
 import "./trust.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -50,8 +51,9 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
     const build = (steps, extra = {}) => {
       const m = measure(steps, { climate, mode, field });
       const profit = profitFor(steps);
-      const text = explain({ ...m, assumedTiming: !!extra.assumedTiming }, { ...base, profit, isCurrent: !!extra.isCurrent }, extra.baseline || null);
-      return { m, profit, text, trust: uncertainty(m, { field, profit, isCurrent: !!extra.isCurrent, timingKnown: !!extra.isCurrent && extra.assumedTiming === false, scenarioOn, mode }) };
+      const fam = recentFamily(field, results, steps, !!extra.isCurrent);
+      const text = explain({ ...m, assumedTiming: !!extra.assumedTiming }, { ...base, profit, isCurrent: !!extra.isCurrent, fam }, extra.baseline || null);
+      return { m, profit, text, fam, trust: uncertainty(m, { field, profit, isCurrent: !!extra.isCurrent, timingKnown: !!extra.isCurrent && extra.assumedTiming === false, scenarioOn, mode }) };
     };
 
     const cur = currentRotation(field, results, mode);
@@ -108,6 +110,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
     [t.stRowBare, (c) => (c.m.bare.length ? `${num(c.m.bare.length)} (${c.m.bare.map(month).join(", ")})` : "0")],
     [t.stRowLegume, (c) => yn(c.m.legumes.length > 0)],
     [t.stRowFamilies, (c) => num(c.m.families)],
+    [t.stRowFamRecent, (c) => (!c.fam || !c.fam.known ? "–" : c.fam.run.length ? fill(t.stFamYes, { crops: [...new Set(c.fam.run.map((x) => name(x)))].join(", ") }) : t.stNo)],
     [t.stRowGap, (c) => (c.m.haveClimate ? num(c.m.gap) : "–")],
     [t.stRowProfit, profitCell],
     [t.trSure, (c) => t[`trLevel_${c.trust.level}`]],

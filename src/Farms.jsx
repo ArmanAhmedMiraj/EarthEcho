@@ -5,6 +5,7 @@ import { SOIL_TYPES } from "./soil.js";
 import { loadCropTable } from "./suitability.js";
 import { buildAlerts, fetchWeatherPlus } from "./weatherPlus.js";
 import { levelOf } from "./Disasters.jsx";
+import { MAX_SEASONS, historyOf, historyPatch } from "./history.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -57,6 +58,10 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
   const d = (active && active.details) || {};
   const setDetail = (key, value) => active && onUpdate(active.id, { details: { ...d, [key]: value } });
   const area = d.area || { value: "", unit: "bigha" };
+  const setDetails = (patch) => active && onUpdate(active.id, { details: { ...d, ...patch } });
+  const seasons = historyOf(d);
+  const setSeasons = (rows) => setDetails(historyPatch(rows));
+  const setSeason = (i, patch) => setSeasons(seasons.map((r, k) => (k === i ? { ...r, ...patch } : r)));
   const setArea = (patch) => setDetail("area", { ...area, ...patch });
   const areaNumber = Number(String(area.value).replace(",", "."));
   const hectares = HECTARES_PER[area.unit] && areaNumber > 0 ? areaNumber * HECTARES_PER[area.unit] : null;
@@ -230,19 +235,23 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
                   {OWNERSHIP.map((k) => <option key={k} value={k}>{t[`fdOwn_${k}`]}</option>)}
                 </select>
               </label>
-              <label className="fd-field">
-                <span>{t.fdPrevious} {d.previousCrops && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <input value={d.previousCrops || ""} placeholder={t.fdPreviousPlaceholder} maxLength={160} onChange={(e) => setDetail("previousCrops", e.target.value)} />
-              </label>
-              {d.previousCrops && (
-                <label className="fd-field">
-                  <span>{t.fdSowMonthPrev} {d.previousSowMonth !== undefined && d.previousSowMonth !== "" && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                  <select value={d.previousSowMonth ?? ""} onChange={(e) => setDetail("previousSowMonth", e.target.value)}>
-                    <option value="">{t.fdChoose}</option>
-                    {t.rtMonthsAbbr.split(" ").map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
-                  </select>
-                </label>
-              )}
+              <div className="fd-field wide fd-hist">
+                <span>{t.fdHistory} {seasons.some((r) => r.crop.trim()) && <Chip kind="you">{t.fdYou}</Chip>}</span>
+                <p className="small muted fd-hist-hint">{t.fdHistoryHint}</p>
+                {seasons.map((r, i) => (
+                  <div className="fd-hist-row" key={i}>
+                    <b className="fd-hist-n">{fill(t.fdHistoryRow, { n: num.format(i + 1) })}</b>
+                    <input list="fd-crops" value={r.crop} placeholder={t.fdCropPlaceholder} maxLength={60} aria-label={`${fill(t.fdHistoryRow, { n: num.format(i + 1) })}: ${t.fdPrevious}`} onChange={(e) => setSeason(i, { crop: e.target.value })} />
+                    <select value={r.sowMonth} aria-label={`${fill(t.fdHistoryRow, { n: num.format(i + 1) })}: ${t.fdSowMonth}`} onChange={(e) => setSeason(i, { sowMonth: e.target.value })}>
+                      <option value="">{t.fdChoose}</option>
+                      {t.rtMonthsAbbr.split(" ").map((m, k) => <option key={m} value={String(k)}>{m}</option>)}
+                    </select>
+                    <input className="fd-hist-year" inputMode="numeric" value={r.year} placeholder={t.fdHistoryYear} maxLength={4} aria-label={`${fill(t.fdHistoryRow, { n: num.format(i + 1) })}: ${t.fdHistoryYear}`} onChange={(e) => setSeason(i, { year: e.target.value })} />
+                    <button type="button" className="fd-link fd-hist-x" aria-label={t.fdHistoryRemove} title={t.fdHistoryRemove} onClick={() => setSeasons(seasons.filter((_, k) => k !== i))}>✕</button>
+                  </div>
+                ))}
+                {seasons.length < MAX_SEASONS && <button type="button" className="fd-link fd-hist-add" onClick={() => setSeasons([...seasons, { crop: "", sowMonth: "", year: "" }])}>{t.fdHistoryAdd}</button>}
+              </div>
               <label className="fd-field wide">
                 <span>{t.fdNotes} {d.notes && <Chip kind="you">{t.fdYou}</Chip>}</span>
                 <textarea rows={2} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />

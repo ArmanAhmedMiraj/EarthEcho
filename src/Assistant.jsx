@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./assistant.css";
 import { buildAlerts, fetchWeatherPlus } from "./weatherPlus.js";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
+import { historyOf } from "./history.js";
 
 // Everything the assistant is told about this farm. It is built from data the app already has, so the answer is about THIS place.
 async function buildContext({ lat, lon, label, country, soilData, env, field }) {
@@ -17,7 +18,8 @@ async function buildContext({ lat, lon, label, country, soilData, env, field }) 
     if (fd.currentCrop) own.growingNow = fd.currentCrop;
     if (fd.currentCrop && fd.currentSowMonth !== undefined && fd.currentSowMonth !== "") own.currentCropSownInMonthNumber = Number(fd.currentSowMonth) + 1;
     if (fd.plannedCrop) own.wantsToGrowNext = fd.plannedCrop;
-    if (fd.previousCrops) own.grownBefore = fd.previousCrops;
+    const seasons = historyOf(fd).filter((r) => r.crop.trim());
+    if (seasons.length) own.seasonsBeforeNowNewestFirst = seasons.map((r) => ({ crop: r.crop.trim(), sownInMonthNumber: r.sowMonth !== "" ? Number(r.sowMonth) + 1 : undefined, year: r.year || undefined }));
     if (fd.soil) own.soilTypeSetByFarmer = fd.soil;
     if (fd.notes) own.notes = String(fd.notes).slice(0, 300);
     if (Object.keys(own).length > 1) ctx.farmerProvidedDetails = own;

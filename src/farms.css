@@ -77,3 +77,12 @@
 .fd-seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .fd-seg button:focus:not(:focus-visible) { outline: none; }
 .fd-pill-note { display: none; }
+
+/* past seasons list in My Farm */
+.fd-hist { gap: 8px; }
+.fd-hist-hint { margin: 0; }
+.fd-hist-row { display: grid; grid-template-columns: 84px minmax(0, 1.6fr) minmax(0, 1fr) 84px 28px; gap: 8px; align-items: center; }
+.fd-hist-n { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.fd-hist-x { font-size: 1rem; text-align: center; }
+.fd-hist-add { align-self: flex-start; margin-top: 2px; }
+@media (max-width: 640px) { .fd-hist-row { grid-template-columns: 1fr 1fr 28px; } .fd-hist-n { grid-column: 1 / -1; } .fd-hist-row input:not(.fd-hist-year) { grid-column: 1 / -1; } }

@@ -89,6 +89,7 @@ export function strategyPayload(c, { mode, scenario, prio, baseline, name, month
     missing_inputs: c.trust.factors.filter((f) => f.state === "missing").map((f) => INPUT_WORDS[f.key] || f.key),
     weak_points: c.trust.sensitive.map((k) => WEAK_WORDS[k] || k),
   };
+  if (c.fam && c.fam.known) out.same_plant_family_as_recent_crops = c.fam.run.length ? [...new Set(c.fam.run.map((x) => name(x)))] : "none";
   if (baseline && !isCurrent) out.current_rotation_water_gap_mm = baseline.m.gap;
   return out;
 }

@@ -4,6 +4,7 @@
 // that a farmer or agriculture officer must check. These are simple rules of ours, not a yield model, and the page says so.
 import { findCrop } from "./suitability.js";
 import { isLegume, profitOf } from "./rotation.js";
+import { historyOf } from "./history.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 const HEAVY_RAIN_MM = 150; // a month this wet leaves a bare field open to washing away
@@ -24,15 +25,13 @@ export function currentRotation(field, results, mode) {
   if (!d.currentCrop) return null;
   const now = results.find((r) => findCrop([r.crop], d.currentCrop));
   if (!now) return { unknown: d.currentCrop };
-  const before = String(d.previousCrops || "")
-    .split(/[,;/\n،→]+/)
-    .map((x) => x.trim())
-    .filter(Boolean)
-    .map((x) => results.find((r) => findCrop([r.crop], x)))
-    .filter((r) => r && r.crop.id !== now.crop.id);
   const monthOf = (v) => { const n = Number(v); return v !== "" && v != null && Number.isInteger(n) && n >= 0 && n <= 11 ? n : null; };
+  // the most recent past season that is a different crop from the one growing now, with its own sowing month
+  const before = historyOf(d)
+    .map((row) => ({ r: row.crop.trim() ? results.find((x) => findCrop([x.crop], row.crop)) : null, given: monthOf(row.sowMonth) }))
+    .filter((x) => x.r && x.r.crop.id !== now.crop.id);
   const picks = [];
-  if (before[0]) picks.push({ r: before[0], given: monthOf(d.previousSowMonth) });
+  if (before[0]) picks.push(before[0]);
   picks.push({ r: now, given: monthOf(d.currentSowMonth) });
   const steps = picks.map(({ r, given }) => ({ crop: r.crop, at: given != null ? given : r[mode].month, months: r.cycle, score: r[mode].best, entered: given != null }));
   const assumedTiming = steps.some((o) => !o.entered);
@@ -131,6 +130,11 @@ export function explain(m, ctx, base) {
   if (m.bareWet.length) risks.push(fill(t.stRiskBareWet, { months: list(m.bareWet) }) + (m.assumedTiming ? ` ${t.stRiskAssumed}` : "") + (m.slope != null && m.slope >= SLOPE_STEEP ? ` ${t.stRiskSteep}` : ""));
   else if (m.bare.length >= 3) risks.push(fill(t.stRiskBare, { n: num(m.bare.length), months: list(m.bare) }));
   if (m.repeat > 0) risks.push(t.stRiskRepeat);
+  if (ctx.fam && ctx.fam.run.length) {
+    const crops = [...new Set(ctx.fam.run.map((c) => name(c)))].join(", ");
+    if (ctx.isCurrent) { if (ctx.fam.run.length >= 1) risks.push(fill(t.stRiskFamCurrent, { crops, n: num(ctx.fam.run.length + 1) })); }
+    else risks.push(fill(t.stRiskFamNext, { crop: name(m.steps[0].crop), recent: crops }));
+  }
   if (m.monoculture) risks.push(t.stRiskMono);
   if (!m.legumes.length) risks.push(t.stRiskNoLegume);
   risks.push(t.stRiskCheck);
