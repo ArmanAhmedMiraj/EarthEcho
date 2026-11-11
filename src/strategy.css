@@ -40,3 +40,7 @@
 .sc-result ul { margin: 0; padding-left: 18px; font-size: 0.9rem; }
 .sc-result li { margin: 3px 0; }
 .sc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+/* priorities */
+.pr-wrap { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px 16px; margin: 14px 0; }
+.pr-wrap h3 { margin: 0 0 6px; }

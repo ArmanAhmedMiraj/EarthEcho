@@ -5,6 +5,8 @@ import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
 import FieldNote from "./FieldNote.jsx";
 import StrategyCompare from "./StrategyCompare.jsx";
 import Scenario from "./Scenario.jsx";
+import Priorities from "./Priorities.jsx";
+import { matchScore, measure, priorityParts } from "./strategy.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 function readStore(key) {
@@ -21,6 +23,8 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   const [attempt, setAttempt] = useState(0);
   const [mode, setMode] = useState(() => (field && field.details && field.details.irrigation === "none" ? "rainfed" : "irrigated"));
   const [rank, setRank] = useState("fit");
+  const [prio, setPrio] = useState(() => { try { return JSON.parse(localStorage.getItem("ef-priorities") || "[]"); } catch { return []; } });
+  const changePrio = (next) => { setPrio(next); try { localStorage.setItem("ef-priorities", JSON.stringify(next)); } catch { /* storage may be blocked */ } };
   const [scn, setScn] = useState({ rain: 0, temp: 0 }); // what-if: rain change in percent, warming in degrees
   const [kind, setKind] = useState("all");
   const store = `ef-rotation-${country}`;
@@ -57,6 +61,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   }, [climate, scn]);
 
   const rotations = useMemo(() => (results ? planRotations(results, mode, kind) : []), [results, mode, kind]);
+  const pool = useMemo(() => (results ? planRotations(results, mode, kind, 30) : []), [results, mode, kind]);
   const baseRotations = useMemo(() => (baseResults ? planRotations(baseResults, mode, kind) : []), [baseResults, mode, kind]);
 
   const setField = (id, field, value) => {
@@ -94,6 +99,14 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   const hasNext = (r) => !!plannedHit && r.steps.some((o) => o.crop.id === plannedHit.crop.id);
   if (rank === "profit") ranked.sort((a, b) => (b.p.complete ? b.p.total : -Infinity) - (a.p.complete ? a.p.total : -Infinity));
 
+  if (rank !== "profit" && prio.length && scenarioClimate) {
+    const measured = pool.map((x) => ({ gap: measure(x.steps, { climate: scenarioClimate, mode, field }).gap, profit: 0 }));
+    const score = (rot, p) => {
+      const m = measure(rot.steps, { climate: scenarioClimate, mode, field });
+      return matchScore(m, priorityParts(m, p, measured), prio);
+    };
+    ranked.sort((a, b) => score(b.r, b.p) - score(a.r, a.p));
+  }
   if (rank !== "profit" && plannedHit) ranked.sort((a, b) => Number(hasNext(b.r)) - Number(hasNext(a.r)));
 
   return (
@@ -122,8 +135,9 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
         </label>
       </div>
 
+      <Priorities t={t} prio={prio} onChange={changePrio} />
       <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
-      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} />}
+      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} pool={pool} prio={prio} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {
         // the next sowing from this month on

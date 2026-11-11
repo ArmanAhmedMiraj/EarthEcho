@@ -135,3 +135,25 @@ export function explain(m, ctx, base) {
 }
 
 export { profitOf };
+
+// ---- the farmer's priorities ----
+export const PRIORITIES = ["water", "income", "soil", "risk"];
+
+// 0..1 for each priority (higher is better). income is null when yield, price and cost are not all entered.
+export function priorityParts(m, profit, pool) {
+  const maxGap = Math.max(1, ...pool.map((x) => x.gap));
+  const maxProfit = Math.max(1, ...pool.map((x) => x.profit || 0));
+  const water = m.haveClimate ? 1 - m.gap / maxGap : 0.5;
+  const income = profit && profit.complete ? Math.max(0, profit.total) / maxProfit : null;
+  const soil = Math.min(1, 0.4 * (m.legumes.length ? 1 : 0) + 0.3 * (m.usedCount / 12) + 0.2 * Math.min(1, m.families / 3) + 0.1 * (m.repeat ? 0 : 1));
+  const dry = m.haveClimate && m.need > 0 ? m.gap / m.need : 0;
+  const penalty = Math.min(1, (m.hot.length + m.cold.length) / 6 + m.bareWet.length / 4 + 0.3 * m.repeat + (m.mode === "rainfed" ? 0.5 : 0.15) * dry);
+  return { water: Math.max(0, water), income, soil, risk: 1 - penalty };
+}
+
+// One number to rank by: 40% fit to the place, 60% the average of the priorities the farmer chose
+export function matchScore(m, parts, prio) {
+  const chosen = prio.map((p) => parts[p]).filter((x) => x != null);
+  if (!chosen.length) return m.mean;
+  return 0.4 * m.mean + 0.6 * (chosen.reduce((a, b) => a + b, 0) / chosen.length);
+}

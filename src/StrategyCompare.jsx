@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import "./strategy.css";
-import { currentRotation, explain, measure, profitOf } from "./strategy.js";
+import { currentRotation, explain, matchScore, measure, priorityParts, profitOf } from "./strategy.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -18,7 +18,7 @@ function pickAlternatives(list) {
   return out;
 }
 
-export default function StrategyCompare({ t, lang, locale, results, rotations, climate, mode, field, soilData, monthNames, valueOf }) {
+export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf }) {
   const data = useMemo(() => {
     if (!results || !climate) return null;
     const name = (c) => (lang === "bn" ? c.bn : c.en);
@@ -58,12 +58,36 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, c
       const b = build(cur.steps, { isCurrent: true, assumedTiming: true });
       current = { role: "Current", ...b, steps: cur.steps };
     }
-    const alts = pickAlternatives(rotations.map((r) => ({ r, m: measure(r.steps, { climate, mode, field }) }))).map(({ role, item }) => {
+    // every candidate rotation, measured, with its profit and its priority scores
+    const measured = (pool && pool.length ? pool : rotations).map((r) => ({ r, m: measure(r.steps, { climate, mode, field }), profit: profitFor(r.steps) }));
+    const stats = measured.map((x) => ({ gap: x.m.gap, profit: x.profit.complete ? x.profit.total : 0 }));
+    measured.forEach((x) => { x.parts = priorityParts(x.m, x.profit, stats); x.match = matchScore(x.m, x.parts, prio); });
+
+    let picks;
+    if (prio.length) {
+      const top = [...measured].sort((a, b) => b.match - a.match).slice(0, 3);
+      picks = top.map((item, i) => ({ role: i === 0 ? "Match" : "Match2", item }));
+    } else {
+      picks = pickAlternatives(measured);
+    }
+    const money = (n) => num(n);
+    const alts = picks.map(({ role, item }) => {
       const b = build(item.r.steps, { baseline: current ? current.m : null });
+      if (prio.length) {
+        const extra = [];
+        const was = current ? current.m.gap : null;
+        prio.forEach((p) => {
+          if (p === "water") extra.push(fill(t.stPrWater, { gap: num(item.m.gap), vs: was != null && was - item.m.gap >= 30 ? fill(t.stPrWaterVs, { d: num(was - item.m.gap) }) : "" }));
+          if (p === "income") extra.push(item.profit.complete ? fill(t.stPrIncome, { n: money(item.profit.total) }) : t.stPrIncomeNo);
+          if (p === "soil") extra.push(fill(t.stPrSoil, { n: num(item.m.usedCount), f: num(item.m.families), leg: item.m.legumes.length ? t.stPrLegume : "" }));
+          if (p === "risk") extra.push(fill(t.stPrRisk, { k: num(item.m.hot.length + item.m.cold.length), w: num(item.m.bareWet.length) }));
+        });
+        b.text.why = [...extra, ...b.text.why];
+      }
       return { role, ...b, steps: item.r.steps };
     });
     return { current, alts, unknown: cur && cur.unknown, noCurrent: !cur, name, num, pct, month };
-  }, [results, rotations, climate, mode, field, soilData, lang, locale, monthNames, t, valueOf]);
+  }, [results, rotations, pool, prio, climate, mode, field, soilData, lang, locale, monthNames, t, valueOf]);
 
   if (!data) return null;
   const { current, alts, unknown, noCurrent, name, num, pct, month } = data;

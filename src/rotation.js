@@ -21,7 +21,7 @@ export const TYPICAL_YIELD = {
 export const isLegume = (crop) => crop.family === LEGUME && ["pulse", "oilseed"].includes(crop.group);
 
 // kind: "all", "field" (grains, pulses, oilseeds, roots, fibre, cash) or "vegetable"
-export function planRotations(results, mode, kind = "all") {
+export function planRotations(results, mode, kind = "all", limit = 6) {
   const key = mode === "rainfed" ? "rainfed" : "irrigated";
   // every way to sow one crop: { crop, start, months, score }
   const options = [];
@@ -74,7 +74,7 @@ export function planRotations(results, mode, kind = "all") {
     const ids = new Set(cand.steps.map((o) => o.crop.id));
     const clash = picked.some((p) => p.steps.filter((o) => ids.has(o.crop.id)).length >= Math.min(2, p.steps.length, cand.steps.length));
     if (!clash) picked.push(cand);
-    if (picked.length === 6) break;
+    if (picked.length === limit) break;
   }
   return picked;
 }
