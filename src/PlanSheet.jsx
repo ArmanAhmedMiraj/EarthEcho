@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { smsSize } from "./sheetData.js";
 import { buildIcs, downloadIcs } from "./ics.js";
-import { canSpeak, pickVoice, speakAll, stopSpeaking } from "./speak.js";
+import { canSpeak, joinParts, pickVoice, playAi, speakAll, stopSpeaking } from "./speak.js";
 import "./sheet.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -11,6 +11,7 @@ function Sheet({ t, lang, model, onClose }) {
   const [text, setText] = useState(model.short);
   const [note, setNote] = useState("");
   const [talking, setTalking] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
   const box = useRef(null);
   const nfL = new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en-US");
@@ -49,13 +50,20 @@ function Sheet({ t, lang, model, onClose }) {
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const enc = encodeURIComponent(text);
   const listen = async () => {
-    if (talking) { stopSpeaking(); setTalking(false); return; }
-    setVoiceMsg("");
+    if (talking || preparing) { stopSpeaking(); setTalking(false); setPreparing(false); setVoiceMsg(""); return; }
+    setVoiceMsg(t.rdPreparing); setPreparing(true);
+    const sep = lang === "bn" ? "।" : ".";
+    const parts = (model.glance || []).map((g) => `${g.title}${sep} ${g.text}${/[.।!?]$/.test(g.text) ? "" : sep}`);
+    // 1. an AI voice from our server: works on any device
+    const ai = await playAi(joinParts(parts, ""), () => setTalking(false));
+    if (ai.ok) { setPreparing(false); setTalking(true); setVoiceMsg(""); return; }
+    // 2. the voice that is already on the device
+    setPreparing(false);
     if (!canSpeak()) { setVoiceMsg(t.rdNoSupport); return; }
     const found = await pickVoice(lang === "bn" ? "bn" : "en");
     if (!found.ok) { setVoiceMsg(lang === "bn" ? t.rdNoBangla : t.rdNoVoice); return; }
-    setTalking(true);
-    speakAll((model.glance || []).map((g) => `${g.title}${lang === "bn" ? "। " : ". "}${g.text}`), found.voice, found.lang, () => setTalking(false));
+    setVoiceMsg(""); setTalking(true);
+    speakAll(parts, found.voice, found.lang, () => setTalking(false));
   };
   const field = model.file || "";
   const makeIcs = () => {
@@ -109,7 +117,7 @@ function Sheet({ t, lang, model, onClose }) {
           <div className="sh-short">
             <b>{t.rdTitle}</b>
             <p className="sh-small">{t.rdIntro}</p>
-            <div className="sh-actions"><button type="button" className="tab" onClick={listen} aria-pressed={talking}>{talking ? t.rdStop : t.rdPlay}</button></div>
+            <div className="sh-actions"><button type="button" className="tab" onClick={listen} aria-pressed={talking}>{talking || preparing ? t.rdStop : t.rdPlay}</button></div>
             <p className="sh-small" role="status">{voiceMsg}</p>
           </div>
         )}

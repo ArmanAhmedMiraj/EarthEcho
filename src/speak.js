@@ -31,4 +31,33 @@ export function speakAll(parts, voice, lang, onEnd) {
     synth.speak(u);
   });
 }
-export const stopSpeaking = () => { try { if (canSpeak()) window.speechSynthesis.cancel(); } catch { /* nothing playing */ } };
+let current = null;
+export const stopSpeaking = () => {
+  if (current) { try { current.onended = null; current.onerror = null; current.pause(); } catch { /* already stopped */ } current = null; }
+  try { if (canSpeak()) window.speechSynthesis.cancel(); } catch { /* nothing playing */ }
+};
+
+// The text that fits in one request (the server takes up to 600 characters): whole parts only
+export function joinParts(parts, sep, max = 600) {
+  let out = "";
+  for (const p of parts) { const next = out ? `${out} ${p}${sep}` : `${p}${sep}`; if (next.length > max) break; out = next; }
+  return out.trim();
+}
+
+// An AI voice made on our server (works on every device, no voice needed on the device). Resolves { ok } when playback has started,
+// or { ok: false } when the server could not make the voice (then the caller can try the device's own voice).
+export function playAi(text, onEnd) {
+  return new Promise((resolve) => {
+    stopSpeaking();
+    const audio = new Audio(`/api/speak?text=${encodeURIComponent(text)}`);
+    current = audio;
+    let settled = false;
+    const done = (ok) => { if (settled) return; settled = true; clearTimeout(timer); resolve({ ok }); };
+    const timer = setTimeout(() => { if (current === audio) stopSpeaking(); done(false); }, 40000);
+    audio.onplaying = () => done(true);
+    audio.onended = () => { current = null; onEnd(); };
+    audio.onerror = () => { if (!settled) done(false); else { current = null; onEnd(); } };
+    const p = audio.play();
+    if (p && p.catch) p.catch(() => done(false));
+  });
+}
