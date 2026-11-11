@@ -42,10 +42,11 @@ export default async function handler(req, res) {
   const point = readPoint(req.query || {});
   if (!point) return badRequest(res, "Give a real place: ?lat=25.75&lon=89.25");
   const end = new Date().getUTCFullYear() - 1;
+  const thisYear = end + 1; // this year's finished months are read too, for the "a year most like this one" comparison
   const url =
     "https://power.larc.nasa.gov/api/temporal/monthly/point" +
     `?parameters=T2M,PRECTOTCORR&community=AG&longitude=${point.lon}&latitude=${point.lat}` +
-    `&start=${START}&end=${end}&format=JSON`;
+    `&start=${START}&end=${thisYear}&format=JSON`;
 
   let raw;
   try { raw = await fetchJson(url, 25000); }
@@ -56,6 +57,7 @@ export default async function handler(req, res) {
   const years = [], temp = [], rain = [];
   const monthRain = Array.from({ length: 12 }, () => []);
   const monthTemp = Array.from({ length: 12 }, () => []);
+  const rainByYear = [], tempByYear = [];
   for (let y = START; y <= end; y += 1) {
     const ts = [], rs = [];
     for (let m = 1; m <= 12; m += 1) {
@@ -66,11 +68,22 @@ export default async function handler(req, res) {
     }
     if (ts.length === 12) {
       years.push(y); temp.push(mean(ts)); rain.push(rs.reduce((s, x) => s + x, 0));
+      rainByYear.push(rs.map((v) => Math.round(v))); tempByYear.push(ts.map((v) => Number(v.toFixed(1))));
       rs.forEach((r, i) => monthRain[i].push(r));
       ts.forEach((v, i) => monthTemp[i].push(v));
     }
   }
   if (years.length < 10) return res.status(502).json({ ok: false, error: "Not enough years of NASA POWER data for this place." });
+
+  // this year, month by month, up to the last finished month (the month in progress is not used)
+  const doneMonths = new Date().getUTCMonth();
+  const nowRain = [], nowTemp = [];
+  for (let m = 1; m <= doneMonths; m += 1) {
+    const key = `${thisYear}${String(m).padStart(2, "0")}`;
+    const t = clean(p.T2M[key]), r = clean(p.PRECTOTCORR[key]);
+    if (t == null || r == null) break;
+    nowRain.push(Math.round(r * DAYS[m - 1])); nowTemp.push(Number(t.toFixed(1)));
+  }
 
   const rainStep = findStep(years, rain), tempStep = findStep(years, temp);
   const tf = fitTrend(years, temp), rf = fitTrend(years, rain);
@@ -84,7 +97,7 @@ export default async function handler(req, res) {
   const recentFrom = Math.max(0, years.length - 10); // the last ten years, used when the series has a jump
   const monthsRecent = stats(monthRain, monthTemp, recentFrom);
 
-  cacheFor(res, 30 * 86400); // yearly history changes once a year
+  cacheFor(res, 2 * 86400); // the history changes once a year, but this year's months are added as they finish
   res.status(200).json({
     ok: true,
     location: point,
@@ -100,6 +113,8 @@ export default async function handler(req, res) {
     rainCv: round(sd(rain) / mean(rain), 3),
     wettest: years[rain.indexOf(Math.max(...rain))], driest: years[rain.indexOf(Math.min(...rain))],
     driestMm: round(Math.min(...rain), 0), wettestMm: round(Math.max(...rain), 0),
+    perYear: { rain: rainByYear, temp: tempByYear },
+    thisYear: { year: thisYear, rain: nowRain, temp: nowTemp },
     months,
     monthsRecent, recentFrom: years[Math.max(0, years.length - 10)],
     source: { name: "NASA POWER monthly (MERRA-2 / IMERG based)", url: "https://power.larc.nasa.gov/docs/", resolution: "About 0.5° × 0.625° per cell (roughly 55 km)" },

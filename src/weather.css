@@ -37,3 +37,9 @@
 .sk-now .sk-bar { fill: var(--accent); }
 .sk-now .sk-lab { fill: var(--text); font-weight: 700; }
 .sk-list { margin: 8px 0 0; padding-left: 18px; }
+
+/* A past year most like this one */
+.sy-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.sy-chip { font: inherit; font-size: 0.86rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
+.sy-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.sy-lead.weak { border-left-color: #c98a1a; }
