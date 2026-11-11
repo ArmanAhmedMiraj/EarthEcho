@@ -51,7 +51,7 @@ export function strategySheet({ c, t, field, locale, nf, name, month, tableRows,
   const blocks = [
     ...factBlocks(facts, t),
     { h: t.shCrops, table: { head: bd ? [t.shCrop, t.shSowHarvest, t.shMonths, t.bdColumn] : [t.shCrop, t.shSowHarvest, t.shMonths], rows: c.steps.map((o) => (bd ? [name(o.crop), range(o), nf.format(o.months), seasonLabel(o.crop, o.at, t)] : [name(o.crop), range(o), nf.format(o.months)])) } },
-    { h: t.shNumbers, rows: tableRows.map(([label, fn]) => [label, fn(c)]) },
+    { h: t.shNumbers, rows: tableRows.map(([label, fn, tags]) => [tags ? `${label} (${tags.map((k) => t[`src_${k}`]).join(", ")})` : label, fn(c)]), note: t.srcSheetNote },
     ...sections.map(([key, title]) => ({ h: title, ul: c.text[key] })),
     { h: `${t.trTitle}: ${level}`, ul: [t[`trLead_${c.trust.level}`], ...c.trust.factors.map((f) => `${t[`trState_${f.state}`]}: ${t[`trF_${f.key}_${f.state}`]}`), ...c.trust.sensitive.map((k) => t[`trS_${k}`])] },
     { h: t.shNotes, lines: 4 },

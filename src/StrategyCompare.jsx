@@ -101,21 +101,23 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
   const roleLabel = (r) => t[`stRole${r}`];
   const yn = (b) => (b ? t.stYes : t.stNo);
   const profitCell = (c) => (c.profit.complete ? num(c.profit.total) : "–");
+  const soilYou = !!(field && field.details && field.details.soil);
+  const tagOf = (k) => <span key={k} className={`src-tag ${k}`} title={t[`srcHelp_${k}`]}>{t[`src_${k}`]}</span>;
   const rows = [
-    [t.stRowCrops, (c) => c.steps.map((o) => name(o.crop)).join(" → ")],
-    [mode === "irrigated" ? t.stRowFitIrr : t.stRowFit, (c) => pct(c.m.mean)],
+    [t.stRowCrops, (c) => c.steps.map((o) => name(o.crop)).join(" → "), ["est"]],
+    [mode === "irrigated" ? t.stRowFitIrr : t.stRowFit, (c) => pct(c.m.mean), soilYou ? ["nasa", "you", "est"] : ["nasa", "est"]],
     [t.stRowFitRain, (c) => {
       const scores = c.steps.map((o) => { const r = results.find((x) => x.crop.id === o.crop.id); return r ? r.rainfed.best : null; });
       return scores.some((v) => v == null) ? "–" : pct(scores.reduce((a, b) => a + b, 0) / scores.length);
-    }],
-    [t.stRowUse, (c) => `${num(c.m.usedCount)} / 12`],
-    [t.stRowBare, (c) => (c.m.bare.length ? `${num(c.m.bare.length)} (${c.m.bare.map(month).join(", ")})` : "0")],
-    [t.stRowLegume, (c) => yn(c.m.legumes.length > 0)],
-    [t.stRowFamilies, (c) => num(c.m.families)],
-    [t.stRowFamRecent, (c) => (!c.fam || !c.fam.known ? "–" : c.fam.run.length ? fill(t.stFamYes, { crops: [...new Set(c.fam.run.map((x) => name(x)))].join(", ") }) : t.stNo)],
-    [t.stRowGap, (c) => (c.m.haveClimate ? num(c.m.gap) : "–")],
-    [t.stRowProfit, profitCell],
-    [t.trSure, (c) => t[`trLevel_${c.trust.level}`]],
+    }, ["nasa", "est"]],
+    [t.stRowUse, (c) => `${num(c.m.usedCount)} / 12`, ["est"]],
+    [t.stRowBare, (c) => (c.m.bare.length ? `${num(c.m.bare.length)} (${c.m.bare.map(month).join(", ")})` : "0"), ["est"]],
+    [t.stRowLegume, (c) => yn(c.m.legumes.length > 0), ["est"]],
+    [t.stRowFamilies, (c) => num(c.m.families), ["est"]],
+    [t.stRowFamRecent, (c) => (!c.fam || !c.fam.known ? "–" : c.fam.run.length ? fill(t.stFamYes, { crops: [...new Set(c.fam.run.map((x) => name(x)))].join(", ") }) : t.stNo), ["you"]],
+    [t.stRowGap, (c) => (c.m.haveClimate ? num(c.m.gap) : "–"), ["nasa", "est"]],
+    [t.stRowProfit, profitCell, ["you", "est"]],
+    [t.trSure, (c) => t[`trLevel_${c.trust.level}`], ["est"]],
   ];
   const sections = [["why", t.stSecWhy], ["evidence", t.stSecEvidence], ["benefits", t.stSecBenefits], ["gaps", t.stSecGaps], ["risks", t.stSecRisks]];
 
@@ -126,20 +128,21 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
       {noCurrent && <p className="st-note">{t.stNoCurrent}</p>}
       {unknown && <p className="st-note">{fill(t.stCurrentUnknown, { crop: unknown })}</p>}
 
+      <p className="small src-legend"><b>{t.srcLegendTitle}</b> {["nasa", "est", "you"].map((k) => <span key={k}>{tagOf(k)} {t[`srcHelp_${k}`]} </span>)}</p>
       <div className="st-scroll" tabIndex={0} role="region" aria-label={t.stTitle}>
         <table className="st-table">
           <thead>
             <tr>
               <td />
               {cols.map((c) => (
-                <th key={c.role} scope="col" className={c.role === "Current" ? "cur" : ""}>{roleLabel(c.role)}</th>
+                <th key={c.role} scope="col" className={c.role === "Current" ? "cur" : ""}>{roleLabel(c.role)}{c.role === "Current" && <span className="src-tags">{tagOf("you")}</span>}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map(([label, fn]) => (
+            {rows.map(([label, fn, tags]) => (
               <tr key={label}>
-                <th scope="row">{label}</th>
+                <th scope="row">{label}{tags && <span className="src-tags">{tags.map(tagOf)}</span>}</th>
                 {cols.map((c) => <td key={c.role} className={c.role === "Current" ? "cur" : ""}>{fn(c)}</td>)}
               </tr>
             ))}

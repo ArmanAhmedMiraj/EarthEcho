@@ -100,3 +100,14 @@
 .ev-s.k1 { border-color: #d9a441; }
 .ev-s.k2 { border-color: #2e9a6a; }
 @media (max-width: 480px) { .ev-s { font-size: 8.5px; } }
+
+/* Where each number comes from */
+.src-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+.src-tag { display: inline-block; font-size: 0.64rem; font-weight: 700; line-height: 1.5; padding: 0 6px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.src-tag.nasa { color: #1f5fa8; }
+.src-tag.est { color: #8a5a00; }
+.src-tag.you { color: #1b7a52; }
+:root[data-theme="dark"] .src-tag.nasa { color: #7db4ee; }
+:root[data-theme="dark"] .src-tag.est { color: #e6b45a; }
+:root[data-theme="dark"] .src-tag.you { color: #5fd3a0; }
+.src-legend span { margin-inline-end: 6px; }
