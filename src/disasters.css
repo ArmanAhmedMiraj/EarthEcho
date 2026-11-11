@@ -19,3 +19,16 @@
 .ds-river strong { font-size: 1.15rem; color: var(--text); }
 .ds-spark { width: 100%; max-height: 120px; height: auto; display: block; }
 .ds-spark text { fill: var(--muted); font-size: 10px; }
+
+/* Rain upstream */
+.up-wrap { margin: 18px 0; }
+.up-wrap h3 { margin: 0 0 6px; }
+.up-chip { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.up-chip.calm { color: #2e7d32; }
+.up-chip.watch { color: #b26a00; }
+.up-chip.alert { color: #c62828; }
+:root[data-theme="dark"] .up-chip.calm { color: #6fd38a; }
+:root[data-theme="dark"] .up-chip.watch { color: #e6b45a; }
+:root[data-theme="dark"] .up-chip.alert { color: #ff8a80; }
+.up-watch { border-left-color: #b26a00; }
+.up-alert { border-left-color: #c62828; }

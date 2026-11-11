@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./disasters.css";
 import { DISASTER_OFFICES } from "./i18nDisasters.js";
 import { TWO_LETTER } from "./i18nWeather.js";
+import UpstreamRain from "./UpstreamRain.jsx";
 
 // the overall level from simple rules on the data
 export function levelOf(d) {
@@ -60,12 +61,15 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
   }, [lat, lon]);
   useEffect(load, [load]);
 
+  // rain upstream of Bangladesh does not depend on the other disaster feeds, so it shows even when they fail
+  const upstream = country === "BD" ? <UpstreamRain t={t} lang={lang} locale={lang === "bn" ? "bn-BD" : "en-GB"} lat={lat} lon={lon} /> : null;
   if (state === "loading") return <p className="muted">{t.dsLoading}</p>;
   if (state === "failed" || !data) {
     return (
       <div>
         <p className="warn">{t.dsFailed}</p>
         <button className="tab" onClick={load}>{t.dsRetry}</button>
+        {upstream}
       </div>
     );
   }
@@ -162,6 +166,7 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
         </>
       ) : <p className="muted">{data.failed.includes("river") ? t.src_river : t.riverNoData}</p>}
       <p className="muted small">{t.riverNote}</p>
+      {upstream}
 
       {tips.length > 0 && (
         <>
