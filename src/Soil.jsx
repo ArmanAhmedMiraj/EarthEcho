@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { localSoilName, moistureClass } from "./soilNames.js";
 import SoilCrosscheck from "./SoilCrosscheck.jsx";
+import { loadSecondMap, lookupSecond, compareSoil, GROUP } from "./soilcheck.js";
 import "./soilpage.css";
 
 function Droplet({ level }) {
@@ -26,6 +27,13 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
   const [state, setState] = useState(initial ? "ok" : "loading");
   const [data, setData] = useState(initial || null);
   const [attempt, setAttempt] = useState(0);
+  const [second, setSecond] = useState(null); // the second soil map (Bangladesh only)
+  useEffect(() => {
+    let cancelled = false;
+    if (country !== "BD") return undefined;
+    loadSecondMap().then((m) => { if (!cancelled) setSecond(m || null); });
+    return () => { cancelled = true; };
+  }, [country]);
 
   useEffect(() => {
     if (initial && attempt === 0) return undefined;
@@ -83,6 +91,7 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
   const classes = data.classes || {};
   const prov = data.provenance || {};
   const local = tex && !(lang === "bn" && country === "BD") ? localSoilName(country, tex.simple) : null;
+  const verdict = country === "BD" && tex && second ? compareSoil({ name: tex.class, group: GROUP[tex.class] || tex.group }, lookupSecond(second, lat, lon)) : null;
   const confWord = tex && tex.confidenceLevel ? { high: t.confHigh, medium: t.confMedium, low: t.confLow }[tex.confidenceLevel] : null;
   const groupWord = tex ? { fine: t.sTexGroupFine, medium: t.sTexGroupMedium, coarse: t.sTexGroupCoarse }[tex.group] : "";
 
@@ -138,7 +147,11 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
         {tex && tex.groupConfidence != null && (
           <section className="soil-card">
             <h3>{t.sTexConf}</h3>
-            <p className={`soil-conf ${tex.confidenceLevel}`}>{confWord}</p>
+            {verdict === "agree" && tex.confidenceLevel === "low" ? (
+              <p className="small muted">{t.sxAgreeConf}</p>
+            ) : (
+              <p className={`soil-conf ${tex.confidenceLevel}`}>{confWord}</p>
+            )}
             <p className="soil-sentence">
               {t.sTexGroupLine} <strong>{groupWord}</strong>: <strong>{num(tex.groupConfidence)}%</strong>
             </p>
@@ -224,6 +237,7 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
             </div>
           )}
         </div>
+        <p className="small muted">{t.sxFertSource}</p>
       </section>
 
       {tex && (
