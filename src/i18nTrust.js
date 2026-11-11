@@ -33,6 +33,10 @@ export const TRUST_TEXT = {
     trImprove: "How to be more sure:",
     trImproveBody: "enter your soil, water source and prices in My Farm, check the soil with a hand test, and ask your local agriculture officer about variety, sowing dates and pests before you change anything.",
 
+    exButton: "Explain this strategy with the assistant",
+    exNote: "Opens Ask EarthEcho and sends this strategy's crops, months and numbers, plus your field facts, to the AI assistant. It explains in plain words, may make mistakes, and does not replace the local agriculture officer.",
+    exQuestion: "Explain this crop rotation for my field: {crops}",
+
     lnTitle: "Learn: how to read EarthEcho",
     lnIntro: "Short explanations of the words and the satellite data used in this app. Nothing here replaces your own experience of your land.",
     lnSatTitle: "Satellite or ground: what each one can tell you",
@@ -105,6 +109,10 @@ export const TRUST_TEXT = {
     trS_bareWet: "দুই বা তার বেশি খুব ভেজা মাসে মাঠ খালি থাকে, তাই মাটি ধুয়ে যাওয়ার আসল ঝুঁকি আছে।",
     trImprove: "আরও নিশ্চিত হতে:",
     trImproveBody: "‘আমার খামার’-এ মাটি, পানির উৎস ও দাম দিন, হাতে মাটি পরীক্ষা করুন, আর কিছু বদলানোর আগে জাত, বপনের তারিখ ও পোকামাকড় নিয়ে স্থানীয় কৃষি কর্মকর্তাকে জিজ্ঞেস করুন।",
+
+    exButton: "সহকারীকে দিয়ে এই কৌশল ব্যাখ্যা করান",
+    exNote: "‘আর্থইকোকে জিজ্ঞেস করুন’ খুলবে এবং এই কৌশলের ফসল, মাস ও সংখ্যা, সঙ্গে আপনার মাঠের তথ্য এআই সহকারীকে পাঠাবে। সে সহজ ভাষায় ব্যাখ্যা করবে, ভুল করতে পারে, এবং স্থানীয় কৃষি কর্মকর্তার বিকল্প নয়।",
+    exQuestion: "আমার মাঠের জন্য এই ফসলক্রম ব্যাখ্যা করুন: {crops}",
 
     lnTitle: "শিখুন: আর্থইকো কীভাবে পড়বেন",
     lnIntro: "এই অ্যাপে ব্যবহৃত শব্দ ও স্যাটেলাইট তথ্যের সংক্ষিপ্ত ব্যাখ্যা। নিজের জমি সম্পর্কে আপনার অভিজ্ঞতার বিকল্প এটি নয়।",

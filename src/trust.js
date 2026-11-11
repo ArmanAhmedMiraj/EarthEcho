@@ -43,3 +43,36 @@ export function uncertainty(m, { field, profit, isCurrent, scenarioOn, mode }) {
   const level = points <= 4 ? "high" : points <= 8 ? "medium" : "low";
   return { level, factors, sensitive, points };
 }
+
+// What is sent to the assistant when the farmer asks it to explain one strategy. Short on purpose (the server keeps 4000 characters).
+// English crop and month names are used here so the model stays on the numbers; it answers in the farmer's language.
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export function strategyPayload(c, { mode, scenario, prio, baseline }) {
+  const m = c.m;
+  const months = (arr) => arr.map((i) => MONTHS_EN[((i % 12) + 12) % 12]);
+  const out = {
+    which: c.role === "Current" ? "the farmer's current rotation (sowing months assumed)" : "a suggested alternative rotation",
+    waterMode: mode,
+    crops: c.steps.map((o) => ({ crop: o.crop.en, sow: MONTHS_EN[o.at % 12], months: o.months, fitPct: Math.round(o.score * 100) })),
+    bareMonths: months(m.bare),
+    bareInVeryWetMonths: months(m.bareWet),
+    hasLegume: m.legumes.length > 0,
+    cropFamilies: m.families,
+    waterNeededMm: m.need,
+    rainDuringCropsMm: m.rain,
+    waterGapMm: m.gap,
+    waterGapMeaning: mode === "irrigated" ? "the field is irrigated, so this is roughly how much water would have to come from irrigation, not a rain failure" : "the field depends on rain, so this is the shortfall of rain against what the crops like",
+    hotMonths: [...new Set(m.hot.map((x) => MONTHS_EN[x.month]))],
+    coldMonths: [...new Set(m.cold.map((x) => MONTHS_EN[x.month]))],
+    slopePct: m.slope,
+    profitTotal: c.profit && c.profit.complete ? Math.round(c.profit.total) : null,
+    farmerPriorities: prio && prio.length ? prio : null,
+    whatIfSliders: scenario && (scenario.rain !== 0 || scenario.temp !== 0) ? { rainChangePct: scenario.rain, warmingC: scenario.temp } : null,
+    howSure: c.trust.level,
+    assumedInputs: c.trust.factors.filter((f) => f.state === "assumed").map((f) => f.key),
+    missingInputs: c.trust.factors.filter((f) => f.state === "missing").map((f) => f.key),
+    weakPoints: c.trust.sensitive,
+  };
+  if (baseline && c.role !== "Current") out.currentRotationWaterGapMm = baseline.m.gap;
+  return out;
+}

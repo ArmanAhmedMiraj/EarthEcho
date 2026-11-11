@@ -17,7 +17,7 @@ function writeStore(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
 
-export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData, field }) {
+export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData, field, onExplain }) {
   const [table, setTable] = useState(null);
   const [climate, setClimate] = useState(env && env.climate ? env.climate : null);
   const [state, setState] = useState(env && env.climate ? "ok" : "loading");
@@ -138,7 +138,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
 
       <Priorities t={t} prio={prio} onChange={changePrio} />
       <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
-      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} pool={pool} prio={prio} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} scenarioOn={scn.rain !== 0 || scn.temp !== 0} />}
+      {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} pool={pool} prio={prio} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} scenarioOn={scn.rain !== 0 || scn.temp !== 0} scenario={scn} onExplain={onExplain} />}
       {ranked.length > 0 && <Evidence t={t} lang={lang} locale={locale} lat={lat} lon={lon} climate={scenarioClimate} rotations={rotations} field={field} soilData={soilData} mode={mode} monthNames={monthNames} results={results} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {

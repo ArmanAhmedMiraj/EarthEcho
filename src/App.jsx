@@ -133,6 +133,8 @@ export default function App() {
   const [focus, setFocus] = useState(null);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState(tabFromHash);
+  const [explainReq, setExplainReq] = useState(null); // a strategy the farmer asked the assistant to explain
+  const explainStrategy = (req) => { setExplainReq({ ...req, id: Date.now() }); window.location.hash = "/assistant"; setTab("assistant"); };
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
   useEffect(() => {
     const up = () => setOnline(true);
@@ -1016,7 +1018,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.rtTitle}</h2>
-            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} />
+            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} onExplain={explainStrategy} />
           </div>
         </main>
       )}
@@ -1064,7 +1066,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.asTitle}</h2>
-            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={activeField} />
+            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={activeField} request={explainReq} onRequestHandled={() => setExplainReq(null)} />
           </div>
         </main>
       )}

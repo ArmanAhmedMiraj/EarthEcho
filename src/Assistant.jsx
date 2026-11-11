@@ -56,7 +56,7 @@ function renderAnswer(text) {
   ));
 }
 
-export default function Assistant({ t, lang, lat, lon, label, country, soilData, env, field }) {
+export default function Assistant({ t, lang, lat, lon, label, country, soilData, env, field, request = null, onRequestHandled = null }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -69,7 +69,7 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
   }, [lat, lon, env, soilData, JSON.stringify(field && field.details), field && field.name]);
   useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ block: "nearest" }); }, [messages, busy]);
 
-  async function ask(q) {
+  async function ask(q, extra) {
     const question = (q ?? text).trim();
     if (!question || busy) return;
     setText("");
@@ -81,11 +81,13 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
     setBusy(true);
     try {
       if (!ctxRef.current) ctxRef.current = buildContext({ lat, lon, label, country, soilData, env, field });
-      const context = await ctxRef.current;
+      const base = await ctxRef.current;
+      // the strategy goes first, so it is never the part cut off if the farm data is long
+      const context = extra && extra.strategy ? { strategy: extra.strategy, ...base } : base;
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question, lang, context }),
+        body: JSON.stringify({ question, lang, context, mode: extra && extra.strategy ? "strategy" : undefined }),
       });
       const failWith = (data) => {
         const map = { nokey: t.asNoKey, quota: t.asQuota, rate: t.asRate, badkey: t.asBadKey };
@@ -132,6 +134,16 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
       setBusy(false);
     }
   }
+
+  // a strategy sent from the Rotation tab is asked once, as soon as this tab opens
+  const handled = useRef(null);
+  useEffect(() => {
+    if (!request || handled.current === request.id) return;
+    handled.current = request.id;
+    ask(request.question, { strategy: request.strategy });
+    if (onRequestHandled) onRequestHandled();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request]);
 
   const suggestions = [t.asQ1, t.asQ2, t.asQ3, t.asQ4, t.asQ5];
   return (

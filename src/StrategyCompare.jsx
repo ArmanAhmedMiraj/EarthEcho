@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import "./strategy.css";
 import { currentRotation, explain, matchScore, measure, priorityParts, profitOf } from "./strategy.js";
-import { uncertainty } from "./trust.js";
+import { strategyPayload, uncertainty } from "./trust.js";
 import "./trust.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -20,7 +20,7 @@ function pickAlternatives(list) {
   return out;
 }
 
-export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf, scenarioOn = false }) {
+export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf, scenarioOn = false, scenario = { rain: 0, temp: 0 }, onExplain = null }) {
   const data = useMemo(() => {
     if (!results || !climate) return null;
     const name = (c) => (lang === "bn" ? c.bn : c.en);
@@ -164,6 +164,15 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
             </ul>
             <p className="small"><b>{t.trImprove}</b> {t.trImproveBody}</p>
           </div>
+          {onExplain && (
+            <div className="ex-box">
+              <button type="button" className="tab ex-btn" onClick={() => onExplain({
+                question: fill(t.exQuestion, { crops: c.text.crops }),
+                strategy: strategyPayload(c, { mode, scenario, prio, baseline: current }),
+              })}>{t.exButton}</button>
+              <p className="muted small">{t.exNote}</p>
+            </div>
+          )}
         </details>
       ))}
     </section>

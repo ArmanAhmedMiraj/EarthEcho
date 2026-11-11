@@ -30,3 +30,6 @@
 .ln-gloss div { padding: 8px 0; border-top: 1px solid var(--border); }
 .ln-gloss dt { font-weight: 700; }
 .ln-gloss dd { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+
+.ex-box { margin-top: 12px; }
+.ex-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
