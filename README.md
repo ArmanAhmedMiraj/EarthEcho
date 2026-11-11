@@ -10,6 +10,21 @@ Built by team **Frontier Zero** for the NASA Space Apps Challenge 2026, challeng
 
 Demo script for judges: [docs/DEMO.md](docs/DEMO.md)
 
+## What it does for the Field Shift challenge
+
+The challenge asks for a supportive tool that compares crop-rotation strategies, explains them, and does not replace the farmer's judgment. In the **Rotation planner** tab EarthEcho:
+
+- **Compares at least three strategies side by side**: the farmer's own current rotation (from My Farm) and the best alternatives, in one table and in detail cards.
+- **Explains each one in five parts**: why it was suggested, the evidence, the benefits, the information gaps and the risks.
+- **Lets the farmer say what matters** (save water, income, soil health, lower risk) and re-ranks the strategies with that.
+- **Shows what-if climates** with rain and temperature sliders, and how the farmer's crops and the top strategy change.
+- **Shows NASA evidence**: the 25-year temperature and rain history for the place, a month-by-month field calendar of bare and exposed seasons, and a simple erosion-risk rating.
+- **Says how sure it is** on every strategy: what was measured, what was assumed and what is missing.
+- **Explains any strategy with the AI assistant** on request, in the farmer's language.
+- **Teaches**: the Data tab has a glossary and a "satellite or ground" explainer, and the Environment tab has NASA map layers (greenness, land temperature, soil moisture) with a time slider and the value at the farmer's field.
+
+It is decision support. It never tells a farmer to switch crops, gives no yield or income forecast, and always points to the local agriculture officer.
+
 ## Status
 
 All twelve tabs are built and live. Farmers keep many fields; every tab follows the open field. The app is bilingual, works in light and dark mode, passes Lighthouse accessibility, best-practices and SEO checks at 100 on desktop, and works offline after the first visit.
@@ -28,21 +43,21 @@ All twelve tabs are built and live. Farmers keep many fields; every tab follows 
 | Tab | What it gives |
 |---|---|
 | My Farm | Saved fields, estimates, optional details, alerts for each field, backup file |
-| Weather | Forecast and recent weather for the field |
+| Weather | Forecast and recent weather for the field, and "Is this season normal?" against 25 years of NASA data |
 | Disaster watch | Earthquakes, flood and cyclone alerts, river level |
 | Irrigation | Water plan for rice and upland crops; uses the crop and land size from My Farm |
-| Rotation planner | Crop sequences for a year, with profit workings; favours the farmer's next crop |
+| Rotation planner | Strategy comparison, priorities, what-if sliders, NASA evidence, how-sure boxes, profit workings, "Explain this strategy" |
 | Market prices | Local food prices from the nearest markets |
 | Suppliers | Map of nearby agricultural suppliers |
 | Ask EarthEcho | AI assistant with cited answers, in the app's language |
 | Suitability | Every crop scored for the place (FAO EcoCrop method); rates the farmer's own crops |
 | Soil | SoilGrids soil properties for the place |
-| Environment | Vegetation greenness, land temperature, soil moisture |
-| Data | Every data source, with licence and how it is used |
+| Environment | Vegetation greenness, land temperature, soil moisture, and NASA map layers with a time slider |
+| Data | Learn section (glossary, satellite vs ground), then every data source with licence and how it is used |
 
 ## Data sources
 
-NASA POWER (climate), NASA SMAP soil moisture and GPM IMERG rain (through NASA GIBS), MODIS vegetation and land temperature (through NASA GIBS), ISRIC SoilGrids (soil), FAO EcoCrop (crop limits), Open-Meteo (forecast), USGS and GDACS (earthquakes and alerts), geoBoundaries and Bangladesh Bureau of Statistics (boundaries), WFP food prices from the Humanitarian Data Exchange, Wikimedia Commons (place photographs, free licences only), OpenStreetMap (suppliers). The **Data** tab lists each source with its licence.
+NASA POWER (climate normals and 2001 to last full year history), NASA SMAP soil moisture and GPM IMERG rain (through NASA GIBS), MODIS vegetation and land temperature (through NASA GIBS, also shown as map layers), ISRIC SoilGrids (soil), FAO EcoCrop (crop limits), Open-Meteo (forecast), USGS and GDACS (earthquakes and alerts), geoBoundaries and Bangladesh Bureau of Statistics (boundaries), WFP food prices from the Humanitarian Data Exchange, Wikimedia Commons (place photographs, free licences only), OpenStreetMap (suppliers). The **Data** tab lists each source with its licence.
 
 Countries: Bangladesh (down to union level), India, Nepal, Myanmar, Pakistan, Bhutan and the USA.
 
@@ -50,6 +65,11 @@ Countries: Bangladesh (down to union level), India, Nepal, Myanmar, Pakistan, Bh
 
 - Everything is an **estimate**. Soil comes from a 250 m satellite model, climate from monthly averages. The app says so and asks farmers to confirm with their local agriculture officer.
 - Crop suitability tells where to look first, not what to plant.
+- The strategy comparison is rule-based (fit, bare months, legumes, crop families, water gap, heat and cold months). It is **not a yield model** and does not forecast income.
+- In irrigated mode the fit ignores rain, so many alternatives show 100%. A second row shows the fit on rain alone.
+- NASA POWER's yearly rainfall for some places (for example Bangladesh) jumps around 2016, which looks like a change in NASA's inputs. The app detects such jumps, claims no trend there and says so.
+- The "how sure" rating counts what is measured, assumed or missing. It is a guide, not a statistical confidence interval.
+- Data licences are on the Data tab. Still flagged: the FAO EcoCrop page's own user agreement was not read in full, and the Esri satellite basemap's current free-use terms could not be confirmed (fine for a non-commercial demo; check before commercial use).
 - The AI assistant answers only from the farm data and its knowledge base, cites its sources, and says when it does not know.
 - Saved fields live in the browser of one phone. Clearing browser data removes them. The **Download my fields** file is the backup.
 
@@ -86,4 +106,4 @@ Vercel builds and publishes on every push to `main`. `vercel.json` sets the time
 
 ## Privacy
 
-No account, no tracking and no advertising. Fields and details stay on the device. Only the place's coordinates are sent to the data services to fetch its data. Questions to the assistant go to the AI service together with the farm data needed to answer.
+No account, no tracking and no advertising. Fields and details stay on the device. The place's coordinates are sent to the data services (NASA, Open-Meteo, SoilGrids and others) to fetch its data, and the browser loads NASA map pictures for the area directly from NASA. Questions to the assistant, and the strategy sent by "Explain this strategy", go to an AI provider (Groq, or Google Gemini as a backup) together with the place, the crops and the field notes needed to answer. Google may use text sent through its free Gemini tier to improve its products, so the app tells farmers not to write personal details in notes.

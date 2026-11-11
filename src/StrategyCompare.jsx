@@ -99,7 +99,11 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
   const profitCell = (c) => (c.profit.complete ? num(c.profit.total) : "–");
   const rows = [
     [t.stRowCrops, (c) => c.steps.map((o) => name(o.crop)).join(" → ")],
-    [t.stRowFit, (c) => pct(c.m.mean)],
+    [mode === "irrigated" ? t.stRowFitIrr : t.stRowFit, (c) => pct(c.m.mean)],
+    [t.stRowFitRain, (c) => {
+      const scores = c.steps.map((o) => { const r = results.find((x) => x.crop.id === o.crop.id); return r ? r.rainfed.best : null; });
+      return scores.some((v) => v == null) ? "–" : pct(scores.reduce((a, b) => a + b, 0) / scores.length);
+    }],
     [t.stRowUse, (c) => `${num(c.m.usedCount)} / 12`],
     [t.stRowBare, (c) => (c.m.bare.length ? `${num(c.m.bare.length)} (${c.m.bare.map(month).join(", ")})` : "0")],
     [t.stRowLegume, (c) => yn(c.m.legumes.length > 0)],
@@ -168,7 +172,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
             <div className="ex-box">
               <button type="button" className="tab ex-btn" onClick={() => onExplain({
                 question: fill(t.exQuestion, { crops: c.text.crops }),
-                strategy: strategyPayload(c, { mode, scenario, prio, baseline: current }),
+                strategy: strategyPayload(c, { mode, scenario, prio, baseline: current, name, monthNames }),
               })}>{t.exButton}</button>
               <p className="muted small">{t.exNote}</p>
             </div>

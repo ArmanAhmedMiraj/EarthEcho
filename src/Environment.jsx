@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 
 const NasaMap = lazy(() => import("./NasaMap.jsx")); // loads the map code only when this tab opens
 import "./environment.css";
@@ -219,9 +220,11 @@ export default function Environment({ t, lang, lat, lon, initial, satellite, ter
         )}
       </section>
 
-      <Suspense fallback={<p className="muted small">{t.nmLoading}</p>}>
-        <NasaMap t={t} lang={lang} lat={lat} lon={lon} />
-      </Suspense>
+      <ErrorBoundary title={t.pageNeedsNet} retry={t.envRetry}>
+        <Suspense fallback={<p className="muted small">{t.nmLoading}</p>}>
+          <NasaMap t={t} lang={lang} lat={lat} lon={lon} />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }

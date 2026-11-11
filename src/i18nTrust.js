@@ -33,6 +33,7 @@ export const TRUST_TEXT = {
     trImprove: "How to be more sure:",
     trImproveBody: "enter your soil, water source and prices in My Farm, check the soil with a hand test, and ask your local agriculture officer about variety, sowing dates and pests before you change anything.",
 
+    pageNeedsNet: "This part has not been downloaded yet and there is no internet. Connect once and open it, and it will then work offline too.",
     exButton: "Explain this strategy with the assistant",
     exNote: "Opens Ask EarthEcho and sends this strategy's crops, months and numbers, plus your field facts, to the AI assistant. It explains in plain words, may make mistakes, and does not replace the local agriculture officer.",
     exQuestion: "Explain this crop rotation for my field: {crops}",
@@ -110,6 +111,7 @@ export const TRUST_TEXT = {
     trImprove: "আরও নিশ্চিত হতে:",
     trImproveBody: "‘আমার খামার’-এ মাটি, পানির উৎস ও দাম দিন, হাতে মাটি পরীক্ষা করুন, আর কিছু বদলানোর আগে জাত, বপনের তারিখ ও পোকামাকড় নিয়ে স্থানীয় কৃষি কর্মকর্তাকে জিজ্ঞেস করুন।",
 
+    pageNeedsNet: "এই অংশটি এখনও ডাউনলোড হয়নি এবং ইন্টারনেট নেই। একবার ইন্টারনেট সংযোগ দিয়ে খুললে এটি অফলাইনেও কাজ করবে।",
     exButton: "সহকারীকে দিয়ে এই কৌশল ব্যাখ্যা করান",
     exNote: "‘আর্থইকোকে জিজ্ঞেস করুন’ খুলবে এবং এই কৌশলের ফসল, মাস ও সংখ্যা, সঙ্গে আপনার মাঠের তথ্য এআই সহকারীকে পাঠাবে। সে সহজ ভাষায় ব্যাখ্যা করবে, ভুল করতে পারে, এবং স্থানীয় কৃষি কর্মকর্তার বিকল্প নয়।",
     exQuestion: "আমার মাঠের জন্য এই ফসলক্রম ব্যাখ্যা করুন: {crops}",

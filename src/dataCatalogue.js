@@ -173,12 +173,12 @@ export const SOURCES = [
     url: "https://gaez.fao.org/pages/ecocrop", status: "live", licenceChecked: false,
     en: {
       provides: "The temperature, rain and soil limits of each crop, used to score every crop for your place and plan rotations.",
-      resolution: "Per crop", update: "Fixed table", licence: "FAO data, check terms of reuse",
+      resolution: "Per crop", update: "Fixed table", licence: "FAO's general data terms: CC BY 4.0 unless a dataset says otherwise, credit FAO, no use to promote a business or imply FAO endorsement. The EcoCrop page has its own user agreement that we have not read in full.",
       access: "Bundled in the app", limit: "General limits for a crop, not for each variety or local practice.",
     },
     bn: {
       provides: "প্রতিটি ফসলের তাপমাত্রা, বৃষ্টি ও মাটির সীমা; আপনার জায়গার জন্য ফসলের নম্বর দিতে ও শস্যাবর্তন সাজাতে ব্যবহার হয়।",
-      resolution: "ফসল অনুযায়ী", update: "স্থির তালিকা", licence: "FAO-র তথ্য, পুনর্ব্যবহারের শর্ত দেখে নিন",
+      resolution: "ফসল অনুযায়ী", update: "স্থির তালিকা", licence: "FAO-র সাধারণ তথ্য-শর্ত: অন্যভাবে না বলা থাকলে CC BY 4.0, FAO-কে কৃতিত্ব দিতে হবে, কোনো ব্যবসা প্রচারে বা FAO-র সমর্থন বোঝাতে ব্যবহার নিষিদ্ধ। EcoCrop পাতার নিজস্ব ব্যবহারকারী-চুক্তি আছে, যা আমরা পুরো পড়িনি।",
       access: "অ্যাপের ভেতরে রাখা", limit: "ফসলের সাধারণ সীমা, প্রতিটি জাত বা স্থানীয় চাষপদ্ধতির জন্য নয়।",
     },
   },
@@ -213,29 +213,29 @@ export const SOURCES = [
   },
   {
     id: "wfp-prices", group: "weather", name: "WFP food prices", publisher: "World Food Programme, via Humanitarian Data Exchange",
-    url: "https://data.humdata.org/", status: "live", licenceChecked: false,
+    url: "https://data.humdata.org/dataset/global-wfp-food-prices", status: "live", licenceChecked: true,
     en: {
       provides: "Prices of food crops from markets near the field, for the Market prices tab.",
-      resolution: "By market", update: "Monthly or as published", licence: "Open licence on each dataset, credit WFP",
+      resolution: "By market", update: "Monthly or as published", licence: "CC BY-IGO (Creative Commons Attribution for Intergovernmental Organisations), credit WFP",
       access: "Open download", limit: "Some countries and markets have old or missing records. The app shows the date of each price.",
     },
     bn: {
       provides: "মাঠের কাছের বাজারের খাদ্যশস্যের দাম, বাজারদর ট্যাবের জন্য।",
-      resolution: "বাজার অনুযায়ী", update: "মাসিক বা প্রকাশ অনুযায়ী", licence: "প্রতিটি ডেটাসেটে উন্মুক্ত লাইসেন্স, WFP-কে কৃতিত্ব",
+      resolution: "বাজার অনুযায়ী", update: "মাসিক বা প্রকাশ অনুযায়ী", licence: "CC BY-IGO (আন্তঃসরকারি সংস্থার জন্য ক্রিয়েটিভ কমন্স অ্যাট্রিবিউশন), WFP-কে কৃতিত্ব",
       access: "উন্মুক্ত ডাউনলোড", limit: "কিছু দেশ ও বাজারের তথ্য পুরোনো বা অনুপস্থিত। অ্যাপ প্রতিটি দামের তারিখ দেখায়।",
     },
   },
   {
     id: "gdelt", group: "weather", name: "GDELT news", publisher: "The GDELT Project",
-    url: "https://www.gdeltproject.org/", status: "live", licenceChecked: false,
+    url: "https://www.gdeltproject.org/about.html", status: "live", licenceChecked: true,
     en: {
       provides: "Recent news headlines about farming near the place.",
-      resolution: "By news story", update: "Every 15 minutes", licence: "Free to use with credit",
+      resolution: "By news story", update: "Every 15 minutes", licence: "Free for unlimited and unrestricted use; the GDELT Project must be cited with a link",
       access: "Open API", limit: "Headlines are machine-picked and may be off-topic. We link to the original and never rewrite it.",
     },
     bn: {
       provides: "জায়গাটির কাছের কৃষি-সংক্রান্ত সাম্প্রতিক সংবাদের শিরোনাম।",
-      resolution: "সংবাদ অনুযায়ী", update: "প্রতি ১৫ মিনিটে", licence: "কৃতিত্ব দিয়ে বিনামূল্যে ব্যবহার",
+      resolution: "সংবাদ অনুযায়ী", update: "প্রতি ১৫ মিনিটে", licence: "সীমাহীন ও নিষেধহীন বিনামূল্যে ব্যবহার; GDELT প্রকল্পকে লিংকসহ উল্লেখ করতে হবে",
       access: "উন্মুক্ত API", limit: "শিরোনাম যন্ত্র বাছাই করে, তাই অপ্রাসঙ্গিক হতে পারে। আমরা মূল লেখার লিংক দিই, নিজে বদলাই না।",
     },
   },
@@ -273,12 +273,12 @@ export const SOURCES = [
     url: "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9", status: "live", licenceChecked: false,
     en: {
       provides: "The satellite photo base map when you pick or move a field.",
-      resolution: "Sharper near towns, softer in the countryside", update: "Varies", licence: "Esri terms of use, credit shown on the map",
+      resolution: "Sharper near towns, softer in the countryside", update: "Varies", licence: "Esri terms apply and credit is shown on the map. We could not confirm the current free-use terms for this tile address, so it is used here for a non-commercial competition demo. Check before any commercial use.",
       access: "Map tiles", limit: "The photo may be a year or more old.",
     },
     bn: {
       provides: "মাঠ বাছাই বা সরানোর সময় স্যাটেলাইট-ছবির পটভূমি মানচিত্র।",
-      resolution: "শহরের কাছে স্পষ্ট, গ্রামে কিছুটা ঝাপসা", update: "ভিন্ন ভিন্ন", licence: "Esri-র ব্যবহারের শর্ত, মানচিত্রে কৃতিত্ব দেখানো হয়",
+      resolution: "শহরের কাছে স্পষ্ট, গ্রামে কিছুটা ঝাপসা", update: "ভিন্ন ভিন্ন", licence: "Esri-র শর্ত প্রযোজ্য এবং মানচিত্রে কৃতিত্ব দেখানো হয়। এই টাইল ঠিকানার বর্তমান বিনামূল্যে-ব্যবহারের শর্ত আমরা নিশ্চিত করতে পারিনি, তাই এটি অবাণিজ্যিক প্রতিযোগিতার ডেমোর জন্য ব্যবহার হচ্ছে। বাণিজ্যিক ব্যবহারের আগে যাচাই করুন।",
       access: "মানচিত্র-টাইল", limit: "ছবিটি এক বছর বা তারও বেশি পুরোনো হতে পারে।",
     },
   },
@@ -299,16 +299,16 @@ export const SOURCES = [
   // ---- AI ----
   {
     id: "llm", group: "ai", name: "Groq and Google Gemini language models", publisher: "Groq; Google",
-    url: "https://groq.com/", status: "live", licenceChecked: false,
+    url: "https://console.groq.com/docs/your-data", status: "live", licenceChecked: true,
     en: {
       provides: "Write the answers of Ask EarthEcho in plain words, in the language of the app, from the retrieved sources and your field's data.",
-      resolution: "Not applicable", update: "Per question", licence: "Service terms of each provider",
-      access: "Server-side, key never in the app", limit: "A language model can be wrong. Answers must cite a source, and the assistant says when it does not know.",
+      resolution: "Not applicable", update: "Per question", licence: "Groq: requests are not stored by default, but may be logged up to 30 days to check reliability and abuse (can be switched off). Google Gemini free tier: Google may use submitted text to improve its products and people may read it; the paid tier does not.",
+      access: "Server-side, key never in the app", limit: "A language model can be wrong. Answers must cite a source, and the assistant says when it does not know. Your question, your place and your field notes are sent to the provider, so do not write personal details.",
     },
     bn: {
       provides: "খুঁজে পাওয়া উৎস ও আপনার মাঠের তথ্য থেকে অ্যাপের ভাষায় সহজ কথায় ‘Ask EarthEcho’-র উত্তর লেখে।",
-      resolution: "প্রযোজ্য নয়", update: "প্রতিটি প্রশ্নে", licence: "প্রতিটি প্রদানকারীর সেবার শর্ত",
-      access: "সার্ভার থেকে, চাবি অ্যাপে থাকে না", limit: "ভাষা-মডেল ভুল করতে পারে। উত্তরে উৎস উল্লেখ থাকতে হয়, আর না জানলে সহকারী তা বলে।",
+      resolution: "প্রযোজ্য নয়", update: "প্রতিটি প্রশ্নে", licence: "Groq: অনুরোধ ডিফল্টভাবে জমা থাকে না, তবে নির্ভরযোগ্যতা ও অপব্যবহার যাচাইয়ে ৩০ দিন পর্যন্ত লগ হতে পারে (বন্ধ করা যায়)। Google Gemini বিনামূল্যে স্তর: জমা দেওয়া লেখা Google তাদের পণ্য উন্নত করতে ব্যবহার করতে পারে এবং মানুষ পড়তে পারে; পেইড স্তরে তা হয় না।",
+      access: "সার্ভার থেকে, চাবি অ্যাপে থাকে না", limit: "ভাষা-মডেল ভুল করতে পারে। উত্তরে উৎস উল্লেখ থাকতে হয়, আর না জানলে সহকারী তা বলে। আপনার প্রশ্ন, জায়গা ও মাঠের নোট প্রদানকারীর কাছে যায়, তাই ব্যক্তিগত তথ্য লিখবেন না।",
     },
   },
 ];

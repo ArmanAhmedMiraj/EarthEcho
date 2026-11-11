@@ -27,6 +27,7 @@ import { START_TEXT } from "./i18nStart.js";
 import { ENV_TEXT } from "./i18nEnv.js";
 import { WEATHER_TEXT } from "./i18nWeather.js";
 import { TRUST_TEXT } from "./i18nTrust.js";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 import { DISASTER_TEXT } from "./i18nDisasters.js";
 import Disasters from "./Disasters.jsx";
 const Irrigation = lazy(() => import("./Irrigation.jsx"));
@@ -61,7 +62,7 @@ const PAGE_LOADERS = [
   () => import("./Irrigation.jsx"), () => import("./RotationPlanner.jsx"), () => import("./Market.jsx"),
   () => import("./Suppliers.jsx"), () => import("./Assistant.jsx"), () => import("./Soil.jsx"),
   () => import("./Suitability.jsx"), () => import("./Environment.jsx"), () => import("./Weather.jsx"),
-  () => import("./Sources.jsx"),
+  () => import("./Sources.jsx"), () => import("./NasaMap.jsx"),
 ];
 import "./tabs.css";
 import "./sources.css";
@@ -826,6 +827,7 @@ export default function App() {
         </div>
       </header>
 
+      <ErrorBoundary title={t.pageNeedsNet} retry={t.envRetry}>
       <Suspense fallback={<p className="muted page-loading" role="status">{t.fdLoadingField}</p>}>
       {stage === "app" && (
         <>
@@ -1110,6 +1112,7 @@ export default function App() {
       )}
 
       </Suspense>
+      </ErrorBoundary>
 
       <footer className="footer">
         {t.footer}{" "}

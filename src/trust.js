@@ -45,34 +45,50 @@ export function uncertainty(m, { field, profit, isCurrent, scenarioOn, mode }) {
 }
 
 // What is sent to the assistant when the farmer asks it to explain one strategy. Short on purpose (the server keeps 4000 characters).
-// English crop and month names are used here so the model stays on the numbers; it answers in the farmer's language.
-const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-export function strategyPayload(c, { mode, scenario, prio, baseline }) {
+// Keys are plain words (the model must not show code-like names to the farmer), crop and month names are in the app's language.
+const INPUT_WORDS = {
+  soil: "soil type", timing: "sowing months", water: "how the field gets water", slope: "slope of the field", profit: "yield, price and cost",
+  climate: "climate (monthly averages for a cell about 55 km wide)", cropdata: "crop needs (general FAO EcoCrop limits, not the local variety)", scenario: "the what-if sliders",
+};
+const WEAK_WORDS = {
+  weakFit: "at least one crop fits this place only moderately",
+  tempEdge: "two or more crop months are close to the crop's heat or cold limit",
+  rainShort: "rain covers well under half of what the crops like and the field relies on rain",
+  waterNeed: "crops need much more water than rain gives, so irrigation water must be available",
+  bareWet: "the field is bare in two or more very wet months, so soil can wash away",
+};
+const SURE_WORDS = { high: "fairly sure", medium: "somewhat sure", low: "not very sure" };
+
+export function strategyPayload(c, { mode, scenario, prio, baseline, name, monthNames }) {
   const m = c.m;
-  const months = (arr) => arr.map((i) => MONTHS_EN[((i % 12) + 12) % 12]);
+  const mn = (i) => monthNames[((i % 12) + 12) % 12];
+  const months = (arr) => arr.map(mn);
+  const isCurrent = c.role === "Current";
   const out = {
-    which: c.role === "Current" ? "the farmer's current rotation (sowing months assumed)" : "a suggested alternative rotation",
-    waterMode: mode,
-    crops: c.steps.map((o) => ({ crop: o.crop.en, sow: MONTHS_EN[o.at % 12], months: o.months, fitPct: Math.round(o.score * 100) })),
-    bareMonths: months(m.bare),
-    bareInVeryWetMonths: months(m.bareWet),
-    hasLegume: m.legumes.length > 0,
-    cropFamilies: m.families,
-    waterNeededMm: m.need,
-    rainDuringCropsMm: m.rain,
-    waterGapMm: m.gap,
-    waterGapMeaning: mode === "irrigated" ? "the field is irrigated, so this is roughly how much water would have to come from irrigation, not a rain failure" : "the field depends on rain, so this is the shortfall of rain against what the crops like",
-    hotMonths: [...new Set(m.hot.map((x) => MONTHS_EN[x.month]))],
-    coldMonths: [...new Set(m.cold.map((x) => MONTHS_EN[x.month]))],
-    slopePct: m.slope,
-    profitTotal: c.profit && c.profit.complete ? Math.round(c.profit.total) : null,
-    farmerPriorities: prio && prio.length ? prio : null,
-    whatIfSliders: scenario && (scenario.rain !== 0 || scenario.temp !== 0) ? { rainChangePct: scenario.rain, warmingC: scenario.temp } : null,
-    howSure: c.trust.level,
-    assumedInputs: c.trust.factors.filter((f) => f.state === "assumed").map((f) => f.key),
-    missingInputs: c.trust.factors.filter((f) => f.state === "missing").map((f) => f.key),
-    weakPoints: c.trust.sensitive,
+    this_is: isCurrent ? "the farmer's current rotation (its sowing months are assumed, not entered by the farmer)" : "a suggested alternative rotation",
+    water_mode: mode === "irrigated" ? "irrigated" : "rain-fed",
+    crops: c.steps.map((o) => ({ name: name(o.crop), english_name: o.crop.en, sowing_month: mn(o.at), months_in_field: o.months, fit_percent: Math.round(o.score * 100) })),
+    bare_months: months(m.bare),
+    bare_months_with_very_heavy_rain: months(m.bareWet),
+    includes_a_legume: m.legumes.length > 0,
+    number_of_crop_families: m.families,
+    water_the_crops_like_mm: m.need,
+    rain_in_the_crop_months_mm: m.rain,
+    water_gap_mm: m.gap,
+    water_gap_meaning: mode === "irrigated"
+      ? "the field is irrigated, so this is roughly how much water would have to come from irrigation, not a rain failure"
+      : "the field depends on rain, so this is the shortfall of rain against what the crops like",
+    months_near_heat_limit: [...new Set(m.hot.map((x) => mn(x.month)))],
+    months_near_cold_limit: [...new Set(m.cold.map((x) => mn(x.month)))],
+    slope_percent: m.slope,
+    profit_total: c.profit && c.profit.complete ? Math.round(c.profit.total) : null,
+    farmer_priorities: prio && prio.length ? prio : null,
+    what_if_sliders: scenario && (scenario.rain !== 0 || scenario.temp !== 0) ? { rain_change_percent: scenario.rain, warming_c: scenario.temp } : null,
+    how_sure_the_app_is: SURE_WORDS[c.trust.level],
+    assumed_inputs: c.trust.factors.filter((f) => f.state === "assumed").map((f) => INPUT_WORDS[f.key] || f.key),
+    missing_inputs: c.trust.factors.filter((f) => f.state === "missing").map((f) => INPUT_WORDS[f.key] || f.key),
+    weak_points: c.trust.sensitive.map((k) => WEAK_WORDS[k] || k),
   };
-  if (baseline && c.role !== "Current") out.currentRotationWaterGapMm = baseline.m.gap;
+  if (baseline && !isCurrent) out.current_rotation_water_gap_mm = baseline.m.gap;
   return out;
 }

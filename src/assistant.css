@@ -15,3 +15,5 @@
 
 /* very wide screens: keep the chat text a readable length, the question box stays full width */
 .as-log { max-width: 1100px; }
+
+.as-head { font-weight: 700; margin: 10px 0 2px; }

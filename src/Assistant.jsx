@@ -49,8 +49,8 @@ async function buildContext({ lat, lon, label, country, soilData, env, field }) 
 
 // [S1] in the answer becomes a small badge
 function renderAnswer(text) {
-  return text.split("\n").map((line, i) => (
-    <p key={i}>
+  return text.split("\n").filter((line) => line.trim() !== "").map((line, i) => (
+    <p key={i} className={/^\s*\*\*[^*]+\*\*\s*$/.test(line) ? "as-head" : undefined}>
       {line.split(/([\[【]S\d+[\]】])/g).map((part, j) => (/^[\[【]S\d+[\]】]$/.test(part) ? <sup key={j} className="as-cite">{part.slice(1, -1)}</sup> : part.replace(/\*\*/g, ""))) }
     </p>
   ));
