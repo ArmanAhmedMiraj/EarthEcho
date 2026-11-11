@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import "./strategy.css";
 import { currentRotation, explain, matchScore, measure, priorityParts, profitOf } from "./strategy.js";
+import { uncertainty } from "./trust.js";
+import "./trust.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -18,7 +20,7 @@ function pickAlternatives(list) {
   return out;
 }
 
-export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf }) {
+export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf, scenarioOn = false }) {
   const data = useMemo(() => {
     if (!results || !climate) return null;
     const name = (c) => (lang === "bn" ? c.bn : c.en);
@@ -49,7 +51,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
       const m = measure(steps, { climate, mode, field });
       const profit = profitFor(steps);
       const text = explain({ ...m, assumedTiming: !!extra.assumedTiming }, { ...base, profit, isCurrent: !!extra.isCurrent }, extra.baseline || null);
-      return { m, profit, text };
+      return { m, profit, text, trust: uncertainty(m, { field, profit, isCurrent: !!extra.isCurrent, scenarioOn, mode }) };
     };
 
     const cur = currentRotation(field, results, mode);
@@ -87,7 +89,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
       return { role, ...b, steps: item.r.steps };
     });
     return { current, alts, unknown: cur && cur.unknown, noCurrent: !cur, name, num, pct, month };
-  }, [results, rotations, pool, prio, climate, mode, field, soilData, lang, locale, monthNames, t, valueOf]);
+  }, [results, rotations, pool, prio, climate, mode, field, soilData, lang, locale, monthNames, t, valueOf, scenarioOn]);
 
   if (!data) return null;
   const { current, alts, unknown, noCurrent, name, num, pct, month } = data;
@@ -104,6 +106,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
     [t.stRowFamilies, (c) => num(c.m.families)],
     [t.stRowGap, (c) => (c.m.haveClimate ? num(c.m.gap) : "–")],
     [t.stRowProfit, profitCell],
+    [t.trSure, (c) => t[`trLevel_${c.trust.level}`]],
   ];
   const sections = [["why", t.stSecWhy], ["evidence", t.stSecEvidence], ["benefits", t.stSecBenefits], ["gaps", t.stSecGaps], ["risks", t.stSecRisks]];
 
@@ -149,6 +152,17 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
                 <ul>{c.text[key].map((line, n) => <li key={n}>{line}</li>)}</ul>
               </div>
             ))}
+          </div>
+          <div className={`tr-box ${c.trust.level}`}>
+            <h4>{t.trTitle}: <span className="tr-pill">{t[`trLevel_${c.trust.level}`]}</span></h4>
+            <p className="small">{t[`trLead_${c.trust.level}`]}</p>
+            <ul className="tr-list">
+              {c.trust.factors.map((f) => (
+                <li key={f.key} className={f.state}><span className="tr-mark" aria-hidden="true">{{ ok: "✓", assumed: "~", missing: "✗" }[f.state]}</span><b>{t[`trState_${f.state}`]}:</b> {t[`trF_${f.key}_${f.state}`]}</li>
+              ))}
+              {c.trust.sensitive.map((k) => <li key={k} className="assumed"><span className="tr-mark" aria-hidden="true">!</span>{t[`trS_${k}`]}</li>)}
+            </ul>
+            <p className="small"><b>{t.trImprove}</b> {t.trImproveBody}</p>
           </div>
         </details>
       ))}

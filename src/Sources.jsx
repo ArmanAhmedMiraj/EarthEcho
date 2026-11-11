@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import Learn from "./Learn.jsx";
+import "./trust.css";
 import { GROUPS, SOURCES } from "./dataCatalogue.js";
 
 // The Data page: one live NASA reading for the chosen field, then the catalogue of every source.
@@ -56,6 +58,8 @@ export default function Sources({ t, lang, lat, lon }) {
     <div className="viewer">
       <h2>{t.dataTitle}</h2>
       <p className="muted">{t.dataIntro}</p>
+
+      <Learn t={t} />
 
       <section className="live-card">
         <h3>{t.liveTitle}</h3>

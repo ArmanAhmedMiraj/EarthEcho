@@ -1,0 +1,32 @@
+/* How sure are we, and Learn */
+.tr-box { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-left-width: 4px; border-radius: 10px; background: var(--panel); }
+.tr-box.high { border-left-color: #2e7d32; }
+.tr-box.medium { border-left-color: #d9a441; }
+.tr-box.low { border-left-color: #d9534f; }
+.tr-box h4 { margin: 0 0 6px; }
+.tr-pill { padding: 1px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; }
+.tr-list { list-style: none; margin: 6px 0 8px; padding: 0; font-size: 14px; }
+.tr-list li { display: flex; gap: 8px; padding: 3px 0; align-items: flex-start; }
+.tr-mark { flex: none; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 1px solid var(--border); }
+.tr-list li.ok .tr-mark { color: #2e7d32; }
+.tr-list li.assumed .tr-mark { color: #b26a00; }
+.tr-list li.missing .tr-mark { color: #c62828; }
+
+.ln-wrap { margin: 0 0 22px; }
+.ln-wrap h3 { margin: 0 0 6px; }
+.ln-box { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); padding: 10px 14px; margin: 10px 0; }
+.ln-box summary { cursor: pointer; font-weight: 700; }
+.ln-three { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 10px; }
+.ln-three h4 { margin: 0 0 4px; }
+.ln-list { margin: 0; padding-left: 18px; font-size: 14px; }
+.ln-rule { margin: 12px 0; padding: 8px 12px; border-left: 3px solid var(--accent); font-weight: 600; }
+.ln-scale { width: 160px; height: 160px; display: block; }
+.ln-pixel { fill: color-mix(in srgb, #2e9d5f 28%, transparent); stroke: var(--muted); stroke-width: 1; }
+.ln-field { fill: #d9534f; }
+.ln-lab { font-size: 7px; fill: var(--muted); }
+.ln-search { display: flex; flex-direction: column; gap: 4px; font-size: 14px; margin: 10px 0; }
+.ln-search input { max-width: 320px; }
+.ln-gloss { margin: 0; }
+.ln-gloss div { padding: 8px 0; border-top: 1px solid var(--border); }
+.ln-gloss dt { font-weight: 700; }
+.ln-gloss dd { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
