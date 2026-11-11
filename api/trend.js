@@ -55,6 +55,7 @@ export default async function handler(req, res) {
 
   const years = [], temp = [], rain = [];
   const monthRain = Array.from({ length: 12 }, () => []);
+  const monthTemp = Array.from({ length: 12 }, () => []);
   for (let y = START; y <= end; y += 1) {
     const ts = [], rs = [];
     for (let m = 1; m <= 12; m += 1) {
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
     if (ts.length === 12) {
       years.push(y); temp.push(mean(ts)); rain.push(rs.reduce((s, x) => s + x, 0));
       rs.forEach((r, i) => monthRain[i].push(r));
+      ts.forEach((v, i) => monthTemp[i].push(v));
     }
   }
   if (years.length < 10) return res.status(502).json({ ok: false, error: "Not enough years of NASA POWER data for this place." });
@@ -73,10 +75,14 @@ export default async function handler(req, res) {
   const rainStep = findStep(years, rain), tempStep = findStep(years, temp);
   const tf = fitTrend(years, temp), rf = fitTrend(years, rain);
   const round = (v, d) => Number(v.toFixed(d));
-  const months = monthRain.map((a) => {
+  const stats = (rainSets, tempSets, from) => rainSets.map((all, i) => {
+    const a = all.slice(from), tt = tempSets[i].slice(from);
     const m = mean(a), s = sd(a);
-    return { mean: round(m, 0), sd: round(s, 0), cv: m > 5 ? round(s / m, 2) : null, min: round(Math.min(...a), 0), max: round(Math.max(...a), 0) };
+    return { mean: round(m, 0), sd: round(s, 0), cv: m > 5 ? round(s / m, 2) : null, min: round(Math.min(...a), 0), max: round(Math.max(...a), 0), tmean: round(mean(tt), 1) };
   });
+  const months = stats(monthRain, monthTemp, 0);
+  const recentFrom = Math.max(0, years.length - 10); // the last ten years, used when the series has a jump
+  const monthsRecent = stats(monthRain, monthTemp, recentFrom);
 
   cacheFor(res, 30 * 86400); // yearly history changes once a year
   res.status(200).json({
@@ -95,6 +101,7 @@ export default async function handler(req, res) {
     wettest: years[rain.indexOf(Math.max(...rain))], driest: years[rain.indexOf(Math.min(...rain))],
     driestMm: round(Math.min(...rain), 0), wettestMm: round(Math.max(...rain), 0),
     months,
+    monthsRecent, recentFrom: years[Math.max(0, years.length - 10)],
     source: { name: "NASA POWER monthly (MERRA-2 / IMERG based)", url: "https://power.larc.nasa.gov/docs/", resolution: "About 0.5° × 0.625° per cell (roughly 55 km)" },
   });
 }

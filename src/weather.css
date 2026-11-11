@@ -21,3 +21,19 @@
 .wx-outlook { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .wx-outlook .card { text-align: center; padding: 8px 6px; }
 .wx-outlook .ic { font-size: 1.4rem; }
+
+/* Season check */
+.sc-season { margin: 18px 0; }
+.sc-season h3 { margin: 0 0 6px; }
+.sk-scroll { overflow-x: auto; }
+.sk-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sk-table th, .sk-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.sk-table thead th { color: var(--muted); font-weight: 600; font-size: 13px; }
+.sk-hint { margin: 10px 0; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--panel); border-radius: 6px; font-size: 14px; }
+.sk-range { width: 100%; max-width: 560px; height: auto; display: block; }
+.sk-bar { fill: color-mix(in srgb, #5a8fd8 55%, transparent); }
+.sk-whisk { stroke: var(--muted); stroke-width: 1.5; }
+.sk-lab { font-size: 9px; fill: var(--muted); }
+.sk-now .sk-bar { fill: var(--accent); }
+.sk-now .sk-lab { fill: var(--text); font-weight: 700; }
+.sk-list { margin: 8px 0 0; padding-left: 18px; }
