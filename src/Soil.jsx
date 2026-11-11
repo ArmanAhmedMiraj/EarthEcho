@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { localSoilName, moistureClass } from "./soilNames.js";
+import SoilCrosscheck from "./SoilCrosscheck.jsx";
 import "./soilpage.css";
 
 function Droplet({ level }) {
@@ -182,6 +183,8 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
           <p className="small muted">{t.sMoistHow}</p>
         </section>
       </div>
+
+      <SoilCrosscheck t={t} lang={lang} lat={lat} lon={lon} country={country} tex={tex} />
 
       <section className="soil-card soil-wide">
         <h3>{t.sFertTitle}</h3>

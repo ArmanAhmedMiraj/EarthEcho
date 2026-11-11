@@ -169,6 +169,20 @@ export const SOURCES = [
     },
   },
   {
+    id: "hwsd", group: "soil", name: "Harmonized World Soil Database v2.0", publisher: "FAO and IIASA",
+    url: "https://www.fao.org/soils-portal/data-hub/soil-maps-and-databases/harmonized-world-soil-database-v20/en/", status: "live", licenceChecked: false,
+    en: {
+      provides: "A second opinion on the topsoil type (0 to 20 cm), shown in the Soil tab beside SoilGrids for places in Bangladesh. It checks the main soil estimate and never replaces it.",
+      resolution: "About 1 km grid, but drawn from large survey map units", update: "Fixed map", licence: "FAO and IIASA, credit them. Exact terms still to be read in full",
+      access: "Open download, simplified into a small file for Bangladesh", limit: "Shows the general soil of an area, not one field. Where it disagrees with SoilGrids the app says so.",
+    },
+    bn: {
+      provides: "মাটির ওপরের স্তরের (০ থেকে ২০ সেমি) ধরনের দ্বিতীয় একটি মতামত। বাংলাদেশের জায়গার জন্য মাটি ট্যাবে SoilGrids-এর পাশে দেখানো হয়। এটি মূল মাটির অনুমান যাচাই করে, বদলে দেয় না।",
+      resolution: "প্রায় ১ কিমি গ্রিড, তবে বড় জরিপ-এলাকা থেকে আঁকা", update: "স্থির মানচিত্র", licence: "FAO ও IIASA, কৃতিত্ব দিতে হবে। সম্পূর্ণ শর্ত এখনো পুরো পড়া বাকি",
+      access: "উন্মুক্ত ডাউনলোড, বাংলাদেশের জন্য ছোট ফাইলে সরল করা", limit: "একটি এলাকার সাধারণ মাটি দেখায়, একটি মাঠের নয়। SoilGrids-এর সঙ্গে না মিললে অ্যাপ তা বলে দেয়।",
+    },
+  },
+  {
     id: "ecocrop", group: "soil", name: "FAO EcoCrop", publisher: "FAO",
     url: "https://gaez.fao.org/pages/ecocrop", status: "live", licenceChecked: false,
     en: {
