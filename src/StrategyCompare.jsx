@@ -23,7 +23,7 @@ function pickAlternatives(list) {
   return out;
 }
 
-export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf, scenarioOn = false, scenario = { rain: 0, temp: 0 }, onExplain = null }) {
+export default function StrategyCompare({ t, lang, locale, results, rotations, pool, prio = [], climate, mode, field, soilData, monthNames, valueOf, scenarioOn = false, scenario = { rain: 0, temp: 0 }, onExplain = null, country = null }) {
   const data = useMemo(() => {
     if (!results || !climate) return null;
     const name = (c) => (lang === "bn" ? c.bn : c.en);
@@ -174,7 +174,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
             <p className="small"><b>{t.trImprove}</b> {t.trImproveBody}</p>
           </div>
           <div className="ex-box">
-            <SheetButton t={t} lang={lang} build={() => strategySheet({ c, t, field, locale, nf: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), name, month, tableRows: rows, sections, roleLabel, mode })} />
+            <SheetButton t={t} lang={lang} build={() => strategySheet({ c, t, field, locale, nf: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), name, month, tableRows: rows, sections, roleLabel, mode, country })} />
             <p className="muted small">{t.shOpenNote}</p>
           </div>
           {onExplain && (

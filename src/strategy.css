@@ -92,3 +92,11 @@
 .my-checks li { padding: 3px 0; }
 .my-checks li span { display: inline-block; width: 1.4em; font-weight: 800; }
 .my-checks li.ok span { color: #1f8a5a; } .my-checks li.warn span { color: #c98a1a; }
+
+/* Bangladesh seasons above the calendar */
+.ev-seasons { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; margin-bottom: 3px; }
+.ev-s { font-size: 10px; text-align: center; padding: 2px 2px; border-radius: 6px; line-height: 1.25; overflow-wrap: anywhere; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-weight: 600; }
+.ev-s.rabi { border-color: #5a8fd8; }
+.ev-s.k1 { border-color: #d9a441; }
+.ev-s.k2 { border-color: #2e9a6a; }
+@media (max-width: 480px) { .ev-s { font-size: 8.5px; } }

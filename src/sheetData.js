@@ -1,5 +1,6 @@
 // What goes on the plan sheet and in the short text. Everything here comes from numbers the app already worked out;
 // nothing new is calculated. The sheet is a starting idea to talk through, not a forecast.
+import { seasonLabel } from "./bdseasons.js";
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
 // what the farmer typed, and what the app estimated, about the field
@@ -40,15 +41,16 @@ const factBlocks = (facts, t) => {
 };
 
 // A strategy card (one column of the comparison)
-export function strategySheet({ c, t, field, locale, nf, name, month, tableRows, sections, roleLabel, mode }) {
+export function strategySheet({ c, t, field, locale, nf, name, month, tableRows, sections, roleLabel, mode, country }) {
   const range = (o) => `${month(o.at)}–${month(o.at + o.months - 1)}`;
+  const bd = country === "BD";
   const facts = fieldFacts(field, t, month, nf);
   const chain = c.steps.map((o) => `${name(o.crop)} (${range(o)})`).join(" → ");
   const bare = c.m.bare.length ? c.m.bare.map(month).join(", ") : "";
   const level = t[`trLevel_${c.trust.level}`];
   const blocks = [
     ...factBlocks(facts, t),
-    { h: t.shCrops, table: { head: [t.shCrop, t.shSowHarvest, t.shMonths], rows: c.steps.map((o) => [name(o.crop), range(o), nf.format(o.months)]) } },
+    { h: t.shCrops, table: { head: bd ? [t.shCrop, t.shSowHarvest, t.shMonths, t.bdColumn] : [t.shCrop, t.shSowHarvest, t.shMonths], rows: c.steps.map((o) => (bd ? [name(o.crop), range(o), nf.format(o.months), seasonLabel(o.crop, o.at, t)] : [name(o.crop), range(o), nf.format(o.months)])) } },
     { h: t.shNumbers, rows: tableRows.map(([label, fn]) => [label, fn(c)]) },
     ...sections.map(([key, title]) => ({ h: title, ul: c.text[key] })),
     { h: `${t.trTitle}: ${level}`, ul: [t[`trLead_${c.trust.level}`], ...c.trust.factors.map((f) => `${t[`trState_${f.state}`]}: ${t[`trF_${f.key}_${f.state}`]}`), ...c.trust.sensitive.map((k) => t[`trS_${k}`])] },

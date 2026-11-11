@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { currentRotation, measure } from "./strategy.js";
+import { BD_SEASONS, seasonLabel } from "./bdseasons.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 const HEAVY = 150; // mm in a month
@@ -33,7 +34,7 @@ function Spark({ years, values, label, unit, fmt }) {
   );
 }
 
-export default function Evidence({ t, lang, locale, lat, lon, climate, rotations, field, soilData, mode, monthNames, results }) {
+export default function Evidence({ t, lang, locale, lat, lon, climate, rotations, field, soilData, mode, monthNames, results, country }) {
   const [trend, setTrend] = useState(null);
   const [state, setState] = useState("loading");
   const [pick, setPick] = useState(0);
@@ -140,6 +141,11 @@ export default function Evidence({ t, lang, locale, lat, lon, climate, rotations
             {options.map((o, i) => <option key={i} value={i}>{o.label}: {o.steps.map((s) => name(s.crop)).join(" → ")}</option>)}
           </select>
         </label>
+        {country === "BD" && (
+          <div className="ev-seasons" aria-hidden="true">
+            {BD_SEASONS.map((s, i) => <span key={i} className={`ev-s ${s.key}`} style={{ gridColumn: `${s.from + 1} / ${s.to + 2}` }}>{t[`bdSeason_${s.key}`]}</span>)}
+          </div>
+        )}
         <div className="ev-cal" role="img" aria-label={t.evCalTitle}>
           {months.map((mo, i) => (
             <div className={`ev-m${cell[i] == null ? " bare" : ` c${cell[i] % 6}`}`} key={i}>
@@ -158,6 +164,14 @@ export default function Evidence({ t, lang, locale, lat, lon, climate, rotations
           {listOf("shaky") && <li>{fill(t.evShaky, { months: listOf("shaky") })}</li>}
           {!listOf("wet") && !listOf("hot") && !listOf("cold") && !listOf("shaky") && <li>{t.evNoFlags}</li>}
         </ul>
+        {country === "BD" && (
+          <>
+            <ul className="ev-list small">
+              {opt.steps.map((o, i) => <li key={i}>{fill(t.bdLine, { crop: name(o.crop), m: monthNames[o.at % 12], season: seasonLabel(o.crop, o.at, t) })}</li>)}
+            </ul>
+            <p className="muted small">{t.bdNote}</p>
+          </>
+        )}
         {opt.assumed && <p className="muted small">{t.stNoteAssumed}</p>}
       </div>
 
