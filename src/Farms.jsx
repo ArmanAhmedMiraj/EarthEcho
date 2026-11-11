@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./farms.css";
-import { AREA_UNITS, HECTARES_PER, IRRIGATION, OWNERSHIP, detailCount, exportFields, parseFields, sameSpot } from "./fields.js";
+import { AREA_UNITS, DETAIL_KEYS, HECTARES_PER, IRRIGATION, OWNERSHIP, detailCount, exportFields, parseFields, sameSpot } from "./fields.js";
 import { SOIL_TYPES } from "./soil.js";
 import { loadCropTable } from "./suitability.js";
 import { buildAlerts, fetchWeatherPlus } from "./weatherPlus.js";
@@ -129,7 +129,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
         {SECTIONS.map(([id, text]) => (
           <button key={id} role="tab" aria-selected={section === id} className={section === id ? "on" : ""} onClick={() => setSection(id)}>
             {text}
-            {id === "details" && active && <Chip kind="you">{num.format(detailCount(d))}/8</Chip>}
+            {id === "details" && active && <Chip kind="you">{num.format(detailCount(d))}/{num.format(DETAIL_KEYS.length)}</Chip>}
           </button>
         ))}
       </div>
@@ -175,7 +175,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
 
           <div className="fd-nudge">
             <span className="small">{t.fdAboutHelp}</span>
-            <button className="btn" onClick={() => setSection("details")}>{t.fdSecDetails} → ({num.format(detailCount(d))}/8)</button>
+            <button className="btn" onClick={() => setSection("details")}>{t.fdSecDetails} → ({num.format(detailCount(d))}/{num.format(DETAIL_KEYS.length)})</button>
           </div>
         </section>
       )}
@@ -205,6 +205,15 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
               <span>{t.fdCurrentCrop} {d.currentCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
               <input list="fd-crops" value={d.currentCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("currentCrop", e.target.value)} />
             </label>
+            {d.currentCrop && (
+              <label className="fd-field">
+                <span>{t.fdSowMonth} {d.currentSowMonth !== undefined && d.currentSowMonth !== "" && <Chip kind="you">{t.fdYou}</Chip>}</span>
+                <select value={d.currentSowMonth ?? ""} onChange={(e) => setDetail("currentSowMonth", e.target.value)}>
+                  <option value="">{t.fdChoose}</option>
+                  {t.rtMonthsAbbr.split(" ").map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
+                </select>
+              </label>
+            )}
             <label className="fd-field">
               <span>{t.fdPlannedCrop} {d.plannedCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
               <input list="fd-crops" value={d.plannedCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("plannedCrop", e.target.value)} />
@@ -225,13 +234,22 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
                 <span>{t.fdPrevious} {d.previousCrops && <Chip kind="you">{t.fdYou}</Chip>}</span>
                 <input value={d.previousCrops || ""} placeholder={t.fdPreviousPlaceholder} maxLength={160} onChange={(e) => setDetail("previousCrops", e.target.value)} />
               </label>
+              {d.previousCrops && (
+                <label className="fd-field">
+                  <span>{t.fdSowMonthPrev} {d.previousSowMonth !== undefined && d.previousSowMonth !== "" && <Chip kind="you">{t.fdYou}</Chip>}</span>
+                  <select value={d.previousSowMonth ?? ""} onChange={(e) => setDetail("previousSowMonth", e.target.value)}>
+                    <option value="">{t.fdChoose}</option>
+                    {t.rtMonthsAbbr.split(" ").map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
+                  </select>
+                </label>
+              )}
               <label className="fd-field wide">
                 <span>{t.fdNotes} {d.notes && <Chip kind="you">{t.fdYou}</Chip>}</span>
                 <textarea rows={2} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />
               </label>
             </div>
           </details>
-          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d)) })}</p>
+          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d)), total: num.format(DETAIL_KEYS.length) })}</p>
         </section>
       )}
 

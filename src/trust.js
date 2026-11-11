@@ -3,7 +3,7 @@
 //
 // Each factor: { key, state: "ok" | "assumed" | "missing", weight }. The level comes from the weight of what is not "ok".
 
-export function uncertainty(m, { field, profit, isCurrent, scenarioOn, mode }) {
+export function uncertainty(m, { field, profit, isCurrent, timingKnown = false, scenarioOn, mode }) {
   const d = (field && field.details) || {};
   const sys = field && field.system && field.system.soil;
   const factors = [];
@@ -14,8 +14,8 @@ export function uncertainty(m, { field, profit, isCurrent, scenarioOn, mode }) {
   else if (sys && sys.key) add("soil", sys.level === "high" || sys.level === "medium" ? "ok" : "assumed", 2);
   else add("soil", "missing", 2);
 
-  // sowing months: the app does not ask for them, so they are always suggestions
-  add("timing", "assumed", isCurrent ? 2 : 1);
+  // sowing months: entered by the farmer for the current rotation, otherwise suggestions
+  add("timing", timingKnown ? "ok" : "assumed", isCurrent ? 2 : 1);
 
   // water supply
   add("water", d.irrigation ? "ok" : "assumed", 1);
@@ -65,7 +65,7 @@ export function strategyPayload(c, { mode, scenario, prio, baseline, name, month
   const months = (arr) => arr.map(mn);
   const isCurrent = c.role === "Current";
   const out = {
-    this_is: isCurrent ? "the farmer's current rotation (its sowing months are assumed, not entered by the farmer)" : "a suggested alternative rotation",
+    this_is: isCurrent ? (c.assumedTiming ? "the farmer's current rotation (some sowing months are assumed, not entered by the farmer)" : "the farmer's current rotation (sowing months entered by the farmer)") : "a suggested alternative rotation",
     water_mode: mode === "irrigated" ? "irrigated" : "rain-fed",
     crops: c.steps.map((o) => ({ name: name(o.crop), english_name: o.crop.en, sowing_month: mn(o.at), months_in_field: o.months, fit_percent: Math.round(o.score * 100) })),
     bare_months: months(m.bare),

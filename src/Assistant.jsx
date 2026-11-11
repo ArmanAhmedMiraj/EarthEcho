@@ -15,6 +15,7 @@ async function buildContext({ lat, lon, label, country, soilData, env, field }) 
     if (fd.ownership) own.landUse = fd.ownership;
     if (fd.irrigation) own.irrigation = fd.irrigation;
     if (fd.currentCrop) own.growingNow = fd.currentCrop;
+    if (fd.currentCrop && fd.currentSowMonth !== undefined && fd.currentSowMonth !== "") own.currentCropSownInMonthNumber = Number(fd.currentSowMonth) + 1;
     if (fd.plannedCrop) own.wantsToGrowNext = fd.plannedCrop;
     if (fd.previousCrops) own.grownBefore = fd.previousCrops;
     if (fd.soil) own.soilTypeSetByFarmer = fd.soil;

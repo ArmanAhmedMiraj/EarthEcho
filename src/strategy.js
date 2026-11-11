@@ -17,7 +17,8 @@ function occupied(steps) {
 }
 
 // The farmer's current rotation, from what they entered in My Farm: the crop grown before and the crop growing now.
-// The sowing months were not asked, so each crop is placed in its best month for this place (the page says so).
+// If the farmer entered the sowing month (My Farm), that month is used. Otherwise the crop is placed in its best month
+// for this place and the page says so (assumedTiming).
 export function currentRotation(field, results, mode) {
   const d = (field && field.details) || {};
   if (!d.currentCrop) return null;
@@ -29,11 +30,13 @@ export function currentRotation(field, results, mode) {
     .filter(Boolean)
     .map((x) => results.find((r) => findCrop([r.crop], x)))
     .filter((r) => r && r.crop.id !== now.crop.id);
+  const monthOf = (v) => { const n = Number(v); return v !== "" && v != null && Number.isInteger(n) && n >= 0 && n <= 11 ? n : null; };
   const picks = [];
-  if (before[0]) picks.push(before[0]);
-  picks.push(now);
-  const steps = picks.map((r) => ({ crop: r.crop, at: r[mode].month, months: r.cycle, score: r[mode].best }));
-  return { steps, assumedTiming: true, onlyOne: steps.length === 1 };
+  if (before[0]) picks.push({ r: before[0], given: monthOf(d.previousSowMonth) });
+  picks.push({ r: now, given: monthOf(d.currentSowMonth) });
+  const steps = picks.map(({ r, given }) => ({ crop: r.crop, at: given != null ? given : r[mode].month, months: r.cycle, score: r[mode].best, entered: given != null }));
+  const assumedTiming = steps.some((o) => !o.entered);
+  return { steps, assumedTiming, onlyOne: steps.length === 1 };
 }
 
 // Numbers for one strategy
@@ -115,6 +118,7 @@ export function explain(m, ctx, base) {
   gaps.push(t.stGapClimate);
   if (ctx.soilLevel === "low" || ctx.soilLevel == null) gaps.push(t.stGapSoil);
   if (ctx.isCurrent && m.assumedTiming) gaps.push(t.stGapTiming);
+  if (ctx.isCurrent && !m.assumedTiming) evidence.push(t.stEvTimingEntered);
   if (!ctx.profit || !ctx.profit.complete) gaps.push(t.stGapProfit);
   gaps.push(t.stGapLocal);
 

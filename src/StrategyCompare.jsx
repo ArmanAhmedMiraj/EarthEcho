@@ -51,14 +51,14 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
       const m = measure(steps, { climate, mode, field });
       const profit = profitFor(steps);
       const text = explain({ ...m, assumedTiming: !!extra.assumedTiming }, { ...base, profit, isCurrent: !!extra.isCurrent }, extra.baseline || null);
-      return { m, profit, text, trust: uncertainty(m, { field, profit, isCurrent: !!extra.isCurrent, scenarioOn, mode }) };
+      return { m, profit, text, trust: uncertainty(m, { field, profit, isCurrent: !!extra.isCurrent, timingKnown: !!extra.isCurrent && extra.assumedTiming === false, scenarioOn, mode }) };
     };
 
     const cur = currentRotation(field, results, mode);
     let current = null;
     if (cur && cur.steps) {
-      const b = build(cur.steps, { isCurrent: true, assumedTiming: true });
-      current = { role: "Current", ...b, steps: cur.steps };
+      const b = build(cur.steps, { isCurrent: true, assumedTiming: cur.assumedTiming });
+      current = { role: "Current", ...b, steps: cur.steps, assumedTiming: cur.assumedTiming };
     }
     // every candidate rotation, measured, with its profit and its priority scores
     const measured = (pool && pool.length ? pool : rotations).map((r) => ({ r, m: measure(r.steps, { climate, mode, field }), profit: profitFor(r.steps) }));
@@ -141,7 +141,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
           </tbody>
         </table>
       </div>
-      {current && <p className="muted small">{t.stNoteAssumed}</p>}
+      {current && current.assumedTiming && <p className="muted small">{t.stNoteAssumed}</p>}
 
       {cols.map((c, i) => (
         <details className={`st-card ${c.role === "Current" ? "cur" : ""}`} key={c.role} open={i === 0}>

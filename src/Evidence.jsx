@@ -59,7 +59,7 @@ export default function Evidence({ t, lang, locale, lat, lon, climate, rotations
     if (!climate) return [];
     const out = [];
     const cur = currentRotation(field, results, mode);
-    if (cur && cur.steps) out.push({ label: t.evCurrent, steps: cur.steps, assumed: true });
+    if (cur && cur.steps) out.push({ label: t.evCurrent, steps: cur.steps, assumed: !!cur.assumedTiming });
     rotations.slice(0, 3).forEach((r, i) => out.push({ label: `${t.evSuggested} ${nf.format(i + 1)}`, steps: r.steps, assumed: false }));
     return out;
   }, [climate, field, results, mode, rotations, t, nf]);
