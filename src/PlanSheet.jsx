@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { smsSize } from "./sheetData.js";
+import { buildIcs, downloadIcs } from "./ics.js";
 import "./sheet.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -43,6 +44,13 @@ function Sheet({ t, lang, model, onClose }) {
   const share = async () => { try { await navigator.share({ text }); } catch { /* closed by the person */ } };
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const enc = encodeURIComponent(text);
+  const field = model.file || "";
+  const makeIcs = () => {
+    const ics = buildIcs(model.events || [], { field, calName: `${t.shTitle}${field ? ` - ${field}` : ""}`, text: { sow: t.icSow, harvest: t.icHarvest, note: t.icNote } });
+    if (!ics) return;
+    downloadIcs(ics, `earthecho-${(field || "plan").replace(/[^\w\u0980-\u09FF-]+/g, "-")}.ics`);
+    flash(t.icDone);
+  };
 
   const renderBlock = (b, i) => (
     <section className="sh-block" key={i}>
@@ -83,6 +91,14 @@ function Sheet({ t, lang, model, onClose }) {
           </div>
           <p className="sh-small" role="status">{note}</p>
         </div>
+
+        {model.events && model.events.length > 0 && (
+          <div className="sh-short">
+            <b>{t.icTitle}</b>
+            <p className="sh-small">{t.icIntro}</p>
+            <div className="sh-actions"><button type="button" className="tab" onClick={makeIcs}>{t.icButton}</button></div>
+          </div>
+        )}
 
         <article className="sh-paper">
           <h1>{model.title}</h1>

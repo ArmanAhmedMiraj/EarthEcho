@@ -56,8 +56,9 @@ export function strategySheet({ c, t, field, locale, nf, name, month, tableRows,
     { h: `${t.trTitle}: ${level}`, ul: [t[`trLead_${c.trust.level}`], ...c.trust.factors.map((f) => `${t[`trState_${f.state}`]}: ${t[`trF_${f.key}_${f.state}`]}`), ...c.trust.sensitive.map((k) => t[`trS_${k}`])] },
     { h: t.shNotes, lines: 4 },
   ];
+  const events = c.steps.flatMap((o) => [{ kind: "sow", name: name(o.crop), abs: o.at, span: 1 }, { kind: "harvest", name: name(o.crop), abs: o.at + o.months - 1, span: 1 }]);
   const short = fill(t.shTextStrategy, { field: (field && field.name) || t.shNoName, chain, bare: bare ? fill(t.shTextBare, { m: bare }) : "", level });
-  return { title: `${t.shTitle} – ${roleLabel(c.role)}`, file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: t.shFoot, mode };
+  return { title: `${t.shTitle} – ${roleLabel(c.role)}`, file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: t.shFoot, mode, events };
 }
 
 // The plan for several years
@@ -79,9 +80,10 @@ export function yearsSheet({ plan, t, field, locale, nf, name, month, keep }) {
     { h: t.mpChecks, ul: checks },
     { h: t.shNotes, lines: 4 },
   ];
+  const events = plan.rows.flat().flatMap((o) => [{ kind: "sow", name: name(o.crop), abs: o.abs, span: 1 }, { kind: "harvest", name: name(o.crop), abs: o.abs + o.months - 1, span: 1 }]);
   const lines = plan.rows.map((placed, y) => `${fill(t.mpYear, { n: nf.format(y + 1) })}: ${yearLine(placed)}`).join(". ");
   const short = fill(t.shTextYears, { field: (field && field.name) || t.shNoName, n: nf.format(plan.years), lines });
-  return { title: fill(t.mpTitle, { n: nf.format(plan.years) }), file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: `${t.mpCaveat} ${t.shFoot}` };
+  return { title: fill(t.mpTitle, { n: nf.format(plan.years) }), file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: `${t.mpCaveat} ${t.shFoot}`, events };
 }
 
 // SMS size: one message holds 160 characters (70 when any Bangla letter is in it); longer texts are split into parts of 153 (67)
