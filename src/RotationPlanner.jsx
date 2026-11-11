@@ -3,6 +3,7 @@ import "./rotation.css";
 import { evaluateCrops, findCrop, loadCropTable, rating, soilInput } from "./suitability.js";
 import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
 import FieldNote from "./FieldNote.jsx";
+import MultiYear from "./MultiYear.jsx";
 import StrategyCompare from "./StrategyCompare.jsx";
 import Scenario from "./Scenario.jsx";
 import Priorities from "./Priorities.jsx";
@@ -139,6 +140,7 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
       <Priorities t={t} prio={prio} onChange={changePrio} />
       <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
       {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} pool={pool} prio={prio} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} scenarioOn={scn.rain !== 0 || scn.temp !== 0} scenario={scn} onExplain={onExplain} />}
+      {ranked.length > 0 && <MultiYear t={t} lang={lang} locale={locale} results={results} pool={pool} field={field} mode={mode} monthNames={monthNames} />}
       {ranked.length > 0 && <Evidence t={t} lang={lang} locale={locale} lat={lat} lon={lon} climate={scenarioClimate} rotations={rotations} field={field} soilData={soilData} mode={mode} monthNames={monthNames} results={results} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {
