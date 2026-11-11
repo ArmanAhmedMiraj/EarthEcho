@@ -4,6 +4,8 @@ import { currentRotation, explain, matchScore, measure, priorityParts, profitOf 
 import { strategyPayload, uncertainty } from "./trust.js";
 import { recentFamily } from "./history.js";
 import "./trust.css";
+import SheetButton from "./PlanSheet.jsx";
+import { strategySheet } from "./sheetData.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -170,6 +172,10 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
               {c.trust.sensitive.map((k) => <li key={k} className="assumed"><span className="tr-mark" aria-hidden="true">!</span>{t[`trS_${k}`]}</li>)}
             </ul>
             <p className="small"><b>{t.trImprove}</b> {t.trImproveBody}</p>
+          </div>
+          <div className="ex-box">
+            <SheetButton t={t} lang={lang} build={() => strategySheet({ c, t, field, locale, nf: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), name, month, tableRows: rows, sections, roleLabel, mode })} />
+            <p className="muted small">{t.shOpenNote}</p>
           </div>
           {onExplain && (
             <div className="ex-box">

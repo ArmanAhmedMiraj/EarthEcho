@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { currentRotation } from "./strategy.js";
 import { planYears, startSequence } from "./multiyear.js";
+import SheetButton from "./PlanSheet.jsx";
+import { yearsSheet } from "./sheetData.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -87,6 +89,10 @@ export default function MultiYear({ t, lang, locale, results, pool, field, mode,
         )}
       </ul>
       {keep && <p className="small">{fill(t.mpKeepNote, { crop: name(keep) })}</p>}
+      <div className="ex-box">
+        <SheetButton t={t} lang={lang} build={() => yearsSheet({ plan, t, field, locale, nf, name, month, keep })} />
+        <p className="muted small">{t.shOpenNote}</p>
+      </div>
       <p className="muted small">{t.mpCaveat}</p>
     </section>
   );

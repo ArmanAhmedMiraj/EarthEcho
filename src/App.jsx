@@ -27,6 +27,7 @@ import { START_TEXT } from "./i18nStart.js";
 import { ENV_TEXT } from "./i18nEnv.js";
 import { WEATHER_TEXT } from "./i18nWeather.js";
 import { TRUST_TEXT } from "./i18nTrust.js";
+import { SHEET_TEXT } from "./i18nSheet.js";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import { DISASTER_TEXT } from "./i18nDisasters.js";
 import Disasters from "./Disasters.jsx";
@@ -176,7 +177,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
