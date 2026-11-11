@@ -5,7 +5,7 @@ import { planYears, startSequence } from "./multiyear.js";
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
 // "Plan ahead": three or four years of crops, one after the other. A starting plan to talk through, not a forecast.
-export default function MultiYear({ t, lang, locale, results, pool, field, mode, monthNames }) {
+export default function MultiYear({ t, lang, locale, results, pool, field, mode, monthNames, keep = null }) {
   const [years, setYears] = useState(3);
   const nf = useMemo(() => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }), [locale]);
   const name = (c) => (lang === "bn" ? c.bn : c.en);
@@ -16,9 +16,9 @@ export default function MultiYear({ t, lang, locale, results, pool, field, mode,
     const cur = currentRotation(field, results, mode);
     const start = startSequence(field, results);
     const last = cur && cur.steps ? cur.steps[cur.steps.length - 1] : null;
-    const p = planYears(pool, { start, years, current: cur && cur.steps ? cur.steps : null, afterMonth: last ? (last.at + last.months) % 12 : null });
+    const p = planYears(pool, { start, years, current: cur && cur.steps ? cur.steps : null, afterMonth: last ? (last.at + last.months) % 12 : null, keepId: keep ? keep.id : null });
     return p ? { ...p, start, hasCurrent: !!(cur && cur.steps) } : null;
-  }, [results, pool, field, mode, years]);
+  }, [results, pool, field, mode, years, keep]);
 
   if (!plan) return null;
 
@@ -86,6 +86,7 @@ export default function MultiYear({ t, lang, locale, results, pool, field, mode,
           <li><span aria-hidden="true">i</span> {fill(t.mpBase, { a: nf.format(plan.baseline.back.length), at: nf.format(plan.baseline.seasons), b: nf.format(plan.returns.length), bt: nf.format(plan.seasons) })}</li>
         )}
       </ul>
+      {keep && <p className="small">{fill(t.mpKeepNote, { crop: name(keep) })}</p>}
       <p className="muted small">{t.mpCaveat}</p>
     </section>
   );

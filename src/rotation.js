@@ -5,7 +5,7 @@
 //   nitrogen), and the same plant family does not follow itself (this lowers disease and pest build-up).
 // These are rules of thumb of ours, not a model of yield. The page says so.
 
-const ANNUAL = ["cereal", "pulse", "oilseed", "vegetable", "root", "fibre", "cash"];
+export const ANNUAL = ["cereal", "pulse", "oilseed", "vegetable", "root", "fibre", "cash"];
 const MIN_SCORE = 0.5;
 const MAX_GAP = 2; // months the field may stand empty between two crops
 const LEGUME = "Leguminosae";
@@ -21,24 +21,32 @@ export const TYPICAL_YIELD = {
 export const isLegume = (crop) => crop.family === LEGUME && ["pulse", "oilseed"].includes(crop.group);
 
 // kind: "all", "field" (grains, pulses, oilseeds, roots, fibre, cash) or "vegetable"
-export function planRotations(results, mode, kind = "all", limit = 6) {
+// must: the id of a crop the farmer wants to keep. Every rotation then includes it. It may be sown in its best months even if
+// they are below the usual fit limit (the farmer asked for it), and the pages say when the fit is only moderate.
+export function planRotations(results, mode, kind = "all", limit = 6, must = null) {
   const key = mode === "rainfed" ? "rainfed" : "irrigated";
   // every way to sow one crop: { crop, start, months, score }
   const options = [];
   for (const r of results) {
+    const keep = !!must && r.crop.id === must;
     if (!ANNUAL.includes(r.crop.group) || r.cycle > 8) continue;
-    if (kind === "vegetable" && r.crop.group !== "vegetable") continue;
-    if (kind === "field" && r.crop.group === "vegetable") continue;
+    if (!keep && kind === "vegetable" && r.crop.group !== "vegetable") continue;
+    if (!keep && kind === "field" && r.crop.group === "vegetable") continue;
     const scores = r.months[key];
+    // the kept crop is also allowed in its four best months when they are below the fit limit
+    const bestFour = keep ? [...scores.keys()].sort((a, b) => scores[b] - scores[a]).slice(0, 4) : [];
     for (let s = 0; s < 12; s += 1) {
-      if (scores[s] >= MIN_SCORE) options.push({ crop: r.crop, start: s, months: r.cycle, score: scores[s] });
+      if (scores[s] >= MIN_SCORE || (keep && scores[s] > 0 && bestFour.includes(s))) options.push({ crop: r.crop, start: s, months: r.cycle, score: scores[s] });
     }
   }
   // the best few sowings for each starting month keep the search small
   const byStart = Array.from({ length: 12 }, (_, s) => options.filter((o) => o.start === s).sort((a, b) => b.score - a.score).slice(0, 8));
+  const mustOpts = must ? options.filter((o) => o.crop.id === must) : [];
+  mustOpts.forEach((o) => { if (!byStart[o.start].includes(o)) byStart[o.start].unshift(o); });
 
   const found = new Map();
   const consider = (steps) => {
+    if (must && !steps.some((o) => o.crop.id === must)) return;
     const ids = steps.map((o) => o.crop.id).sort().join("+");
     const used = steps.reduce((sum, o) => sum + o.months, 0);
     const mean = steps.reduce((sum, o) => sum + o.score, 0) / steps.length;
@@ -65,7 +73,9 @@ export function planRotations(results, mode, kind = "all", limit = 6) {
     }
   };
   for (let a = 0; a < 12; a += 1) {
-    for (const o of byStart[a].slice(0, 5)) walk([{ ...o, at: a }], a + o.months, a);
+    const starters = byStart[a].slice(0, 5);
+    mustOpts.filter((o) => o.start === a && !starters.includes(o)).forEach((o) => starters.push(o));
+    for (const o of starters) walk([{ ...o, at: a }], a + o.months, a);
   }
   // the best six that differ from each other: a new one may share at most one crop with those already chosen
   const sorted = [...found.values()].sort((x, y) => y.score - x.score || y.used - x.used);

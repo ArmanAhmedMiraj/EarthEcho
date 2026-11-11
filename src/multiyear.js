@@ -8,7 +8,8 @@ import { isLegume } from "./rotation.js";
 const BEAM = 10;
 
 // extra cost of putting crop c after the crops already grown (oldest first)
-function penalty(seq, c) {
+function penalty(seq, c, keepId) {
+  if (keepId && c.id === keepId) return 0; // a crop the farmer keeps every year is not a problem
   const last = seq[seq.length - 1], prev = seq[seq.length - 2];
   let p = 0;
   if (last && last.family === c.family) p += 0.3;
@@ -20,7 +21,8 @@ function penalty(seq, c) {
   return p;
 }
 // does the family of c appear in the last two seasons?
-const comesBack = (seq, c) => {
+const comesBack = (seq, c, keepId) => {
+  if (keepId && c.id === keepId) return false;
   const last = seq[seq.length - 1], prev = seq[seq.length - 2];
   return !!((last && last.family === c.family) || (prev && prev.family === c.family));
 };
@@ -40,13 +42,13 @@ export function startSequence(field, results) {
 }
 
 // How many seasons bring back a plant family within two seasons, for a list of placed years
-function countReturns(start, yearsPlaced) {
+function countReturns(start, yearsPlaced, keepId) {
   const seq = [...start];
   const back = [];
   let seasons = 0;
   yearsPlaced.forEach((placed) => {
     placed.forEach((o) => {
-      if (comesBack(seq, o.crop)) back.push(o.crop);
+      if (comesBack(seq, o.crop, keepId)) back.push(o.crop);
       seq.push(o.crop);
       seasons += 1;
     });
@@ -55,7 +57,7 @@ function countReturns(start, yearsPlaced) {
 }
 
 // pool: the rotations from planRotations. years: 3 or 4. current: the farmer's current rotation steps, or null.
-export function planYears(pool, { start = [], years = 3, current = null, afterMonth = null } = {}) {
+export function planYears(pool, { start = [], years = 3, current = null, afterMonth = null, keepId = null } = {}) {
   if (!pool || !pool.length) return null;
   let states = [{ seq: [...start], occ: new Set(), placed: [], score: 0, origin: null }];
   for (let y = 0; y < years; y += 1) {
@@ -69,7 +71,7 @@ export function planYears(pool, { start = [], years = 3, current = null, afterMo
         if (clash(st.occ, placed)) continue;
         const seq = [...st.seq];
         let pen = 0;
-        placed.forEach((o) => { pen += penalty(seq, o.crop); seq.push(o.crop); });
+        placed.forEach((o) => { pen += penalty(seq, o.crop, keepId); seq.push(o.crop); });
         // year 1 should begin soon after the crop growing now is harvested
         if (y === 0 && afterMonth != null) { const gap = (((first - afterMonth) % 12) + 12) % 12; if (gap > 3) pen += 0.04 * (gap - 3); }
         next.push({ seq, occ: occupy(st.occ, placed), placed: [...st.placed, placed], score: st.score + r.score - pen, origin: y === 0 ? first : st.origin });
@@ -83,13 +85,13 @@ export function planYears(pool, { start = [], years = 3, current = null, afterMo
   const origin = best.origin;
   // every crop gets rel: the month of the plan it starts in, counted from the first sowing
   const rows = best.placed.map((placed) => placed.map((o) => ({ ...o, rel: o.abs - origin })));
-  const mine = countReturns(start, rows);
+  const mine = countReturns(start, rows, keepId);
   const monthsInYear = rows.map((_, y) => { let n = 0; for (let m = 0; m < 12; m += 1) if (best.occ.has(origin + y * 12 + m)) n += 1; return n; });
   const legumeYears = rows.filter((placed) => placed.some((o) => isLegume(o.crop))).length;
   let baseline = null;
   if (current && current.length) {
     const repeated = Array.from({ length: years }, (_, y) => place(current, y));
-    baseline = countReturns(start, repeated);
+    baseline = countReturns(start, repeated, keepId);
   }
   return { rows, origin, returns: mine.back, seasons: mine.seasons, monthsInYear, legumeYears, baseline, years };
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./rotation.css";
 import { evaluateCrops, findCrop, loadCropTable, rating, soilInput } from "./suitability.js";
-import { TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
+import { ANNUAL, TYPICAL_YIELD, planRotations, profitOf } from "./rotation.js";
 import FieldNote from "./FieldNote.jsx";
 import MultiYear from "./MultiYear.jsx";
 import StrategyCompare from "./StrategyCompare.jsx";
@@ -18,7 +18,7 @@ function writeStore(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
 
-export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData, field, onExplain }) {
+export default function RotationPlanner({ t, lang, lat, lon, country, env, soilData, field, onExplain, onFieldChange }) {
   const [table, setTable] = useState(null);
   const [climate, setClimate] = useState(env && env.climate ? env.climate : null);
   const [state, setState] = useState(env && env.climate ? "ok" : "loading");
@@ -62,9 +62,18 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
     return { ...climate, months: climate.months.map((m) => ({ ...m, tmean: m.tmean == null ? m.tmean : m.tmean + scn.temp, rainMm: m.rainMm == null ? m.rainMm : Math.max(0, Math.round(m.rainMm * (1 + scn.rain / 100))) })) };
   }, [climate, scn]);
 
-  const rotations = useMemo(() => (results ? planRotations(results, mode, kind) : []), [results, mode, kind]);
-  const pool = useMemo(() => (results ? planRotations(results, mode, kind, 30) : []), [results, mode, kind]);
-  const baseRotations = useMemo(() => (baseResults ? planRotations(baseResults, mode, kind) : []), [baseResults, mode, kind]);
+  // a crop the farmer wants to keep: every rotation is then built around it
+  const keepRaw = field && field.details && field.details.keepCrop ? String(field.details.keepCrop) : "";
+  const keepEntry = results && keepRaw ? results.find((r) => r.crop.id === keepRaw && ANNUAL.includes(r.crop.group) && r.cycle <= 8) || null : null;
+  const keepId = keepEntry ? keepRaw : null;
+  const plans = (res) => {
+    if (!res) return { rotations: [], pool: [], keepFailed: false };
+    const a = planRotations(res, mode, kind, 6, keepId);
+    if (keepId && !a.length) return { rotations: planRotations(res, mode, kind), pool: planRotations(res, mode, kind, 30), keepFailed: true };
+    return { rotations: a, pool: planRotations(res, mode, kind, 30, keepId), keepFailed: false };
+  };
+  const { rotations, pool, keepFailed } = useMemo(() => plans(results), [results, mode, kind, keepId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const baseRotations = useMemo(() => plans(baseResults).rotations, [baseResults, mode, kind, keepId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setField = (id, field, value) => {
     const next = { ...inputs, [id]: { ...(inputs[id] || {}), [field]: value } };
@@ -135,12 +144,23 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
             <option value="profit">{t.rtRankProfit}</option>
           </select>
         </label>
+        {onFieldChange && (
+          <label>{t.rtKeep}
+            <select value={keepId || ""} onChange={(e) => onFieldChange({ keepCrop: e.target.value })}>
+              <option value="">{t.rtKeepNone}</option>
+              {results.filter((r) => ANNUAL.includes(r.crop.group) && r.cycle <= 8).sort((a, b) => name(a.crop).localeCompare(name(b.crop), locale)).map((r) => <option key={r.crop.id} value={r.crop.id}>{name(r.crop)}</option>)}
+            </select>
+          </label>
+        )}
       </div>
+      <p className="muted small">{t.rtKeepHelp}</p>
+      {keepRaw && keepEntry && !keepFailed && <p className="rt-keep">{fill(t.rtKeepOn, { crop: name(keepEntry.crop), n: whole.format(rotations.length) })}{keepEntry[mode].best < 0.5 ? ` ${fill(t.rtKeepWeak, { crop: name(keepEntry.crop), p: whole.format(Math.round(keepEntry[mode].best * 100)) })}` : ""}</p>}
+      {keepRaw && keepEntry && keepFailed && <p className="warn small">{fill(t.rtKeepFail, { crop: name(keepEntry.crop) })}</p>}
 
       <Priorities t={t} prio={prio} onChange={changePrio} />
       <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
       {ranked.length > 0 && <StrategyCompare t={t} lang={lang} locale={locale} results={results} rotations={rotations} pool={pool} prio={prio} climate={scenarioClimate} mode={mode} field={field} soilData={soilData} monthNames={monthNames} valueOf={valueOf} scenarioOn={scn.rain !== 0 || scn.temp !== 0} scenario={scn} onExplain={onExplain} />}
-      {ranked.length > 0 && <MultiYear t={t} lang={lang} locale={locale} results={results} pool={pool} field={field} mode={mode} monthNames={monthNames} />}
+      {ranked.length > 0 && <MultiYear t={t} lang={lang} locale={locale} results={results} pool={pool} field={field} mode={mode} monthNames={monthNames} keep={keepEntry && !keepFailed ? keepEntry.crop : null} />}
       {ranked.length > 0 && <Evidence t={t} lang={lang} locale={locale} lat={lat} lon={lon} climate={scenarioClimate} rotations={rotations} field={field} soilData={soilData} mode={mode} monthNames={monthNames} results={results} />}
       {ranked.length === 0 && <p className="warn">{t.rtNone}</p>}
       {ranked.map(({ r, p }, idx) => {

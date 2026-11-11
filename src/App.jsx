@@ -1020,7 +1020,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.rtTitle}</h2>
-            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} onExplain={explainStrategy} />
+            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} onExplain={explainStrategy} onFieldChange={(patch) => activeField && updateField(activeField.id, { details: { ...activeField.details, ...patch } })} />
           </div>
         </main>
       )}

@@ -18,6 +18,7 @@ async function buildContext({ lat, lon, label, country, soilData, env, field }) 
     if (fd.currentCrop) own.growingNow = fd.currentCrop;
     if (fd.currentCrop && fd.currentSowMonth !== undefined && fd.currentSowMonth !== "") own.currentCropSownInMonthNumber = Number(fd.currentSowMonth) + 1;
     if (fd.plannedCrop) own.wantsToGrowNext = fd.plannedCrop;
+    if (fd.keepCrop) own.cropTheFarmerWantsToKeepInEveryRotation = fd.keepCrop;
     const seasons = historyOf(fd).filter((r) => r.crop.trim());
     if (seasons.length) own.seasonsBeforeNowNewestFirst = seasons.map((r) => ({ crop: r.crop.trim(), sownInMonthNumber: r.sowMonth !== "" ? Number(r.sowMonth) + 1 : undefined, year: r.year || undefined }));
     if (fd.soil) own.soilTypeSetByFarmer = fd.soil;
