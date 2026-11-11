@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import SeasonRecord from "./SeasonRecord.jsx";
 import "./farms.css";
 import { AREA_UNITS, DETAIL_KEYS, HECTARES_PER, IRRIGATION, OWNERSHIP, detailCount, exportFields, parseFields, sameSpot } from "./fields.js";
 import { SOIL_TYPES } from "./soil.js";
@@ -125,7 +126,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
       )}
     </>
   );
-  const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["fields", `${t.fdSecFields} (${num.format(fields.length)})`]];
+  const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["record", t.srSection], ["fields", `${t.fdSecFields} (${num.format(fields.length)})`]];
 
   return (
     <div className="fd">
@@ -261,6 +262,8 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
           <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d)), total: num.format(DETAIL_KEYS.length) })}</p>
         </section>
       )}
+
+      {active && section === "record" && <SeasonRecord t={t} lang={lang} locale={locale} field={active} onUpdate={onUpdate} cropNames={crops} />}
 
       {section === "fields" && (
         <section className="fd-card">

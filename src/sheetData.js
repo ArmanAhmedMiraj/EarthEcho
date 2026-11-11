@@ -24,7 +24,7 @@ export function fieldFacts(field, t, month, nf) {
   return { told, est };
 }
 
-function header(field, t, locale) {
+export function header(field, t, locale) {
   const date = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date());
   const meta = [[t.shField, (field && field.name) || t.shNoName]];
   if (field && field.path) meta.push([t.shPlace, field.path]);
