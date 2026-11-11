@@ -43,3 +43,12 @@
 .sy-chip { font: inherit; font-size: 0.86rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
 .sy-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 .sy-lead.weak { border-left-color: #c98a1a; }
+
+/* Dry spells */
+.ds-chart { width: 100%; height: 90px; display: block; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.ds-bar { fill: #2b7fc4; }
+.ds-spell { fill: rgba(224, 123, 84, 0.28); }
+.ds-line { stroke: var(--accent); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.ds-dot { fill: var(--accent); }
+.ds-axis { display: flex; justify-content: space-between; gap: 8px; font-size: 0.76rem; color: var(--muted); margin: 2px 0 8px; }
+.ds-long { border-left-color: var(--clay); }

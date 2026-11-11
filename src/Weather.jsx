@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import SeasonCheck from "./SeasonCheck.jsx";
 import SimilarYear from "./SimilarYear.jsx";
+import DrySpell from "./DrySpell.jsx";
 import "./weather.css";
 import { fetchWeatherPlus, describeCode, compass, aqiClass, buildAlerts, sprayWindows } from "./weatherPlus.js";
 import { SERVICES, TWO_LETTER } from "./i18nWeather.js";
@@ -206,6 +207,7 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
 
       <SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} />
       <SimilarYear t={t} locale={locale} lat={lat} lon={lon} />
+      <DrySpell t={t} locale={locale} lat={lat} lon={lon} />
 
       <h3>{t.normalsTitle}</h3>
       {history ? (
