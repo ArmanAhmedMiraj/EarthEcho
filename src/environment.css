@@ -21,3 +21,20 @@
 .env-source { color: var(--muted); margin: 8px 0 0; }
 .env-source a { color: inherit; }
 .env-months { margin: 2px 0 8px; }
+
+/* NASA map layers */
+.nm-wrap { margin: 22px 0; }
+.nm-wrap h3 { margin: 0 0 6px; }
+.nm-layers { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
+.nm-chip { border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: inherit; font-size: 14px; }
+.nm-chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.nm-map { width: 100%; height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-top: 8px; }
+.nm-legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin: 8px 0; }
+.nm-legend i { flex: 1; height: 10px; border-radius: 5px; border: 1px solid var(--border); }
+.nm-slider { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.nm-slider input[type="range"] { flex: 1; min-width: 140px; }
+.nm-date { min-width: 100px; }
+.nm-opacity { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.nm-read { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); }
+.nm-line { width: 100%; max-width: 320px; height: 70px; color: var(--muted); display: block; margin-top: 8px; }
+@media (max-width: 480px) { .nm-map { height: 300px; } }

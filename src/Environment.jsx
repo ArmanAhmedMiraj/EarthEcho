@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
+
+const NasaMap = lazy(() => import("./NasaMap.jsx")); // loads the map code only when this tab opens
 import "./environment.css";
 
 // NASA environment page: vegetation, land temperature, soil wetness, yearly water balance and land shape.
@@ -216,6 +218,10 @@ export default function Environment({ t, lang, lat, lon, initial, satellite, ter
           <p className="muted">{t.envNoData}</p>
         )}
       </section>
+
+      <Suspense fallback={<p className="muted small">{t.nmLoading}</p>}>
+        <NasaMap t={t} lang={lang} lat={lat} lon={lon} />
+      </Suspense>
     </div>
   );
 }
