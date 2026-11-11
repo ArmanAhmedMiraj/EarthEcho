@@ -44,3 +44,30 @@
 /* priorities */
 .pr-wrap { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px 16px; margin: 14px 0; }
 .pr-wrap h3 { margin: 0 0 6px; }
+
+/* NASA evidence panel */
+.ev-wrap { margin: 16px 0 22px; }
+.ev-wrap h3 { margin: 0 0 6px; }
+.ev-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: var(--panel); }
+.ev-card h4 { margin: 0 0 8px; }
+.ev-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.ev-spark { width: 100%; max-width: 260px; height: 54px; color: var(--accent); display: block; margin: 4px 0; }
+.ev-pick { display: flex; flex-direction: column; gap: 4px; font-size: 14px; margin-bottom: 8px; }
+.ev-pick select { max-width: 100%; }
+.ev-cal { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+.ev-m { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 0; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, transparent); min-width: 0; }
+.ev-m.bare { background: color-mix(in srgb, var(--muted) 18%, transparent); }
+.ev-m.c1 { background: color-mix(in srgb, #d9a441 30%, transparent); }
+.ev-m.c2 { background: color-mix(in srgb, #5a8fd8 28%, transparent); }
+.ev-m.c3 { background: color-mix(in srgb, #b46fd0 26%, transparent); }
+.ev-mn { font-size: 10px; color: var(--muted); }
+.ev-bar { display: flex; align-items: flex-end; height: 34px; width: 55%; }
+.ev-bar i { display: block; width: 100%; background: #5a8fd8; border-radius: 2px 2px 0 0; min-height: 1px; }
+.ev-bar i.heavy { background: #d9534f; }
+.ev-fl { font-size: 11px; min-height: 14px; line-height: 14px; white-space: nowrap; }
+.ev-list { margin: 8px 0 0; padding-left: 18px; }
+.ev-risk { padding: 1px 8px; border-radius: 999px; font-size: 13px; border: 1px solid var(--border); }
+.ev-risk.low { color: #2e7d32; }
+.ev-risk.moderate { color: #b26a00; }
+.ev-risk.high { color: #c62828; }
+@media (max-width: 480px) { .ev-fl { font-size: 9px; } .ev-mn { font-size: 9px; } }

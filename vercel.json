@@ -15,6 +15,9 @@
     "api/markets.js": {
       "maxDuration": 30
     },
+    "api/trend.js": {
+      "maxDuration": 30
+    },
     "api/assistant.js": {
       "maxDuration": 60
     }
