@@ -1,6 +1,6 @@
 // Turns a short text into speech with Google's Gemini text-to-speech, so every phone and computer can hear it,
 // even when the device has no voice of its own (many computers have no Bangla voice).
-// Example: /api/speak?lang=bn&text=...
+// Example: /api/assistant?speak=1&text=...  (served by assistant.js, so the project stays within the 12 functions Vercel Hobby allows)
 // The key is read from the server setting GEMINI_API_KEY (the same one the assistant uses). It is never in the code
 // and never sent to the browser. The answer is audio (WAV), and is cached for a long time, so the same text is made only once.
 const MODELS = ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
@@ -73,7 +73,7 @@ async function synthesize(key, text) {
   throw new Error(errors.slice(0, 4).join("; "));
 }
 
-export default async function handler(req, res) {
+export default async function speakHandler(req, res) {
   const json = (code, body) => { res.statusCode = code; res.setHeader("content-type", "application/json"); res.end(JSON.stringify(body)); };
   const key = process.env.GEMINI_API_KEY;
   if (!key) return json(503, { ok: false, error: "Voice is not set up on this server." });

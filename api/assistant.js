@@ -3,6 +3,7 @@
 //   2. find the pieces of knowledge that match (api/_lib/knowledge.js) and add the farm's own live data sent by the page
 //   3. ask Gemini to answer using ONLY those pieces, in the farmer's language, with source numbers
 // The Gemini key is read from the server setting GEMINI_API_KEY. It is never in the code and never sent to the browser.
+import speakHandler from "./_lib/voice.js";
 import { DOCS } from "./_lib/knowledge.js";
 import { buildIndex, search } from "./_lib/retrieve.js";
 import CROPS from "./_lib/ecocrop.js";
@@ -164,6 +165,8 @@ async function openGroq(system, user, maxTokens = 700) {
 const clip = (v, n) => String(v == null ? "" : v).slice(0, n);
 
 export default async function handler(req, res) {
+  // the AI voice: /api/assistant?speak=1&text=... (kept here so the project stays within the 12 functions Vercel Hobby allows)
+  if (req.method === "GET" && req.query && req.query.speak) return speakHandler(req, res);
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST only" });
   const body = req.body && typeof req.body === "object" ? req.body : {};
   const question = clip(body.question, 500).trim();

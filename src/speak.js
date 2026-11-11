@@ -49,7 +49,7 @@ export function joinParts(parts, sep, max = 600) {
 export function playAi(text, onEnd) {
   return new Promise((resolve) => {
     stopSpeaking();
-    const audio = new Audio(`/api/speak?text=${encodeURIComponent(text)}`);
+    const audio = new Audio(`/api/assistant?speak=1&text=${encodeURIComponent(text)}`);
     current = audio;
     let settled = false;
     const done = (ok) => { if (settled) return; settled = true; clearTimeout(timer); resolve({ ok }); };

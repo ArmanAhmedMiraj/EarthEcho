@@ -5,6 +5,7 @@ import { strategyPayload, uncertainty } from "./trust.js";
 import { recentFamily } from "./history.js";
 import "./trust.css";
 import SheetButton from "./PlanSheet.jsx";
+import TradeOff from "./TradeOff.jsx";
 import { strategySheet } from "./sheetData.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -76,6 +77,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
     } else {
       picks = pickAlternatives(measured);
     }
+    if (current) current.parts = priorityParts(current.m, current.profit, stats);
     const money = (n) => num(n);
     const alts = picks.map(({ role, item }) => {
       const b = build(item.r.steps, { baseline: current ? current.m : null });
@@ -90,7 +92,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
         });
         b.text.why = [...extra, ...b.text.why];
       }
-      return { role, ...b, steps: item.r.steps };
+      return { role, ...b, steps: item.r.steps, parts: item.parts };
     });
     return { current, alts, unknown: cur && cur.unknown, noCurrent: !cur, name, num, pct, month };
   }, [results, rotations, pool, prio, climate, mode, field, soilData, lang, locale, monthNames, t, valueOf, scenarioOn]);
@@ -150,6 +152,7 @@ export default function StrategyCompare({ t, lang, locale, results, rotations, p
         </table>
       </div>
       {current && current.assumedTiming && <p className="muted small">{t.stNoteAssumed}</p>}
+      <TradeOff t={t} cols={cols} roleLabel={roleLabel} num={num} haveIncome={cols.some((c) => c.parts && c.parts.income != null)} />
 
       {cols.map((c, i) => (
         <details className={`st-card ${c.role === "Current" ? "cur" : ""}`} key={c.role} open={i === 0}>
