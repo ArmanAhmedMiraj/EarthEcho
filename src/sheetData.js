@@ -56,9 +56,16 @@ export function strategySheet({ c, t, field, locale, nf, name, month, tableRows,
     { h: `${t.trTitle}: ${level}`, ul: [t[`trLead_${c.trust.level}`], ...c.trust.factors.map((f) => `${t[`trState_${f.state}`]}: ${t[`trF_${f.key}_${f.state}`]}`), ...c.trust.sensitive.map((k) => t[`trS_${k}`])] },
     { h: t.shNotes, lines: 4 },
   ];
+  const gapN = c.m.haveClimate ? c.m.gap : null;
+  const glance = [
+    { icon: "🌾", title: t.gcCrops, text: c.steps.map((o) => `${name(o.crop)} ${range(o)}`).join(", ") },
+    { icon: "💧", title: t.gcWater, text: gapN == null ? t.gcNoClimate : gapN < 20 ? t.gcWaterOk : fill(t.gcWaterNeed, { n: nf.format(Math.round(gapN)) }) },
+    { icon: "🌱", title: t.gcSoil, text: c.m.legumes.length ? t.gcSoilYes : t.gcSoilNo },
+    { icon: "⚠️", title: t.gcRisk, text: `${bare ? fill(t.gcBare, { n: nf.format(c.m.bare.length), m: bare }) : t.gcNoBare} ${fill(t.gcSure, { level })}` },
+  ];
   const events = c.steps.flatMap((o) => [{ kind: "sow", name: name(o.crop), abs: o.at, span: 1 }, { kind: "harvest", name: name(o.crop), abs: o.at + o.months - 1, span: 1 }]);
   const short = fill(t.shTextStrategy, { field: (field && field.name) || t.shNoName, chain, bare: bare ? fill(t.shTextBare, { m: bare }) : "", level });
-  return { title: `${t.shTitle} – ${roleLabel(c.role)}`, file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: t.shFoot, mode, events };
+  return { title: `${t.shTitle} – ${roleLabel(c.role)}`, file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: t.shFoot, mode, events, glance };
 }
 
 // The plan for several years
@@ -81,9 +88,15 @@ export function yearsSheet({ plan, t, field, locale, nf, name, month, keep }) {
     { h: t.shNotes, lines: 4 },
   ];
   const events = plan.rows.flat().flatMap((o) => [{ kind: "sow", name: name(o.crop), abs: o.abs, span: 1 }, { kind: "harvest", name: name(o.crop), abs: o.abs + o.months - 1, span: 1 }]);
+  const glance = [
+    { icon: "📅", title: t.gcYears, text: fill(t.gcYearsText, { n: nf.format(plan.years), m: month(plan.origin) }) },
+    { icon: "🌾", title: t.gcCrops, text: plan.rows.map((placed, y) => `${fill(t.mpYear, { n: nf.format(y + 1) })}: ${placed.map((o) => name(o.crop)).join(", ")}`).join(". ") },
+    { icon: "🌱", title: t.gcSoil, text: fill(t.gcLegYears, { a: nf.format(plan.legumeYears), n: nf.format(plan.years) }) },
+    { icon: "⚠️", title: t.gcRisk, text: plan.returns.length ? fill(t.gcFamBad, { n: nf.format(plan.returns.length) }) : t.gcFamOk },
+  ];
   const lines = plan.rows.map((placed, y) => `${fill(t.mpYear, { n: nf.format(y + 1) })}: ${yearLine(placed)}`).join(". ");
   const short = fill(t.shTextYears, { field: (field && field.name) || t.shNoName, n: nf.format(plan.years), lines });
-  return { title: fill(t.mpTitle, { n: nf.format(plan.years) }), file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: `${t.mpCaveat} ${t.shFoot}`, events };
+  return { title: fill(t.mpTitle, { n: nf.format(plan.years) }), file: (field && field.name) || "", meta: header(field, t, locale), blocks, short: short.replace(/\s+/g, " ").trim(), foot: `${t.mpCaveat} ${t.shFoot}`, events, glance };
 }
 
 // SMS size: one message holds 160 characters (70 when any Bangla letter is in it); longer texts are split into parts of 153 (67)

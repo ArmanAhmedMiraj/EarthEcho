@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { smsSize } from "./sheetData.js";
 import { buildIcs, downloadIcs } from "./ics.js";
+import { canSpeak, pickVoice, speakAll, stopSpeaking } from "./speak.js";
 import "./sheet.css";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
@@ -9,6 +10,8 @@ const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${
 function Sheet({ t, lang, model, onClose }) {
   const [text, setText] = useState(model.short);
   const [note, setNote] = useState("");
+  const [talking, setTalking] = useState(false);
+  const [voiceMsg, setVoiceMsg] = useState("");
   const box = useRef(null);
   const nfL = new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en-US");
   const size = smsSize(text);
@@ -28,6 +31,7 @@ function Sheet({ t, lang, model, onClose }) {
       window.removeEventListener("keydown", key);
       document.body.classList.remove("ef-sheet-open");
       document.title = prevTitle;
+      stopSpeaking();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -44,6 +48,15 @@ function Sheet({ t, lang, model, onClose }) {
   const share = async () => { try { await navigator.share({ text }); } catch { /* closed by the person */ } };
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
   const enc = encodeURIComponent(text);
+  const listen = async () => {
+    if (talking) { stopSpeaking(); setTalking(false); return; }
+    setVoiceMsg("");
+    if (!canSpeak()) { setVoiceMsg(t.rdNoSupport); return; }
+    const found = await pickVoice(lang === "bn" ? "bn" : "en");
+    if (!found.ok) { setVoiceMsg(lang === "bn" ? t.rdNoBangla : t.rdNoVoice); return; }
+    setTalking(true);
+    speakAll((model.glance || []).map((g) => `${g.title}${lang === "bn" ? "। " : ". "}${g.text}`), found.voice, found.lang, () => setTalking(false));
+  };
   const field = model.file || "";
   const makeIcs = () => {
     const ics = buildIcs(model.events || [], { field, calName: `${t.shTitle}${field ? ` - ${field}` : ""}`, text: { sow: t.icSow, harvest: t.icHarvest, note: t.icNote } });
@@ -92,6 +105,15 @@ function Sheet({ t, lang, model, onClose }) {
           <p className="sh-small" role="status">{note}</p>
         </div>
 
+        {model.glance && model.glance.length > 0 && (
+          <div className="sh-short">
+            <b>{t.rdTitle}</b>
+            <p className="sh-small">{t.rdIntro}</p>
+            <div className="sh-actions"><button type="button" className="tab" onClick={listen} aria-pressed={talking}>{talking ? t.rdStop : t.rdPlay}</button></div>
+            <p className="sh-small" role="status">{voiceMsg}</p>
+          </div>
+        )}
+
         {model.events && model.events.length > 0 && (
           <div className="sh-short">
             <b>{t.icTitle}</b>
@@ -103,6 +125,13 @@ function Sheet({ t, lang, model, onClose }) {
         <article className="sh-paper">
           <h1>{model.title}</h1>
           <dl className="sh-meta">{model.meta.map(([k, v], n) => <div key={n}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+          {model.glance && (
+            <div className="sh-glance">
+              {model.glance.map((g, n) => (
+                <div className="sh-g" key={n}><span className="sh-gi" aria-hidden="true">{g.icon}</span><b>{g.title}</b><span>{g.text}</span></div>
+              ))}
+            </div>
+          )}
           {model.blocks.map(renderBlock)}
           <p className="sh-small sh-foot">{model.foot}</p>
           <p className="sh-small">{t.shMadeWith}</p>

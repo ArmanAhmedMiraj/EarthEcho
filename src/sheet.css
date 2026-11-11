@@ -38,3 +38,9 @@
   .sh-block { break-inside: avoid; }
   .sh-table tr { break-inside: avoid; }
 }
+
+/* Icon-first summary */
+.sh-glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 10px 0 4px; }
+.sh-g { display: flex; flex-direction: column; gap: 2px; border: 2px solid #bbb; border-radius: 10px; padding: 8px 10px; font-size: 0.9rem; line-height: 1.35; }
+.sh-gi { font-size: 2rem; line-height: 1.1; }
+@media print { .sh-g { break-inside: avoid; } }
