@@ -158,15 +158,17 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
         </div>
       </div>
 
-      <h3>{t.dsGlance}</h3>
+      <section className="vc">
+<h3>{t.dsGlance}</h3>
       <div className="ds-tiles">
         {tile("ds-quakes", t.dsGlQuake, base.earthquakes.length ? `M ${num.format(base.earthquakes[0].magnitude)}` : t.dsGlQuakeNone, t.dsGlQuakeSub, quakeLv)}
         {tile("ds-alerts", t.dsGlAlerts, nearby.length ? whole.format(nearby.length) : t.dsGlAlertsNone, t.dsGlAlertsSub, alertLv)}
         {tile("ds-river", t.dsGlRiver, flow ? t[`rvShort_${rState}`] : "…", riverName || "", flow ? (riverLevel === "alert" ? "alert" : riverLevel === "watch" ? "watch" : "calm") : "calm")}
         {inBd && tile("ds-upstream", t.dsGlUp, rw ? t[`urLevel_${upWorst}`] : "…", t.dsGlUpSub, upWorst)}
       </div>
-
-      {lines.length > 0 && (
+      </section>
+      <section className="vc">
+{lines.length > 0 && (
         <>
           <h3>{t.sumTitle}
             <Info t={t} source="USGS · GDACS · NASA EONET · GloFAS">
@@ -178,8 +180,9 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
           <ul className="ds-sum">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
         </>
       )}
-
-      <h3 id="ds-alerts">{t.alertsTitle}
+      </section>
+      <section className="vc">
+<h3 id="ds-alerts">{t.alertsTitle}
         <Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info>
       </h3>
       {nearby.length === 0 ? <p className="muted">{t.alertsNone}</p> : (
@@ -194,8 +197,9 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
           ))}
         </ul>
       )}
-
-      <h3 id="ds-quakes">{t.quakeTitle}
+      </section>
+      <section className="vc">
+<h3 id="ds-quakes">{t.quakeTitle}
         <Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info>
       </h3>
       {base.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
@@ -216,20 +220,22 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
         </ul>
       )}
       <p className="muted small">{t.qNoteShort}</p>
-
-      {rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
+      </section>
+      <section className="vc">
+{rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
       {rwState === "failed" && <p className="warn small">{t.urFailed} <button className="tab" onClick={loadRiver}>{t.urRetry}</button></p>}
       {rw && <RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} />}
       {inBd && rw && rw.stations.length > 0 && <Upstream t={t} locale={locale} rw={rw} />}
-
-      {tips.length > 0 && (
+      </section>
+      <section className="vc">
+{tips.length > 0 && (
         <>
           <h3>{t.tipsTitle}</h3>
           <ul>{tips.map((x, i) => <li key={i}>{x}</li>)}</ul>
           <p className="muted small">{t.tipsNote}</p>
         </>
       )}
-
+      </section>
       <p className="muted small">{t.goWeather}</p>
       {office && (
         <p className="small">

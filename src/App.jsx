@@ -922,31 +922,33 @@ export default function App() {
 
   return (
     <div className={`app${stage === "app" ? " has-nav" : ""}`}>
+      {stage !== "app" && (
       <header className="topbar">
-        <div className="brand">
-          <Logo size={76} />
-          <div>
-            <h1>{t.appName}</h1>
-            <p className="tagline">{t.tagline}</p>
+          <div className="brand">
+            <Logo size={76} />
+            <div>
+              <h1>{t.appName}</h1>
+              <p className="tagline">{t.tagline}</p>
+            </div>
           </div>
-        </div>
-        <div className="controls">
-          <label>
-            <span className="sr-only">{t.language}</span>
-            <select value={lang} onChange={(e) => setLang(e.target.value)}>
-              {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code}>{l.label}</option>
-              ))}
-            </select>
-          </label>
-          <button className="tab icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? t.themeLight : t.themeDark} title={theme === "dark" ? t.themeLight : t.themeDark}>
-            <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
-          </button>
-          {stage !== "welcome" && <AccountControl t={t} user={user} onLogin={() => setAuthModal("login")} />}
-        </div>
-      </header>
+          <div className="controls">
+            <label>
+              <span className="sr-only">{t.language}</span>
+              <select value={lang} onChange={(e) => setLang(e.target.value)}>
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+            </label>
+            <button className="tab icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? t.themeLight : t.themeDark} title={theme === "dark" ? t.themeLight : t.themeDark}>
+              <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
+            </button>
+            {stage !== "welcome" && <AccountControl t={t} user={user} onLogin={() => setAuthModal("login")} />}
+          </div>
+        </header>
+      )}
       <Flash t={t} />
-      {!user && stage !== "welcome" && <GuestBar t={t} onLogin={() => setAuthModal("register")} />}
+      {!user && stage !== "welcome" && stage !== "app" && <GuestBar t={t} onLogin={() => setAuthModal("register")} />}
       {authModal && <AuthModal t={t} initialTab={authModal} onClose={() => setAuthModal(null)} />}
       {reminder && (
         <GuestReminder
@@ -992,42 +994,47 @@ export default function App() {
             </button>
           </nav>
 
-          <Gallery t={t} state={photos} banner>
-            <div className="placebar-place">
-              <strong>{activeField ? activeField.name : label.title}</strong>
-              <span className="small">
-                {label.path && label.path !== label.title ? `${label.path} · ` : ""}
-                {pos.lat}, {pos.lon}
-                {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
-                {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
-              </span>
-              <div className="fd-pills" role="group" aria-label={t.fdSwitch}>
-                <span className="pl-label"><Icon name="pin" size={16} /> {t.navPlace}</span>
-                {fields.map((f) => (
-                  <button
-                    key={f.id}
-                    className={`fd-pill${f.id === activeId ? " on" : ""}`}
-                    aria-pressed={f.id === activeId}
-                    title={f.name}
-                    onClick={() => { if (f.id !== activeId) openField(f, { tab }); }}
-                  >
-                    {f.id === activeId ? "✓ " : ""}{f.name}
-                  </button>
-                ))}
-                <button className="fd-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
-              </div>
+          <header className="ctx">
+            <div className="ctx-l">
+              <label className="ctx-pill ctx-farm">
+                <Icon name="pin" size={18} />
+                <span className="sr-only">{t.navPlace}</span>
+                <select value={activeId || ""} onChange={(e) => { const f = fields.find((x) => x.id === e.target.value); if (f && f.id !== activeId) openField(f, { tab }); }} aria-label={t.fdSwitch}>
+                  {fields.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                </select>
+              </label>
+              {activeField && (plots.length > 1 || !PLOT_TABS.includes(tab)) && !(tab === "data") && <span className="ctx-sep" aria-hidden="true">›</span>}
               {activeField && (
-                <PlotBar
-                  t={t}
-                  plots={plots}
-                  activeId={activePlotId}
-                  onSelect={selectPlot}
-                  whole={!PLOT_TABS.includes(tab)}
-                  hidden={tab === "data"}
-                />
+                <PlotBar t={t} plots={plots} activeId={activePlotId} onSelect={selectPlot} whole={!PLOT_TABS.includes(tab)} hidden={tab === "data"} />
+              )}
+              <button type="button" className="ctx-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
+            </div>
+            <div className="ctx-r">
+              <label className="ctx-pill ctx-lang">
+                <span className="sr-only">{t.language}</span>
+                <select value={lang} onChange={(e) => setLang(e.target.value)}>
+                  {LANGUAGES.map((l) => (<option key={l.code} value={l.code}>{l.label}</option>))}
+                </select>
+              </label>
+              <button type="button" className="ctx-round" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? t.themeLight : t.themeDark} title={theme === "dark" ? t.themeLight : t.themeDark}>
+                <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
+              </button>
+              {user ? <AccountControl t={t} user={user} onLogin={() => setAuthModal("login")} /> : (
+                <button type="button" className="ctx-guest" onClick={() => setAuthModal("register")} title={t.acGuestBar}>
+                  <b>{t.acGuestBadge}</b> · {t.acGuestBarBtn}
+                </button>
               )}
             </div>
-          </Gallery>
+          </header>
+          <p className="ctx-sub">
+            <strong>{activeField ? activeField.name : label.title}</strong>
+            <span>
+              {label.path && label.path !== label.title ? `${label.path} · ` : ""}
+              {pos.lat}, {pos.lon}
+              {terrain ? ` · ${t.elevationShort}: ${terrain.elevationM} m` : ""}
+              {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
+            </span>
+          </p>
         </>
       )}
 
@@ -1279,6 +1286,12 @@ export default function App() {
         {t.footer}{" "}
         <a href={`${import.meta.env.BASE_URL}admin/world/ATTRIBUTION.md`} target="_blank" rel="noreferrer">{t.boundaryCredits}</a>
       </footer>
+      {stage === "app" && (
+        <details className="ctx-photos">
+          <summary>{t.orbPhotos}</summary>
+          <Gallery t={t} title={label.title} subtitle={label.path} state={photos} />
+        </details>
+      )}
     </div>
   );
 }

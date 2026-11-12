@@ -111,7 +111,10 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, o
   return (
     <div className="viewer soilpage">
       <h2>{t.soilPageTitle}</h2>
-      <p className="muted">{t.soilPageIntro}</p>
+      <section className="vc soil-hero">
+        <div>
+          <p className="muted">{t.soilPageIntro}</p>
+        </div>
       {tex && (
         <svg className="soil-block" viewBox="-130 -70 260 180" role="img" aria-label={t.soilNames[tex.simple]}>
           {(() => {
@@ -126,6 +129,7 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, o
           })()}
         </svg>
       )}
+      </section>
 
       <div className="soil-grid">
         {tex && (

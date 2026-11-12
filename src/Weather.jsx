@@ -97,6 +97,7 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         </div>
         <div className="wx-sky-r">
           <p className="wx-sky-h">{t.hoursTitle}</p>
+          <p className="wx-sky-leg small"><span><i className="a" />{t.wfLegTemp}</span><span><i className="b" />{t.wfLegRain}</span></p>
           <SkyChart compact={typeof window !== "undefined" && window.innerWidth < 700} hours={plus.hours.slice(0, typeof window !== "undefined" && window.innerWidth < 700 ? 24 : 48)} label={t.hoursTitle} rainLabel={t.wfLegRain} tempLabel={t.wfLegTemp} hourFmt={(iso) => new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(new Date(iso))} />
         </div>
       </section>
@@ -112,6 +113,7 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         <div className="wx-fact"><span>{t.wxSunrise} / {t.wxSunset}</span><strong>{timeLabel.format(new Date(today.sunrise))} / {timeLabel.format(new Date(today.sunset))}</strong></div>
       </div>
 
+      <section className="vc">
       <h3>{t.alertsTitle}</h3>
       {alerts.length === 0 ? <p className="muted">{t.alertsNone}</p> : alerts.map((a) => (
         <div key={a.id} className={`wx-alert ${a.level}`}><b>{t[`level_${a.level}`]}</b><span>{alertText(a)}</span></div>
@@ -126,6 +128,9 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
 
       <WxHours t={t} locale={locale} hours={plus.hours} days={plus.days} />
 
+      </section>
+
+      <section className="vc">
       <h3 className="wf-h">{t.workTitle}<Info t={t} source="Open-Meteo"><span>{t.workNote}</span></Info></h3>
       <div className="wx-two">
         <div className="wx-box">
@@ -151,10 +156,13 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         </div>
       </div>
 
-      <DrySpell t={t} locale={locale} lat={lat} lon={lon} soilKey={soil} rain7={rain7} onGo={onGo} />
-      <SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} />
-      <SimilarYear t={t} locale={locale} lat={lat} lon={lon} />
+      </section>
 
+      <section className="vc"><DrySpell t={t} locale={locale} lat={lat} lon={lon} soilKey={soil} rain7={rain7} onGo={onGo} /></section>
+      <section className="vc"><SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} /></section>
+      <section className="vc"><SimilarYear t={t} locale={locale} lat={lat} lon={lon} /></section>
+
+      <section className="vc">
       <h3 className="wf-h">{t.wfOutlookTitle}<Info t={t} source="Open-Meteo"><span>{t.outlookNote}</span></Info></h3>
       <div className="wx-outlook">
         {plus.days.map((d) => {
@@ -171,6 +179,9 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         })}
       </div>
 
+      </section>
+
+      <section className="vc">
       <h3 className="wf-h">{t.wfPastTitle}<Info t={t} source="Open-Meteo"><span>{t.pastNote}</span></Info></h3>
       <div className="wx-outlook">
         {plus.past.map((d) => {
@@ -186,6 +197,9 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         })}
       </div>
 
+      </section>
+
+      <section className="vc">
       <h3 className="wf-h">{t.newsTitle}<Info t={t} source={t.wfNewsSrc}><span>{t.newsNote}</span></Info></h3>
       {news.state === "loading" && <p className="muted">{t.newsLoading}{news.tries > 0 ? ` ${t.newsSlow}` : ""}</p>}
       {news.state === "busy" && (
@@ -202,7 +216,9 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
           ))}
         </ul>
       ))}
-      <h3 className="wf-h">{t.creditsTitle}<Info t={t} source={t.wfAllSources}><span>{t.credits}</span></Info></h3>
+      </section>
+
+      <section className="vc"><h3 className="wf-h">{t.creditsTitle}<Info t={t} source={t.wfAllSources}><span>{t.credits}</span></Info></h3></section>
     </div>
   );
 }

@@ -90,38 +90,6 @@ export default function WxHours({ t, locale, hours, days }) {
         ))}
       </div>
 
-      <div ref={wrap} className="wf-chartwrap">
-        <svg className="wf-chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t.wfNextTitle}>
-          {night.map((b) => <rect key={b.from} x={x(b.from) - 3} y={T} width={x(b.to) - x(b.from) + 6} height={base - T} className="wf-night" />)}
-          {grid.map((v) => (
-            <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="wf-grid" /><text x={L - 6} y={y(v) + 4} textAnchor="end" className="wf-ax">{v}°</text></g>
-          ))}
-          {hours.map((h, i) => {
-            const bh = ((h.rain || 0) / maxRain) * 64;
-            return bh > 0.5 ? <rect key={i} x={x(i) - bw / 2} y={base - bh} width={bw} height={bh} className="wf-bar"><title>{`${at(h.time)}: ${nf1.format(h.rain)} mm`}</title></rect> : null;
-          })}
-          {groups.slice(1).map((g) => <line key={g.date} x1={x(g.from)} x2={x(g.from)} y1={T - 6} y2={base} className="wf-sep" />)}
-          <path d={line} className="wf-line" fill="none" />
-          {groups.slice(0, 3).map((g, gi) => {
-            const pts = [[g.hi, -9, t.wfHottest], [g.lo, 17, t.wfCoolest]];
-            return pts.map(([p, dy], k) => (
-              <g key={`${gi}${k}`}>
-                <circle cx={x(p.i)} cy={y(p.temp)} r="4.5" className={k ? "wf-dot cool" : "wf-dot hot"} />
-                <text x={Math.min(Math.max(x(p.i), L + 16), W - R - 16)} y={y(p.temp) + dy} textAnchor="middle" className="wf-val">{nf.format(p.temp)}°</text>
-              </g>
-            ));
-          })}
-          {groups.slice(0, 3).map((g, gi) => (
-            <text key={g.date} x={x(g.from) + 6} y={T - 12} className="wf-dayname">{[t.wfToday, t.wfTomorrow][gi] || ""}</text>
-          ))}
-          {hours.map((h, i) => (new Date(h.time).getHours() % tickEvery === 0 ? <text key={i} x={x(i)} y={H - 20} textAnchor="middle" className="wf-ax">{at(h.time)}</text> : null))}
-        </svg>
-        <div className="wf-legend" aria-hidden="true">
-          <span><i className="wf-lg-line" />{t.wfLegTemp}</span>
-          <span><i className="wf-lg-bar" />{t.wfLegRain}</span>
-          <span><i className="wf-lg-night" />{t.wfNight}</span>
-        </div>
-      </div>
     </section>
   );
 }

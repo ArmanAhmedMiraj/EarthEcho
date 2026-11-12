@@ -194,13 +194,13 @@ export default function Suitability({ t, lang, lat, lon, env, soilData, field })
       <h2>{t.suitTitle}</h2>
       <p className="muted">{t.suitIntro}</p>
 
-      <FieldNote t={t} lang={lang} field={field} results={results} mode={key} locale={locale} />
-
       {sorted.length > 0 && (
         <div className="vz-rings">
           {sorted.slice(0, 3).map((r, i) => <Ring key={r.crop.id} value={r[key].best} label={name(r.crop)} sub={lang === "bn" ? r.crop.en : r.crop.sci} hue={["var(--a1)", "var(--gold)", "var(--a2)"][i]} />)}
         </div>
       )}
+
+      <FieldNote t={t} lang={lang} field={field} results={results} mode={key} locale={locale} />
 
       <div className="suit-basis small">
         <strong>{t.suitBasis}</strong>

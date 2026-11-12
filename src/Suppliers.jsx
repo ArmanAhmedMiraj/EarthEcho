@@ -73,7 +73,7 @@ export default function Suppliers({ t, lang, lat, lon }) {
   const counts = CATEGORIES.reduce((o, c) => ({ ...o, [c]: (items || []).filter((i) => i.category === c).length }), {});
 
   return (
-    <div>
+    <div className="sp-page">
       <p className="muted">{t.spIntro}</p>
       <div className="sp-controls">
         <label>{t.spRadius}
@@ -89,8 +89,12 @@ export default function Suppliers({ t, lang, lat, lon }) {
           </button>
         ))}
       </div>
+      <div className="sp-split">
+      <div className="sp-left">
       <div ref={mapEl} className="sp-map" />
       <p className="muted small">{t.spMapNote}</p>
+      </div>
+      <div className="sp-right">
 
       {state === "loading" && <p className="muted">{t.spLoading}</p>}
       {state === "failed" && (<div><p className="warn">{t.spFailed}</p><p className="muted small">{why}</p><button className="tab" onClick={load}>{t.spRetry}</button></div>)}
@@ -118,6 +122,8 @@ export default function Suppliers({ t, lang, lat, lon }) {
           </ul>
         </>
       ))}
+      </div>
+      </div>
       <p className="muted small">{t.spHonest}</p>
       <p className="muted small">{t.spCredits}</p>
     </div>

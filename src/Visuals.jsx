@@ -115,6 +115,15 @@ export function SkyChart({ hours, label, rainLabel, tempLabel, hourFmt, compact 
       <path d={`${line} L${X(n - 1)} ${h - 24} L${X(0)} ${h - 24} Z`} fill="url(#vzTemp)" opacity="0.5" />
       <defs><linearGradient id="vzTemp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f6cf6a" stopOpacity="0.55" /><stop offset="1" stopColor="#f6cf6a" stopOpacity="0" /></linearGradient></defs>
       <path d={line} fill="none" stroke="#f6cf6a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      {[0, 24].map((from) => {
+        const part = hours.slice(from, from + 24);
+        if (part.length < 12) return null;
+        const hi = part.reduce((b, x, k) => (x.temp > b.x.temp ? { x, k } : b), { x: part[0], k: 0 });
+        const lo = part.reduce((b, x, k) => (x.temp < b.x.temp ? { x, k } : b), { x: part[0], k: 0 });
+        return [[hi, -9, "#fff3c4"], [lo, 17, "#d9eaff"]].map(([p, dy, col], j) => (
+          <g key={`${from}${j}`}><circle cx={X(from + p.k)} cy={Y(p.x.temp)} r="4.5" fill={col} stroke="#0b1235" strokeWidth="1.5" /><text x={X(from + p.k)} y={Y(p.x.temp) + dy} textAnchor="middle" className={`vz-sky-k${compact ? " lg" : ""}`}>{Math.round(p.x.temp)}°</text></g>
+        ));
+      })}
       {ticks.map(({ x, i }) => <text key={i} x={X(i)} y={h - 6} textAnchor="middle" className={`vz-sky-t${compact ? " lg" : ""}`}>{hourFmt(x.time)}</text>)}
       <text x={pad} y="14" className={`vz-sky-k${compact ? " lg" : ""}`}>{tempLabel}</text>
     </svg>

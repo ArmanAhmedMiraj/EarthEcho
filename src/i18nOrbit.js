@@ -32,6 +32,7 @@ export const ORBIT_TEXT = {
     orbScene4: "Soil",
     orbScene5: "Groundwater",
     orbSetupTitle: "Log in or register",
+    orbPhotos: "Photos of this place",
   },
   bn: {
     orbBadge: "আপনার জমির জন্য NASA-র উপগ্রহ পড়ছে",
@@ -65,5 +66,6 @@ export const ORBIT_TEXT = {
     orbScene4: "মাটি",
     orbScene5: "ভূগর্ভস্থ পানি",
     orbSetupTitle: "লগ ইন বা নিবন্ধন",
+    orbPhotos: "এই জায়গার ছবি",
   },
 };

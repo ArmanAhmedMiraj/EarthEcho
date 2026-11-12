@@ -92,3 +92,6 @@
 .maplibregl-canvas { border-radius: inherit; }
 @media (prefers-reduced-motion: reduce) { .as-orb i, .dt-sat { animation: none !important; } }
 .vz-sky-t.lg { font-size: 13px; } .vz-sky-k.lg { font-size: 14px; }
+.wx-sky-leg { display: flex; gap: 14px; margin: 0 0 4px; opacity: 0.95; }
+.wx-sky-leg i { display: inline-block; width: 18px; height: 5px; border-radius: 3px; margin-inline-end: 6px; vertical-align: middle; }
+.wx-sky-leg i.a { background: #f6cf6a; } .wx-sky-leg i.b { background: #7fb2ff; height: 10px; width: 8px; }

@@ -146,10 +146,7 @@ html[data-tab="environment"] { --hue: #5fcf7c; }
 html[data-tab="assistant"] { --hue: #b69cff; }
 html[data-tab="data"] { --hue: #7fb2ff; }
 .page { position: relative; margin-top: 18px; }
-.page::before {
-  content: ""; position: absolute; z-index: -1; pointer-events: none; inset: -30px 0 auto 0; height: 380px;
-  background: radial-gradient(ellipse 520px 260px at 86% 0%, color-mix(in srgb, var(--hue) 30%, transparent), transparent 100%);
-}
+
 .page > .viewer:first-child { position: relative; }
 .page > .viewer:first-child::after {
   content: ""; position: absolute; z-index: -1; pointer-events: none; top: 8px; right: 12px; width: 190px; height: 140px; opacity: 0.32;
@@ -289,3 +286,61 @@ html[data-tab="farms"] .page > .viewer:first-child::after { top: -4px; right: 14
 .ir2-hero { order: -1; margin-bottom: 14px; }
 .ds-level { display: none; }
 html[data-tab="data"] .page > .viewer:first-child::after { display: none; }
+
+/* ============ THE FRAME: context row (farm › plot), no photo banner ============ */
+.ctx { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 2px; }
+.ctx-l, .ctx-r { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.ctx-pill, .ctx-round, .ctx-guest, .ctx .fd-pill {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; font: 700 1rem inherit; font-family: inherit; cursor: pointer;
+  color: var(--text); background: var(--panel); border: 1px solid var(--border-strong); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.ctx-pill select { all: unset; cursor: pointer; font-weight: 700; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline-end: 4px; }
+.ctx-pill select option { color: #0d1b2a; background: #fff; }
+:root[data-theme="dark"] .ctx-pill select option { color: #eef1ff; background: #0e1738; }
+.ctx-pill.add { border-style: dashed; background: transparent; color: var(--muted); font-weight: 600; }
+.ctx-pill.add:hover { color: var(--text); border-color: var(--accent); }
+.ctx-round { width: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+.ctx-guest { background: var(--gold-soft); border-color: color-mix(in srgb, var(--gold) 55%, transparent); font-weight: 600; font-size: 0.95rem; }
+.ctx-guest b { font-weight: 800; }
+.ctx-sep { color: var(--muted); }
+.ctx .pl-bar { display: contents; margin: 0; padding: 0; }
+.ctx .pl-bar .pl-label { display: none; }
+.ctx .fd-pill.on { background: var(--accent-soft); border-color: var(--accent); }
+.ctx .pl-whole { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px dashed var(--border-strong); color: var(--muted); margin: 0; }
+.ctx-sub { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; margin: 10px 4px 0; }
+.ctx-sub strong { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
+.ctx-sub span { color: var(--muted); font-size: 0.95rem; }
+.ctx-photos { margin: 22px 0 10px; border: 1px solid var(--border); border-radius: 22px; background: var(--panel); padding: 6px 16px; }
+.ctx-photos summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+@media (min-width: 1024px) { .app.has-nav > .ctx { padding-top: 6px; } }
+@media (max-width: 700px) { .ctx-pill select { max-width: 130px; } .ctx-guest { font-size: 0.85rem; padding: 0 12px; } }
+
+/* ============ PAGES: no outer box. Each section is its own glass card, like the concept screens ============ */
+.page > .viewer { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0; border-radius: 0; }
+.page > .viewer > h2:first-child { font-size: clamp(1.9rem, 4vw, 2.6rem); letter-spacing: -0.03em; margin: 6px 0 4px; }
+.page > .viewer > h2:first-child::before { display: none; }
+.page > .viewer > p.muted:first-of-type { font-size: 1.1rem; max-width: 46em; }
+.vc { background: var(--panel); border: 1px solid var(--border); border-radius: 24px; padding: clamp(16px, 2.4vw, 24px); margin: 16px 0; -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); box-shadow: 0 18px 44px -28px var(--shadow); }
+.vc > h3:first-child, .vc > .wf-h:first-child { margin-top: 0; }
+.vc .card { background: var(--panel-2); }
+.page > .viewer:first-child::after { display: none !important; }
+.app .suit-now, .app .suit-method, .app .suit-basis, .app .fieldnote, .app .fn-card, .app .ir2-need, .app .rb-needs, .app .wx-box {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 24px; padding: clamp(14px, 2.2vw, 22px); margin: 14px 0;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+.app .suit-basis { border-radius: 18px; }
+.app .wx-box { margin: 0; }
+.app .fd-note { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 12px 16px; }
+.soil-hero { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; align-items: center; }
+.soil-hero .soil-block { margin: 0 auto; }
+@media (max-width: 700px) { .soil-hero { grid-template-columns: 1fr; } }
+
+/* suppliers: the map first, the nearest-first list beside it */
+.sp-controls, .sp-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+.sp-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.app .sp-map { border-radius: 24px; overflow: hidden; border: 1px solid var(--border); min-height: 440px; box-shadow: 0 24px 50px -28px var(--shadow); }
+.app .sp-chip { border-radius: 999px; min-height: 44px; padding: 0 14px; background: var(--panel); border: 1px solid var(--border-strong); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.app .sp-chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.app .sp-item { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 12px 14px; margin: 0 0 10px; list-style: none; }
+.sp-list { padding: 0; max-height: 640px; overflow: auto; }
+@media (max-width: 900px) { .sp-split { grid-template-columns: 1fr; } }
