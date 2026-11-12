@@ -23,6 +23,15 @@
     },
     "api/assistant.js": {
       "maxDuration": 60
+    },
+    "api/account.js": {
+      "maxDuration": 15
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/api/account?a=health"
+    }
+  ]
 }

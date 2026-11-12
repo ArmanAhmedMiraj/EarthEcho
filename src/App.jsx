@@ -28,6 +28,9 @@ import { ENV_TEXT } from "./i18nEnv.js";
 import { WEATHER_TEXT } from "./i18nWeather.js";
 import { TRUST_TEXT } from "./i18nTrust.js";
 import { SHEET_TEXT } from "./i18nSheet.js";
+import { ACCOUNT_TEXT, ACCOUNT_USER_TEXT } from "./i18nAccount.js";
+import { Landing, AuthModal, AccountControl, GuestBar, GuestReminder, Flash } from "./Account.jsx";
+import { getUser, isGuestChosen, chooseGuest, startAutoSync, checkSession } from "./account.js";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import { DISASTER_TEXT } from "./i18nDisasters.js";
 import Disasters from "./Disasters.jsx";
@@ -156,9 +159,45 @@ export default function App() {
   const nextTab = useRef("farms"); // the tab to open once a field has been prepared
   const [movingId, setMovingId] = useState(""); // a saved field whose pin is being moved
   const [newName, setNewName] = useState(""); // the name typed for a field that is about to be saved
-  const [stage, setStage] = useState(() => (fields.length > 0 ? "boot" : "explore"));
+  const [user] = useState(getUser); // the signed-in person, or null for a guest
+  const [stage, setStage] = useState(() => (fields.length > 0 ? "boot" : user || isGuestChosen() ? "explore" : "welcome"));
+  const [authModal, setAuthModal] = useState(null); // null | "login" | "register"
+  const [reminder, setReminder] = useState(null); // null | "visit" | "farm": the guest notice on screen
+  const returningGuest = useRef(!user && fields.length > 0); // saved fields from an earlier visit were already here when the app opened
+  const remindedVisit = useRef(false);
   const stageRef = useRef(stage);
   stageRef.current = stage;
+
+  // signed in: keep My Farm in step with the account, and pick up changes made on another device
+  useEffect(() => {
+    if (!user) return undefined;
+    startAutoSync();
+    checkSession();
+    const pulled = () => { setFields(loadFields()); setActiveId(loadActiveId()); };
+    window.addEventListener("ef-synced", pulled);
+    return () => window.removeEventListener("ef-synced", pulled);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // a guest who comes back to saved fields is reminded, once per visit, that the data lives only on this device
+  useEffect(() => {
+    if (stage !== "app" || user || !returningGuest.current || remindedVisit.current) return;
+    remindedVisit.current = true;
+    let seen = false;
+    try { seen = sessionStorage.getItem("ef-remind-visit") === "1"; sessionStorage.setItem("ef-remind-visit", "1"); } catch { /* storage blocked */ }
+    if (!seen) setReminder("visit");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage]);
+
+  // a guest who starts typing farm details is reminded once per visit
+  const farmTyping = () => {
+    if (user || reminder) return;
+    try {
+      if (sessionStorage.getItem("ef-remind-farm") === "1") return;
+      sessionStorage.setItem("ef-remind-farm", "1");
+    } catch { /* storage blocked: the notice may show again, which is harmless */ }
+    setReminder("farm");
+  };
   const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
   const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
   const [soilData, setSoilData] = useState(null); // SoilGrids reading of the confirmed place
@@ -177,7 +216,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang] };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -825,8 +864,21 @@ export default function App() {
           <button className="btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             {theme === "dark" ? t.themeLight : t.themeDark}
           </button>
+          {stage !== "welcome" && <AccountControl t={t} user={user} onLogin={() => setAuthModal("login")} />}
         </div>
       </header>
+      <Flash t={t} />
+      {!user && stage !== "welcome" && <GuestBar t={t} onLogin={() => setAuthModal("register")} />}
+      {authModal && <AuthModal t={t} initialTab={authModal} onClose={() => setAuthModal(null)} />}
+      {reminder && (
+        <GuestReminder
+          t={t}
+          kind={reminder}
+          onClose={() => setReminder(null)}
+          onLogin={() => { setReminder(null); setAuthModal("register"); }}
+        />
+      )}
+      {stage === "welcome" && <Landing t={t} onGuest={() => { chooseGuest(); setStage("explore"); }} />}
 
       <ErrorBoundary title={t.pageNeedsNet} retry={t.envRetry}>
       <Suspense fallback={<p className="muted page-loading" role="status">{t.fdLoadingField}</p>}>
@@ -1045,7 +1097,7 @@ export default function App() {
       )}
 
       {stage === "app" && tab === "farms" && (
-        <main className="page">
+        <main className="page" onInputCapture={farmTyping}>
           <div className="viewer">
             <h2>{t.fdTitle}</h2>
             <Farms
