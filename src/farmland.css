@@ -1,0 +1,48 @@
+/* farmland boundary tools */
+.fl-overlay { position: fixed; inset: 0; z-index: 2500; background: rgba(4, 14, 10, 0.8); display: flex; align-items: stretch; justify-content: center; padding: 0; }
+.fl-shell { width: 100%; max-width: 1200px; display: flex; flex-direction: column; background: var(--panel); color: var(--text); }
+.fl-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.fl-head h2 { margin: 0; font-size: 1.1rem; }
+.fl-x { background: none; border: 0; color: var(--text); font-size: 1.3rem; padding: 6px 10px; cursor: pointer; }
+.fl-body { flex: 1; min-height: 0; display: flex; flex-direction: column-reverse; }
+.fl-side { padding: 10px 14px; overflow: auto; max-height: 48vh; display: flex; flex-direction: column; gap: 10px; }
+.fl-mapwrap { flex: 1; min-height: 40vh; position: relative; }
+.fl-map { position: absolute; inset: 0; }
+.fl-box { border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; }
+.fl-box p { margin: 4px 0; }
+.fl-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.fl-plots { display: flex; gap: 6px; flex-wrap: wrap; }
+.fl-chip { border: 2px solid var(--border); background: transparent; color: var(--text); border-radius: 99px; padding: 4px 12px; font: inherit; font-size: 0.86rem; cursor: pointer; }
+.fl-chip.on { background: rgba(255, 213, 79, 0.2); font-weight: 700; }
+.fl-chip.add { border-style: dashed; }
+.fl-area { display: flex; flex-direction: column; gap: 2px; border-radius: 12px; background: rgba(46, 160, 110, 0.12); padding: 8px 10px; }
+.fl-area b { font-size: 1.15rem; }
+.fl-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+.fl-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
+.fl-pt { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; background: #e53935; color: #fff; font-size: 0.72rem; font-weight: 700; padding: 0; cursor: grab; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+.fl-pt.on { background: #ffeb3b; color: #000; border-color: #000; transform: scale(1.2); }
+.fl-mid { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; background: rgba(255, 255, 255, 0.35); padding: 0; cursor: copy; }
+.fl-me { width: 18px; height: 18px; border-radius: 50%; background: #1e88e5; border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(30, 136, 229, 0.3); }
+.fl-ovmap { position: relative; height: 340px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); margin: 8px 0 4px; }
+.fl-ovbar { position: absolute; left: 8px; top: 8px; display: flex; gap: 6px; flex-wrap: wrap; z-index: 2; }
+.fl-plotlist { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+.fl-plotrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.fl-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+/* farm picker and name */
+.fl-picker { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 10px; }
+.fl-picker > span { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+.fl-picker-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.fl-picker select { flex: 1 1 220px; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--accent); background: var(--panel); color: var(--text); }
+.fl-namerow { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.fl-namerow strong { font-size: 1.2rem; overflow-wrap: anywhere; }
+.fl-pencil { background: none; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; color: var(--text); font-size: 1rem; }
+.fl-manage { margin-top: 16px; border: 1px solid var(--border); border-radius: 14px; padding: 8px 14px; }
+.fl-manage > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+@media (min-width: 820px) {
+  .fl-overlay { padding: 18px; }
+  .fl-shell { border-radius: 18px; overflow: hidden; }
+  .fl-body { flex-direction: row-reverse; }
+  .fl-side { width: 340px; max-height: none; flex: none; }
+  .fl-ovmap { height: 420px; }
+}
+.fl-ovbar .tab { background: rgba(255,255,255,0.92); color: #123; }

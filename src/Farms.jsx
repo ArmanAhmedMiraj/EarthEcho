@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import SeasonRecord from "./SeasonRecord.jsx";
 import "./farms.css";
+import FarmMap from "./FarmMap.jsx";
+import FarmlandEditor from "./FarmlandEditor.jsx";
+import { areaSqm, inUnits, totalSqm } from "./geo.js";
+import { PLOT_COLORS } from "./mapstyle.js";
 import { AREA_UNITS, DETAIL_KEYS, HECTARES_PER, IRRIGATION, OWNERSHIP, detailCount, exportFields, parseFields, sameSpot } from "./fields.js";
 import { SOIL_TYPES } from "./soil.js";
 import { loadCropTable } from "./suitability.js";
@@ -27,6 +32,10 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
   const [note, setNote] = useState("");
   const [section, setSection] = useState("overview");
+  const [editing, setEditing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [focusId, setFocusId] = useState("");
   const [crops, setCrops] = useState([]);
   const fileInput = useRef(null);
   const [installEvent, setInstallEvent] = useState(window.__efInstall || null);
@@ -46,6 +55,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
   const dayFmt = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" });
   const num = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const num1 = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+  const num2 = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
 
   const check = useCallback((list) => {
     list.forEach((farm) => {
@@ -90,10 +100,16 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
     });
     e.target.value = "";
   };
-  const rename = (farm) => {
-    const v = window.prompt(t.fdName, farm.name);
-    if (v && v.trim()) onUpdate(farm.id, { name: v.trim().slice(0, 80) });
+  const openRename = () => { if (active) { setNameDraft(active.name); setRenaming(true); } };
+  const saveName = () => {
+    const v = nameDraft.trim();
+    if (!v || !active) return;
+    onUpdate(active.id, { name: v.slice(0, 80) });
+    setRenaming(false);
   };
+  const parcels = (active && active.parcels) || [];
+  const mappedSqm = totalSqm(parcels);
+  const saveParcels = (list) => { if (active) onUpdate(active.id, { parcels: list }); setEditing(false); };
 
   const alertText = (a) => {
     const v = a.value == null ? "" : num.format(a.value);
@@ -126,11 +142,25 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
       )}
     </>
   );
-  const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["record", t.srSection], ["fields", `${t.fdSecFields} (${num.format(fields.length)})`]];
+  const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["record", t.srSection]];
 
   return (
     <div className="fd">
       <p className="muted small fd-intro">{t.fdIntro}</p>
+      {fields.length > 0 && (
+        <div className="fl-picker">
+          <span id="fl-picker-l">{t.flMyFarms} ({num.format(fields.length)})</span>
+          <div className="fl-picker-row">
+            <select aria-labelledby="fl-picker-l" value={active ? active.id : ""} onChange={(e) => { const f = fields.find((x) => x.id === e.target.value); if (f && (!active || f.id !== active.id)) onOpen(f); }}>
+              {fields.map((f) => <option key={f.id} value={f.id}>{f.name}{areaLine(f) ? ` · ${areaLine(f)}` : ""}</option>)}
+            </select>
+            <button className="tab" onClick={onAdd}>＋ {t.fdAdd}</button>
+          </div>
+        </div>
+      )}
+      {fields.length === 0 && (
+        <div className="fd-add"><p className="muted">{t.fdNoneYet}</p><button className="btn wide" onClick={onAdd}>＋ {t.fdAdd}</button><p className="small muted">{t.fdAddHelp}</p></div>
+      )}
       <div className="fd-seg" role="tablist">
         {SECTIONS.map(([id, text]) => (
           <button key={id} role="tab" aria-selected={section === id} className={section === id ? "on" : ""} onClick={() => setSection(id)}>
@@ -142,11 +172,26 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
 
       {active && section === "overview" && (
         <section className="fd-card" aria-label={t.fdCurrent}>
-          <label className="fd-field">
-            <span>{t.fdName} <Chip kind="you">{t.fdYou}</Chip> <span className="muted">✓ {t.fdSaved}</span></span>
-            <input value={active.name} maxLength={80} onChange={(e) => onUpdate(active.id, { name: e.target.value })} onBlur={(e) => { if (!e.target.value.trim()) onUpdate(active.id, { name: active.path.split("›").pop().trim() || "Field" }); }} />
-          </label>
+          <div className="fl-namerow">
+            <strong>{active.name}</strong>
+            <button className="fl-pencil" onClick={openRename} aria-label={t.flRenameFarm} title={t.flRenameFarm}>✎</button>
+            <span className="small muted">✓ {t.fdSaved}</span>
+          </div>
           <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)} · <button className="fd-link" onClick={onMove}>{t.fdMove}</button></p>
+
+          <h3>{t.flFarmland}{mappedSqm > 0 && <span className="small muted"> · {num1.format(inUnits(mappedSqm).decimal)} {t.flDecimal} ({num2.format(inUnits(mappedSqm).hectare)} ha)</span>}</h3>
+          <FarmMap t={t} lang={lang} field={active} focusId={focusId} onEdit={() => setEditing(true)} />
+          {parcels.length === 0 && <p className="small muted">{t.flNoLand}</p>}
+          {parcels.length > 0 && (
+            <div className="fl-plotlist">
+              {parcels.map((p, i) => (
+                <button key={p.id} className="fl-plotrow" onClick={() => setFocusId(p.id + ":" + Date.now())}>
+                  <span><i className="fl-dot" style={{ background: PLOT_COLORS[i % PLOT_COLORS.length] }} />{p.name}</span>
+                  <span className="small muted">{num1.format(inUnits(areaSqm(p.points)).decimal)} {t.flDecimal} · {num2.format(inUnits(areaSqm(p.points)).acre)} {t.flAcre}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <h3>{t.fdFoundTitle} <Chip kind="system">{t.fdSystem}</Chip></h3>
           <div className="fd-rows">
@@ -198,6 +243,9 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
                   {AREA_UNITS.map((u) => <option key={u} value={u}>{t[`fdUnit_${u}`]}</option>)}
                 </select>
               </span>
+              {mappedSqm > 0 && (
+                <span className="small">{fill(t.flMappedArea, { v: num1.format(inUnits(mappedSqm).decimal) })} <button type="button" className="fd-link" onClick={() => setArea({ value: String(Math.round(inUnits(mappedSqm).decimal * 10) / 10), unit: "decimal" })}>{t.flUseMapped}</button></span>
+              )}
               {hectares != null && <span className="small muted">{t.fdAbout} {fill(t.fdHectares, { h: num1.format(hectares) })}</span>}
             </label>
             <label className="fd-field">
@@ -265,8 +313,8 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
 
       {active && section === "record" && <SeasonRecord t={t} lang={lang} locale={locale} field={active} onUpdate={onUpdate} cropNames={crops} />}
 
-      {section === "fields" && (
-        <section className="fd-card">
+      <details className="fl-manage">
+        <summary>{t.flManage}</summary>
       {fields.length === 0 && <p className="muted">{t.fdNoneYet}</p>}
       {fields.map((farm) => {
         const st = status[farm.id] || {};
@@ -283,7 +331,6 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
             <div className="fm-actions">
               {!current && <button className="tab" onClick={() => onOpen(farm)}>{t.fdUse}</button>}
               <button className="tab" onClick={() => check([farm])}>{t.fmRefresh}</button>
-              <button className="tab" onClick={() => rename(farm)}>{t.fdRename}</button>
               <button className="tab" onClick={() => onRemove(farm)}>{t.fdDelete}</button>
             </div>
           </div>
@@ -309,7 +356,18 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
         <p><button className="tab" onClick={() => { installEvent.prompt(); window.__efInstall = null; setInstallEvent(null); }}>{t.fmInstall}</button></p>
       )}
       <p className="small muted">{t.fmInstallHelp}</p>
-        </section>
+      </details>
+
+      {editing && active && <FarmlandEditor t={t} lang={lang} field={active} onSave={saveParcels} onClose={() => setEditing(false)} />}
+      {renaming && createPortal(
+        <div className="ac-overlay" role="dialog" aria-modal="true" aria-label={t.flRenameFarm} onKeyDown={(e) => { if (e.key === "Escape") setRenaming(false); }}>
+          <form className="ac-modal small" onSubmit={(e) => { e.preventDefault(); saveName(); }}>
+            <h3>{t.flRenameFarm}</h3>
+            <label className="fd-field"><span>{t.fdName}</span><input autoFocus value={nameDraft} maxLength={80} onChange={(e) => setNameDraft(e.target.value)} /></label>
+            <div className="fm-actions"><button type="button" className="tab" onClick={() => setRenaming(false)}>{t.flCancel}</button><button type="submit" className="btn" disabled={!nameDraft.trim()}>{t.flSaveName}</button></div>
+          </form>
+        </div>,
+        document.body,
       )}
     </div>
   );

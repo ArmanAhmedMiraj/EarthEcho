@@ -1,6 +1,8 @@
 // "My Farm": the fields a farmer has saved. Everything lives on the device (localStorage); nothing is sent to any server.
 // A field = a place + a name + optional details the farmer typed (details) + what EarthEcho worked out by itself (system).
 // The two are kept apart, so a farmer's correction never overwrites the original system estimate.
+import { cleanParcels } from "./geo.js";
+
 const KEY = "ef-fields";
 const ACTIVE = "ef-active-field";
 const OLD_KEY = "ef-farms"; // the first version of "My farms" (places only)
@@ -24,6 +26,7 @@ const clean = (f) => ({
   updatedAt: f.updatedAt || Date.now(),
   details: f.details && typeof f.details === "object" ? f.details : {},
   system: f.system && typeof f.system === "object" ? f.system : null,
+  parcels: cleanParcels(f.parcels),
 });
 
 const valid = (f) => f && Number.isFinite(Number(f.lat)) && Number.isFinite(Number(f.lon)) && Math.abs(f.lat) <= 90 && Math.abs(f.lon) <= 180;
