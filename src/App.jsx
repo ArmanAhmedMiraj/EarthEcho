@@ -66,6 +66,8 @@ import AdminPicker from "./AdminPicker.jsx";
 const MapPicker = lazy(() => import("./MapPicker.jsx"));
 const Weather = lazy(() => import("./Weather.jsx"));
 import Logo from "./Logo.jsx";
+import Icon from "./Icons.jsx";
+import { SHELL_TEXT } from "./i18nShell.js";
 const Sources = lazy(() => import("./Sources.jsx"));
 
 // The pages load when first opened. So that every tab also opens with no internet, they are all fetched once
@@ -82,6 +84,15 @@ import "./sources.css";
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
 // the pages that follow the open plot (the others cover the whole location)
 const PLOT_TABS = ["farms", "irrigation", "rotation", "assistant", "suitability", "soil"];
+// the navigation: pages grouped by what the farmer is doing; the first four also sit in the phone's bottom bar
+const NAV_GROUPS = [
+  { label: null, items: ["farms"] },
+  { label: "navToday", items: ["weather", "disasters", "irrigation"] },
+  { label: "navPlan", items: ["rotation", "suitability", "market", "suppliers"] },
+  { label: "navLand", items: ["soil", "environment"] },
+  { label: "navHelp", items: ["assistant", "data"] },
+];
+const NAV_PRIMARY = ["farms", "weather", "irrigation", "rotation"];
 const TABS = ["farms", "weather", "disasters", "irrigation", "rotation", "market", "suppliers", "assistant", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
@@ -148,6 +159,7 @@ export default function App() {
   const [focus, setFocus] = useState(null);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState(tabFromHash);
+  const [navOpen, setNavOpen] = useState(false); // the phone's "all pages" sheet
   const [explainReq, setExplainReq] = useState(null); // a strategy the farmer asked the assistant to explain
   const explainStrategy = (req) => { setExplainReq({ ...req, id: Date.now() }); window.location.hash = "/assistant"; setTab("assistant"); };
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
@@ -230,7 +242,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...BOARD_TEXT[lang], ...EVID_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...BOARD_TEXT[lang], ...EVID_TEXT[lang], ...SHELL_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -894,8 +906,11 @@ export default function App() {
     );
   }
 
+  const tabLabel = (id) => ({ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, assistant: t.tabAssistant, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]);
+  const goTab = (id) => { window.location.hash = `/${id}`; setNavOpen(false); };
+
   return (
-    <div className="app">
+    <div className={`app${stage === "app" ? " has-nav" : ""}`}>
       <header className="topbar">
         <div className="brand">
           <Logo size={76} />
@@ -913,8 +928,8 @@ export default function App() {
               ))}
             </select>
           </label>
-          <button className="btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-            {theme === "dark" ? t.themeLight : t.themeDark}
+          <button className="tab icon-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? t.themeLight : t.themeDark} title={theme === "dark" ? t.themeLight : t.themeDark}>
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
           </button>
           {stage !== "welcome" && <AccountControl t={t} user={user} onLogin={() => setAuthModal("login")} />}
         </div>
@@ -937,19 +952,33 @@ export default function App() {
       {stage === "app" && (
         <>
           {!online && <div className="fm-offline" role="status">{t.fmOffline}</div>}
-          <nav className="tabs" aria-label={t.tabsLabel}>
-            {TABS.map((id) => (
-              <button
-                key={id}
-                className="tab"
-                aria-current={tab === id ? "page" : undefined}
-                onClick={() => {
-                  window.location.hash = `/${id}`;
-                }}
-              >
-                {{ weather: t.tabWeather, disasters: t.tabDisasters, irrigation: t.tabIrrigation, rotation: t.tabRotation, market: t.tabMarket, suppliers: t.tabSuppliers, farms: t.tabFarms, assistant: t.tabAssistant, suitability: t.tabSuit, soil: t.tabSoil, environment: t.tabEnv, data: t.tabData }[id]}
+          {/* desktop: a sidebar with every page, grouped. phone: the same list opens as a sheet from "More" */}
+          <nav className={`nav${navOpen ? " open" : ""}`} aria-label={t.tabsLabel}>
+            <div className="nav-brand"><Logo size={40} /><strong>{t.appName}</strong></div>
+            <div className="nav-head"><strong>{t.navAll}</strong><button type="button" className="tab icon-btn" onClick={() => setNavOpen(false)} aria-label={t.navClose}><Icon name="close" size={20} /></button></div>
+            <div className="nav-scroll">
+              {NAV_GROUPS.map((g) => (
+                <div className="nav-group" key={g.items[0]}>
+                  {g.label && <p className="nav-label">{t[g.label]}</p>}
+                  {g.items.map((id) => (
+                    <button key={id} type="button" className="nav-item" aria-current={tab === id ? "page" : undefined} onClick={() => goTab(id)}>
+                      <Icon name={id} /><span>{tabLabel(id)}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </nav>
+          {navOpen && <div className="nav-shade" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+          <nav className="bnav" aria-label={t.tabsLabel}>
+            {NAV_PRIMARY.map((id) => (
+              <button key={id} type="button" className="bnav-item" aria-current={tab === id ? "page" : undefined} onClick={() => goTab(id)}>
+                <Icon name={id} /><span>{id === "rotation" ? t.navRotationShort : tabLabel(id)}</span>
               </button>
             ))}
+            <button type="button" className="bnav-item" aria-expanded={navOpen} aria-current={!NAV_PRIMARY.includes(tab) ? "page" : undefined} onClick={() => setNavOpen((v) => !v)}>
+              <Icon name="more" /><span>{t.navMore}</span>
+            </button>
           </nav>
 
           <Gallery t={t} state={photos} banner>
@@ -962,6 +991,7 @@ export default function App() {
                 {soil ? ` · ${t.locbarSoil}: ${t.soilNames[soil]}` : ""}
               </span>
               <div className="fd-pills" role="group" aria-label={t.fdSwitch}>
+                <span className="pl-label"><Icon name="pin" size={16} /> {t.navPlace}</span>
                 {fields.map((f) => (
                   <button
                     key={f.id}

@@ -58,7 +58,8 @@
 .ac-dot.offline, .ac-dot.syncing { background: var(--amber); }
 .ac-dot.error { background: var(--warn); }
 
-.ac-guestbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; padding: 7px 14px; font-size: 0.86rem; background: rgba(240, 184, 64, 0.18); border-bottom: 1px solid var(--border); }
-.ac-badge { font-weight: 800; font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; background: var(--amber); color: #1b1b1b; }
+.ac-guestbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 7px 14px; margin-top: 8px; font-size: 0.86rem; background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: var(--r-md); }
+@media (max-width: 640px) { .ac-guestbar { flex-wrap: nowrap; } .ac-guestbar > span:nth-child(2) { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ac-guestbar .ac-link { white-space: nowrap; } }
+.ac-badge { font-weight: 800; font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; background: var(--panel); border: 1px solid var(--gold); color: var(--text); white-space: nowrap; }
 .ac-flash { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 14px; background: var(--accent); color: var(--accent-text); font-weight: 600; }
 .ac-x2 { border: 0; background: transparent; color: inherit; font-size: 1.4rem; cursor: pointer; line-height: 1; }

@@ -1,3 +1,4 @@
+import Icon from "./Icons.jsx";
 import { plotLabel } from "./geo.js";
 import Info from "./Info.jsx";
 import "./farmland.css";
@@ -19,7 +20,7 @@ export default function PlotBar({ t, plots, activeId, onSelect, whole, hidden })
   }
   return (
     <div className="pl-bar" role="group" aria-label={t.plPlot}>
-      <span className="pl-label">{t.plPlotLabel}</span>
+      <span className="pl-label"><Icon name="plot" size={16} /> {t.plPlotLabel}</span>
       {plots.map((p, i) => (
         <button key={p.id} className={`fd-pill${p.id === activeId ? " on" : ""}`} aria-pressed={p.id === activeId} title={plotLabel(p, i, t)} onClick={() => onSelect(p.id)}>
           {p.id === activeId ? "✓ " : ""}{plotLabel(p, i, t)}
