@@ -6,6 +6,7 @@ import WxHours from "./WxHours.jsx";
 import Info from "./Info.jsx";
 import "./weatherfarmer.css";
 import "./weather.css";
+import { SkyChart } from "./Visuals.jsx";
 import { fetchWeatherPlus, describeCode, compass, aqiClass, buildAlerts, sprayWindows } from "./weatherPlus.js";
 import { SERVICES, TWO_LETTER } from "./i18nWeather.js";
 
@@ -87,14 +88,18 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
 
   return (
     <div>
-      <div className="wx-now">
-        <div className="wx-big" aria-hidden="true">{now.icon}</div>
-        <div>
+      <section className={`wx-sky ${c.is_day === 1 ? "day" : "night"}`} aria-label={t[`wxCode_${now.key}`]}>
+        <div className="wx-sky-l">
+          <div className="wx-big" aria-hidden="true">{now.icon}</div>
           <div className="wx-temp">{fmt(c.temperature_2m)}°C</div>
-          <div>{t[`wxCode_${now.key}`]} · {t.wxFeels} {fmt(c.apparent_temperature)}°</div>
-          <div className="muted small">{t.wxUpdated} {timeLabel.format(new Date(c.time))}</div>
+          <div className="wx-sky-d">{t[`wxCode_${now.key}`]} · {t.wxFeels} {fmt(c.apparent_temperature)}°</div>
+          <div className="small wx-sky-u">{t.wxUpdated} {timeLabel.format(new Date(c.time))}</div>
         </div>
-      </div>
+        <div className="wx-sky-r">
+          <p className="wx-sky-h">{t.hoursTitle}</p>
+          <SkyChart compact={typeof window !== "undefined" && window.innerWidth < 700} hours={plus.hours.slice(0, typeof window !== "undefined" && window.innerWidth < 700 ? 24 : 48)} label={t.hoursTitle} rainLabel={t.wfLegRain} tempLabel={t.wfLegTemp} hourFmt={(iso) => new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(new Date(iso))} />
+        </div>
+      </section>
       <div className="wx-facts">
         <div className="wx-fact"><span>{t.wxHumidity}</span><strong>{fmt(c.relative_humidity_2m)}%</strong></div>
         <div className="wx-fact"><span>{t.wxWind}</span><strong>{fmt(c.wind_speed_10m)} km/h {compass(c.wind_direction_10m)} · {t.wxGust} {fmt(c.wind_gusts_10m)}</strong></div>

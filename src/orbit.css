@@ -279,4 +279,13 @@ html[lang="bn"] .orb-land h1 { line-height: 1.12; letter-spacing: 0; }
 @keyframes mk-scroll { to { transform: translateX(-50%); } }
 
 /* ---------- soil: the cut-away block, tinted by the soil the map found ---------- */
-.soil-block { display: block; width: min(300px, 70%); height: auto; margin: 4px auto 10px; filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.3)); animation: orb-float 7s ease-in-out infinite; }
+.soil-block { display: block; width: min(230px, 60%); height: auto; margin: 4px auto 10px; filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.3)); animation: orb-float 7s ease-in-out infinite; }
+/* pages with a drawn centrepiece of their own do not also need the corner motif */
+html[data-tab="weather"] .page > .viewer:first-child::after, html[data-tab="irrigation"] .page > .viewer:first-child::after, html[data-tab="rotation"] .page > .viewer:first-child::after,
+html[data-tab="suitability"] .page > .viewer:first-child::after, html[data-tab="disasters"] .page > .viewer:first-child::after, html[data-tab="soil"] .page > .viewer:first-child::after { display: none; }
+html[data-tab="farms"] .page > .viewer:first-child::after { top: -4px; right: 140px; width: 120px; height: 90px; }
+/* irrigation: the answer comes first, the plot form after it */
+.ir2 { display: flex; flex-direction: column; }
+.ir2-hero { order: -1; margin-bottom: 14px; }
+.ds-level { display: none; }
+html[data-tab="data"] .page > .viewer:first-child::after { display: none; }

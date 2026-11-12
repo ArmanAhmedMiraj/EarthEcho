@@ -9,6 +9,7 @@ import { historyOf, historyPatch } from "./history.js";
 import { findCrop } from "./suitability.js";
 import { ANNUAL } from "./rotation.js";
 import { STRATEGIES } from "./rotationBoard.js";
+import { YearWheel, WHEEL_COLORS } from "./Visuals.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 const IRRIGATION = ["none", "canal", "tubewell", "pump", "drip", "other"];
@@ -347,6 +348,12 @@ export default function RotationBoard({ t, lang, locale, board, results, field, 
           <div className="rb-hero-cols">
             {whyBest.length > 0 && <div><h5>{t.rbBestWhy}</h5><ul>{whyBest.map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
             {benefit.length > 0 && <div><h5>{t.rbBestBenefit}</h5><ul>{benefit.map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
+          </div>
+        )}
+        {bestTop && (
+          <div className="rb-wheel">
+            <YearWheel steps={bestTop.steps.map((o) => ({ start: o.at, len: o.months }))} months={monthNames.map((m) => Array.from(m)[0])} centre={t[`rbS_${best.id}`]} label={bestTop.steps.map((o) => name(o.crop)).join(" → ")} />
+            <ul>{bestTop.steps.map((o, i) => <li key={i}><i style={{ background: WHEEL_COLORS[i % WHEEL_COLORS.length] }} />{name(o.crop)} <span className="small muted">{monthNames[o.at % 12]} · {o.months}</span></li>)}</ul>
           </div>
         )}
         {bestTop && <p className="rb-hero-chain"><b>{bestTop.steps.map((o) => name(o.crop)).join(" → ")}</b></p>}

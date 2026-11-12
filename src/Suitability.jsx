@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { bestMonths, evaluateCrops, limiting, loadCropTable, rating, soilInput } from "./suitability.js";
 import "./suitability.css";
 import FieldNote from "./FieldNote.jsx";
+import { Ring } from "./Visuals.jsx";
 
 const GROUPS = ["cereal", "pulse", "oilseed", "vegetable", "root", "fruit", "fibre", "cash"];
 
@@ -194,6 +195,12 @@ export default function Suitability({ t, lang, lat, lon, env, soilData, field })
       <p className="muted">{t.suitIntro}</p>
 
       <FieldNote t={t} lang={lang} field={field} results={results} mode={key} locale={locale} />
+
+      {sorted.length > 0 && (
+        <div className="vz-rings">
+          {sorted.slice(0, 3).map((r, i) => <Ring key={r.crop.id} value={r[key].best} label={name(r.crop)} sub={lang === "bn" ? r.crop.en : r.crop.sci} hue={["var(--a1)", "var(--gold)", "var(--a2)"][i]} />)}
+        </div>
+      )}
 
       <div className="suit-basis small">
         <strong>{t.suitBasis}</strong>

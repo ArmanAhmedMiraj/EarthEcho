@@ -57,6 +57,18 @@ export default function Sources({ t, lang, lat, lon }) {
   return (
     <div className="viewer">
       <h2>{t.dataTitle}</h2>
+      <div className="dt-orbit" aria-hidden="true">
+        <svg viewBox="0 0 420 200">
+          <circle cx="210" cy="100" r="34" fill="#2f7de0" /><circle cx="198" cy="92" r="9" fill="#5fcf7c" opacity="0.9" /><circle cx="222" cy="112" r="7" fill="#5fcf7c" opacity="0.9" />
+          <ellipse cx="210" cy="100" rx="96" ry="34" fill="none" stroke="#f6cf6a" strokeWidth="1.4" strokeDasharray="3 6" />
+          <ellipse cx="210" cy="100" rx="150" ry="58" fill="none" stroke="#7fb2ff" strokeWidth="1.4" strokeDasharray="3 6" />
+          <ellipse cx="210" cy="100" rx="196" ry="82" fill="none" stroke="#3ddbc0" strokeWidth="1.4" strokeDasharray="3 6" />
+          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#f6cf6a"><animateMotion dur="14s" repeatCount="indefinite" path="M 306 100 A 96 34 0 1 1 114 100 A 96 34 0 1 1 306 100" /></rect>
+          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#7fb2ff"><animateMotion dur="22s" repeatCount="indefinite" path="M 360 100 A 150 58 0 1 0 60 100 A 150 58 0 1 0 360 100" /></rect>
+          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#3ddbc0"><animateMotion dur="30s" repeatCount="indefinite" path="M 406 100 A 196 82 0 1 1 14 100 A 196 82 0 1 1 406 100" /></rect>
+        </svg>
+        <p className="small muted">SMAP · IMERG · MODIS</p>
+      </div>
       <p className="muted">{t.dataIntro}</p>
 
       <Learn t={t} />

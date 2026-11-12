@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./irrigation.css";
+import { LivingPlot } from "./Visuals.jsx";
 import Info from "./Info.jsx";
 import SoilWaterChart from "./SoilWaterChart.jsx";
 import { fetchWeatherPlus } from "./weatherPlus.js";
@@ -258,6 +259,10 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
               <p className="ir2-amount">{amt(heroNet)}</p>
             ) : <p className="muted">{t.ir2PlanNone}</p>}
           </div>
+          <figure className="ir2-hero-plot">
+            <LivingPlot level={lvl(a.nowFinal)} rice={kind === "rice"} label={`${t.ir2Combined}: ${showLevel(a.nowFinal)}`} />
+            <figcaption>{showLevel(a.nowFinal)}</figcaption>
+          </figure>
           <div className={`ir2-conf ${a.confidence}`}>
             <small>{t.ir2Confidence}</small>
             <b>{t[`ir2Conf_${a.confidence}`].split(":")[0]}</b>

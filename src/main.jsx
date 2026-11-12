@@ -13,6 +13,7 @@ import "./admin.css";
 import "./farms.css";
 import App from "./App.jsx";
 import "./orbit.css";
+import "./visuals.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

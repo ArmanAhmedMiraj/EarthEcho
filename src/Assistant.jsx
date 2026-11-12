@@ -152,6 +152,7 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
   const suggestions = [t.asQ1, t.asQ2, t.asQ3, t.asQ4, t.asQ5];
   return (
     <div className="as">
+      <div className="as-orb" aria-hidden="true"><i /><i /><i /></div>
       <p className="small muted">{t.asIntro}</p>
       <p className="as-warn">{t.asWarn}</p>
       {messages.length === 0 && (

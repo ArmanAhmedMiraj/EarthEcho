@@ -5,6 +5,7 @@ import { TWO_LETTER } from "./i18nWeather.js";
 import Info from "./Info.jsx";
 import RiverNow, { riverState } from "./RiverNow.jsx";
 import Upstream from "./Upstream.jsx";
+import { Radar } from "./Visuals.jsx";
 
 // the overall level from simple rules on the data
 export function levelOf(d) {
@@ -138,6 +139,23 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
       <div className={`ds-level ${level}`}>
         <span className="ds-dot" aria-hidden="true" />
         <div><span className="muted small">{t.levelTitle}</span><br /><strong>{t[`level_${level}`]}</strong></div>
+      </div>
+
+      <div className="ds-radar">
+        <Radar
+          tone={level}
+          label={t[`level_${level}`]}
+          maxKm={500}
+          items={[
+            ...base.earthquakes.map((q) => ({ km: q.km, big: q.magnitude >= 5, tone: q.magnitude >= 6 ? "alert" : q.magnitude >= 5 ? "watch" : "calm", title: `M ${num.format(q.magnitude)}` })),
+            ...nearby.map((e) => ({ km: e.km, big: true, tone: e.alert === "red" ? "alert" : "watch", title: e.title })),
+          ]}
+        />
+        <div>
+          <h3>{t.levelTitle}: {t[`level_${level}`]}</h3>
+          <p className="muted">{t.dsGlQuakeSub}</p>
+          <p className="small muted">0 – 500 km</p>
+        </div>
       </div>
 
       <h3>{t.dsGlance}</h3>
