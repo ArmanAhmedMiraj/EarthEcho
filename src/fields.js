@@ -100,7 +100,7 @@ export function parseFields(text) {
 }
 
 // how many of the optional details are filled in (for the small "details added" line)
-export const DETAIL_KEYS = ["area", "ownership", "irrigation", "currentCrop", "currentSowMonth", "plannedCrop", "previousCrops", "previousSowMonth", "notes", "soil"];
+export const DETAIL_KEYS = ["area", "ownership", "irrigation", "currentCrop", "currentSowMonth", "plannedCrop", "previousCrops", "previousSowMonth", "notes", "soil", "irrigMethod"];
 export function detailCount(details) {
   const d = details || {};
   return DETAIL_KEYS.filter((k) => (k === "area" ? d.area && String(d.area.value || "").trim() : String(d[k] || "").trim())).length;

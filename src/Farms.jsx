@@ -316,6 +316,13 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
               </select>
             </label>
             <label className="fd-field">
+              <span>{t.ir2Method} {d.irrigMethod && <Chip kind="you">{t.fdYou}</Chip>}</span>
+              <select value={d.irrigMethod || ""} onChange={(e) => setDetail("irrigMethod", e.target.value)}>
+                <option value="">{t.fdChoose}</option>
+                {["surface", "sprinkler", "drip"].map((k) => <option key={k} value={k}>{t[`irMethod_${k}`]}</option>)}
+              </select>
+            </label>
+            <label className="fd-field">
               <span>{t.fdCurrentCrop} {d.currentCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
               <input list="fd-crops" value={d.currentCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("currentCrop", e.target.value)} />
             </label>

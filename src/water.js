@@ -33,7 +33,7 @@ const KC = {
 
 // Rooting depth Zr (m) and allowed depletion p for upland crops, FAO-56 Table 22 (the smaller Zr, which is the
 // value for irrigation scheduling): potato 0.4 / 0.35, rapeseed (for mustard) 1.0 / 0.60, green gram (for mungbean) 0.6 / 0.45.
-const UPLAND = {
+export const UPLAND = {
   potato: { kc: KC.potato, zr: 0.4, p: 0.35 },
   mustard: { kc: KC.mustard, zr: 1.0, p: 0.6 },
   mungbean: { kc: KC.mungbean, zr: 0.6, p: 0.45 },
@@ -122,8 +122,8 @@ export const SOIL_AW = { sandy: 90, sandyLoam: 90, loam: 160, siltLoam: 170, cla
 // Water lost by seepage and percolation from a rice field, mm per day (FAO): heavy clay 4, average 6, sandy 8.
 export const SOIL_PERC = { sandy: 8, sandyLoam: 8, loam: 6, siltLoam: 6, clayLoam: 6, clay: 4 };
 
-const FALLBACK_ET0 = 4; // mm per day, used only when a day has no ET0 value
-const RICE_CAP = 100; // mm: the bunds are assumed to hold about 10 cm, extra rain runs off
+export const FALLBACK_ET0 = 4; // mm per day, used only when a day has no ET0 value
+export const RICE_CAP = 100; // mm: the bunds are assumed to hold about 10 cm, extra rain runs off
 
 export const WATER_SOURCES = [
   { id: "W1", by: "FAO", title: "Irrigation and Drainage Paper 56, Table 12: single crop coefficients (Kc)", url: "https://www.fao.org/4/x0490e/x0490e0b.htm" },

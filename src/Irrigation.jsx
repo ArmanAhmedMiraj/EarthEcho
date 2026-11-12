@@ -1,39 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./irrigation.css";
+import Info from "./Info.jsx";
+import SoilWaterChart from "./SoilWaterChart.jsx";
 import { fetchWeatherPlus } from "./weatherPlus.js";
-import { IRRIGATION_CROPS, METHOD_EFFICIENCY, SOIL_AW, SOIL_PERC, WATER_SOURCES, kcFor, scheduleRice, scheduleUpland } from "./water.js";
+import { IRRIGATION_CROPS, METHOD_EFFICIENCY, SOIL_AW, WATER_SOURCES } from "./water.js";
 import { IRR_CROP_NAMES } from "./i18nIrrigation.js";
-import { moistureClass } from "./soilNames.js";
+import { assess, isoOf, smapAvailable } from "./irrigationEngine.js";
 
 const SOILS = Object.keys(SOIL_AW);
 const SQUARE_METRES = { hectare: 10000, acre: 4046.86, decimal: 40.4686, bigha: 1337.8, katha: 66.89, sqm: 1 };
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
-
-function readStore(key) {
-  try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch { return {}; }
-}
-function writeStore(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked: choices are just not remembered */ }
-}
-
-function Chart({ rows, events, rice, t, locale }) {
-  const W = 640, H = 170, L = 6, R = 6, T = 10, B = 24;
-  const n = rows.length;
-  const bw = (W - L - R) / n;
-  const x = (i) => L + i * bw;
-  const day = new Intl.DateTimeFormat(locale, { day: "numeric" });
-  const eventDays = new Set(events.map((e) => e.date));
-  return (
-    <svg className="ir-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t.chartTitle}>
-      {rows.map((r, i) => {
-        const h = Math.max(0, Math.min(1, r.level)) * (H - T - B);
-        return <rect key={r.date} x={x(i) + 2} y={H - B - h} width={bw - 4} height={h} rx="3" fill="var(--a2)" opacity="0.55" />;
-      })}
-      {rows.map((r, i) => (eventDays.has(r.date) ? <circle key={`e${r.date}`} cx={x(i) + bw / 2} cy={H - B + 8} r="4" fill="#2f8fd8" /> : null))}
-      {rows.map((r, i) => (i % 2 === 0 ? <text key={`l${r.date}`} x={x(i) + bw / 2} y={H - 2} textAnchor="middle">{day.format(new Date(`${r.date}T00:00:00`))}</text> : null))}
-    </svg>
-  );
-}
+const dayNum = (iso) => { const [y, m, d] = iso.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
+const MARK = { agree: "✓", you: "✓", near: "≈", differ: "!", missing: "–", none: "✓" };
 
 // the irrigation crop a farmer's typed crop name belongs to (by English or Bengali name)
 function cropIdFrom(text) {
@@ -42,193 +20,356 @@ function cropIdFrom(text) {
   return IRRIGATION_CROPS.find((id) => id === q || [IRR_CROP_NAMES[id].en, IRR_CROP_NAMES[id].bn].some((n) => String(n || "").toLowerCase() === q)) || null;
 }
 
-export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, soilMapped, satellite, field, onFieldChange }) {
-  const placeKey = `${lat},${lon}`;
-  const store = `ef-irrigation-${placeKey}`;
+export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, soilMapped, satellite, field, onFieldChange, mappedSqm }) {
   const [plus, setPlus] = useState(null);
+  const [nasa, setNasa] = useState(null);
   const [state, setState] = useState("loading");
-  const [saved, setSaved] = useState(() => readStore(store));
+  const [stamp, setStamp] = useState(null);
   const locale = lang === "bn" ? "bn-BD" : "en-GB";
+  const set = (patch) => { if (onFieldChange) onFieldChange(patch); };
 
-  const load = useCallback(() => {
-    setState("loading");
-    fetchWeatherPlus(lat, lon).then((p) => { setPlus(p); setState("ok"); }).catch(() => setState("failed"));
+  const load = useCallback((quiet) => {
+    if (!quiet) setState("loading");
+    fetchWeatherPlus(lat, lon).then((p) => { setPlus(p); setState("ok"); setStamp(new Date()); }).catch(() => { if (!quiet) setState("failed"); });
+    fetch(`/api/dryspell?lat=${lat}&lon=${lon}`).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!j || !j.ok) { setNasa(null); return; }
+      setNasa({
+        rain: (j.rain || []).map((r) => ({ date: r.date, rainMm: r.rain })),
+        days: (j.soil || []).map((s) => ({ date: s.date, soilRoot: s.root })),
+      });
+    }).catch(() => setNasa(null));
   }, [lat, lon]);
-  useEffect(load, [load]);
+  useEffect(() => { load(false); }, [load]);
+  // new rain or weather arrives: refresh every 30 minutes and when the farmer comes back to the page
+  useEffect(() => {
+    const timer = setInterval(() => load(true), 30 * 60 * 1000);
+    const back = () => { if (document.visibilityState === "visible") load(true); };
+    document.addEventListener("visibilitychange", back);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", back); };
+  }, [load]);
 
-  const set = (patch) => {
-    const merged = { ...saved, ...patch };
-    setSaved(merged);
-    writeStore(store, merged);
-  };
-
-  // My Farm is the one place the crop and land size are kept: what the farmer entered there is used here,
-  // and a change made here is written back to the field
   const fd = (field && field.details) || {};
-  const farmCrop = cropIdFrom(fd.currentCrop);
-  const farmArea = fd.area && String(fd.area.value || "").trim() ? fd.area : null;
-  const crop = farmCrop || saved.crop || "rice";
-  const stage = saved.stage != null ? Number(saved.stage) : 1;
-  const method = saved.method || (fd.irrigation === "drip" ? "drip" : "surface");
-  const soil = saved.soil || appSoil || "loam";
-  const unit = (farmArea && SQUARE_METRES[farmArea.unit] ? farmArea.unit : null) || saved.unit || (country === "BD" ? "decimal" : "hectare");
-  const area = farmArea ? farmArea.value : saved.area != null ? saved.area : "";
-  const rice = crop === "rice";
+  const cropId = cropIdFrom(fd.currentCrop);
+  const typedCrop = String(fd.currentCrop || "").trim();
+  const kind = cropId === "rice" ? "rice" : "upland";
+  const stage = fd.irStage != null && fd.irStage !== "" ? Number(fd.irStage) : 1;
+  const method = fd.irrigMethod || (fd.irrigation === "drip" ? "drip" : "surface");
+  const soil = appSoil || "loam";
+  const sys = field && field.system && field.system.soil ? field.system.soil : null;
+  const soilUser = !!fd.soil;
+  const soilInfo = soilUser ? { source: "user" } : sys ? { source: sys.source, confidence: sys.confidence } : soilMapped ? { source: "region" } : null;
+  const area = fd.area && String(fd.area.value || "").trim() ? fd.area : null;
+  const unit = (area && SQUARE_METRES[area.unit] ? area.unit : null) || (country === "BD" ? "decimal" : "hectare");
+  const m2 = area && Number(area.value) > 0 ? Number(area.value) * SQUARE_METRES[unit] : null;
   const todayDate = plus ? plus.days[0].date : null;
-  const dayNum = (iso) => { const [y, m, d] = iso.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 86400000); };
-  // "since" is stored as a date so it keeps counting while the farmer is away
-  const sinceDate = saved.sinceDate || (todayDate ? new Date((dayNum(todayDate) - 2) * 86400000).toISOString().slice(0, 10) : null);
-  const sinceNum = todayDate && sinceDate ? dayNum(todayDate) - dayNum(sinceDate) : 2;
-  const sinceValue = sinceNum > 7 ? "more" : String(Math.max(0, sinceNum));
-  const stand = saved.stand || { mm: "20", date: todayDate };
-  const standAgo = todayDate && stand.date ? dayNum(todayDate) - dayNum(stand.date) : 0;
+  const cropName = (id) => IRR_CROP_NAMES[id][lang] || IRR_CROP_NAMES[id].en;
 
-  const plan = useMemo(() => {
-    if (!plus) return null;
-    const past = plus.past, days = plus.days;
-    if (rice) {
-      const standing = stand.mm === "dry" ? null : Number(stand.mm);
-      return { kind: "rice", ...scheduleRice({ stage, soil, standing, ago: standAgo > 7 ? 0 : Math.max(0, standAgo), past, days }) };
-    }
-    return { kind: "upland", ...scheduleUpland({ crop, stage, soil, since: sinceNum > 7 ? null : Math.max(0, sinceNum), past, days }) };
-  }, [plus, rice, crop, stage, soil, sinceNum, stand.mm, standAgo]);
+  // the farmer's own reading, only if it fits this crop
+  const manual = useMemo(() => {
+    const w = fd.irWater;
+    if (!w || !w.date) return null;
+    if (kind === "rice" && w.mm != null && w.mm !== "") return { mm: Number(w.mm), date: w.date };
+    if (kind === "upland" && w.feel) return { feel: w.feel, date: w.date };
+    return null;
+  }, [fd.irWater, kind]);
+  const sinceAgo = todayDate && fd.irSince ? dayNum(todayDate) - dayNum(fd.irSince) : null;
 
-  if (state === "loading") return <p className="muted">{t.irLoading}</p>;
-  if (state === "failed" || !plus || !plan) {
-    return (
-      <div>
-        <p className="warn">{t.irFailed}</p>
-        <button className="tab" onClick={load}>{t.irRetry}</button>
-      </div>
-    );
-  }
+  const a = useMemo(() => {
+    if (!plus || !cropId) return null;
+    return assess({ kind, crop: cropId, stage, soil, plus, manual, since: kind === "upland" ? sinceAgo : null, smap: satellite && satellite.soilRoot ? satellite.soilRoot : null, nasa, soilInfo });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plus, nasa, cropId, kind, stage, soil, manual, sinceAgo, satellite, soilUser, sys && sys.source, sys && sys.confidence]);
 
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const one = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   const dateFmt = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" });
+  const shortDate = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
   const dOf = (iso) => dateFmt.format(new Date(`${iso}T00:00:00`));
-  const eff = METHOD_EFFICIENCY[method];
-  const m2 = area !== "" && Number(area) > 0 ? Number(area) * SQUARE_METRES[unit] : null;
   const volume = (mm) => {
-    if (!m2) return "–";
+    if (!m2) return null;
     const litres = mm * m2;
     return litres >= 100000 ? fill(t.cubic, { v: one.format(litres / 1000) }) : fill(t.litres, { v: whole.format(litres) });
   };
+  const soilName = t[`irSoil_${soil}`] || soil;
+  const mappedName = t[`irSoil_${soilMapped}`] || soilMapped || "";
 
-  const first = plan.events[0];
-  let headKey = "headNone";
-  let head = fill(t.headNone, { n: whole.format(plus.days.length) });
-  if (first) {
-    headKey = first.day === 0 ? "today" : "later";
-    head = first.day === 0 ? t.headToday : first.day === 1 ? t.headTomorrow : fill(t.headLater, { n: whole.format(first.day) });
-  }
+  // ---- the plot header, form ----
+  const plotChips = (
+    <div className="ir2-chips">
+      <span className="ir2-chip"><small>{t.ir2PlotCrop}</small><b>{cropId ? cropName(cropId) : typedCrop || t.ir2PlotNoCrop}</b></span>
+      <span className="ir2-chip"><small>{t.ir2PlotSize}</small><b>{area ? `${area.value} ${t[`unit_${unit}`] || unit}` : "–"}</b></span>
+      <span className="ir2-chip"><small>{t.ir2PlotSoil}</small><b>{soilName}</b></span>
+    </div>
+  );
 
-  const smap = satellite && satellite.soilRoot && satellite.soilRoot.volumetric != null ? moistureClass(satellite.soilRoot.volumetric, soil) : null;
-  const smapWord = smap ? { dry: t.sMoistDry, moist: t.sMoistMoist, nearFull: t.sMoistNearFull, wet: t.sMoistWet }[smap] : null;
-  const cropName = (id) => IRR_CROP_NAMES[id][lang] || IRR_CROP_NAMES[id].en;
-
-  return (
-    <div>
-      <p className="muted">{t.irIntro}</p>
-      {field && (farmCrop || farmArea) && (
-        <p className="fd-note small"><strong>{t.fdFromFarm}</strong>: {field.name}{farmCrop ? ` · ${cropName(farmCrop)}` : ""}{farmArea ? ` · ${farmArea.value} ${t[`unit_${unit}`] || unit}` : ""}</p>
-      )}
-      {fd.irrigation === "none" && <p className="muted small">{t.fdIrrNoneNote}</p>}
+  const soilSrcWord = soilUser ? t.ir2SoilSrcYou : sys ? (sys.source === "satellite" ? t.ir2SoilSrcSat : sys.source === "map" ? t.ir2SoilSrcMap : t.ir2SoilSrcRegion) : t.ir2SoilSrcRegion;
+  const form = (
+    <section className="ir2-card" aria-labelledby="ir2-plot">
+      <h3 id="ir2-plot">{t.ir2YourPlot}</h3>
+      <p className="muted small">{t.ir2YourPlotHint}</p>
       <div className="ir-form">
-        <label>{t.irCrop}
-          <select value={crop} onChange={(e) => { set({ crop: e.target.value }); if (onFieldChange) onFieldChange({ currentCrop: cropName(e.target.value) }); }}>
+        <label>{t.ir2Crop}
+          <select value={cropId || ""} onChange={(e) => { if (e.target.value) set({ currentCrop: cropName(e.target.value) }); }}>
+            <option value="">{t.ir2ChooseCrop}</option>
             {IRRIGATION_CROPS.map((c) => <option key={c} value={c}>{cropName(c)}</option>)}
           </select>
         </label>
-        <label>{t.irStage}
-          <select value={stage} onChange={(e) => set({ stage: Number(e.target.value) })}>
+        <label><span>{t.ir2Stage} <Info t={t}><span>{t.ir2StageInfo}</span></Info></span>
+          <select value={stage} onChange={(e) => set({ irStage: Number(e.target.value) })}>
             {[0, 1, 2, 3].map((s) => <option key={s} value={s}>{t[`irStage${s}`]}</option>)}
           </select>
         </label>
-        <label>{t.irSoil}
-          <select value={soil} onChange={(e) => set({ soil: e.target.value })}>
-            {SOILS.map((s) => <option key={s} value={s}>{t[`irSoil_${s}`]}{s === soilMapped && !saved.soil ? ` (${t.irSoilAuto})` : ""}</option>)}
+        <label>{t.ir2Soil}
+          <select value={fd.soil || ""} onChange={(e) => set({ soil: e.target.value })}>
+            <option value="">{fill(t.ir2SoilAuto, { soil: mappedName })}</option>
+            {SOILS.map((s) => <option key={s} value={s}>{t[`irSoil_${s}`]}</option>)}
           </select>
+          <span className="small muted">{soilSrcWord}{!soilUser && sys && sys.confidence != null ? ` · ${fill(t.ir2SoilConf, { n: whole.format(sys.confidence) })}` : ""}</span>
         </label>
-        <label>{t.irMethod}
-          <select value={method} onChange={(e) => set({ method: e.target.value })}>
+        <label>{t.ir2Method}
+          <select value={method} onChange={(e) => set({ irrigMethod: e.target.value })}>
             {Object.keys(METHOD_EFFICIENCY).map((m) => <option key={m} value={m}>{t[`irMethod_${m}`]}</option>)}
           </select>
         </label>
-        {rice ? (
-          <label>{t.irStanding}
-            <select value={stand.mm} onChange={(e) => set({ stand: { mm: e.target.value, date: todayDate } })}>
-              <option value="dry">{t.irStandDry}</option>
-              <option value="0">{t.irStandMud}</option>
-              {[20, 50, 100].map((mm) => <option key={mm} value={String(mm)}>{fill(t.irStandCm, { n: mm / 10 })}</option>)}
-            </select>
-          </label>
-        ) : (
-          <label>{t.irSince}
-            <select value={sinceValue} onChange={(e) => set({ sinceDate: e.target.value === "more" ? new Date((dayNum(todayDate) - 8) * 86400000).toISOString().slice(0, 10) : new Date((dayNum(todayDate) - Number(e.target.value)) * 86400000).toISOString().slice(0, 10) })}>
-              {[0, 1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n === 0 ? t.irSince0 : n === 1 ? t.irSince1 : fill(t.irSinceN, { n: whole.format(n) })}</option>)}
-              <option value="more">{t.irSinceMore}</option>
-            </select>
-          </label>
-        )}
-        <label>{t.irArea}
+        <label>{t.ir2Area}
           <span className="ir-area">
-            <input type="number" min="0" step="any" value={area} onChange={(e) => { set({ area: e.target.value }); if (onFieldChange) onFieldChange({ area: { value: e.target.value, unit } }); }} />
-            <select value={unit} onChange={(e) => { set({ unit: e.target.value }); if (onFieldChange && area !== "") onFieldChange({ area: { value: area, unit: e.target.value } }); }}>
+            <input type="number" min="0" step="any" inputMode="decimal" value={area ? area.value : ""} onChange={(e) => set({ area: { value: e.target.value, unit } })} />
+            <select value={unit} onChange={(e) => set({ area: { value: area ? area.value : "", unit: e.target.value } })}>
               {Object.keys(SQUARE_METRES).map((u) => <option key={u} value={u}>{t[`unit_${u}`]}</option>)}
             </select>
           </span>
+          {mappedSqm > 0 && !area && (
+            <button type="button" className="ir2-link" onClick={() => { const v = Math.round((mappedSqm / SQUARE_METRES.decimal) * 10) / 10; set({ area: { value: String(v), unit: "decimal" } }); }}>
+              {fill(t.ir2UseMapped, { v: one.format(mappedSqm / SQUARE_METRES.decimal) })}
+            </button>
+          )}
         </label>
       </div>
-      {!saved.soil && <p className="muted small">{t.soilGuess}</p>}
+    </section>
+  );
 
-      <div className={`ir-head ${headKey}`}>
-        <strong>{head}</strong>
-        <span className="muted">{first ? "" : t.headNoneBody}</span>
+  if (state === "loading" && !plus) return <p className="muted">{t.ir2Loading}</p>;
+  if (!plus) {
+    return (
+      <div>
+        <p className="warn">{t.ir2Failed}</p>
+        <button className="tab" onClick={() => load(false)}>{t.ir2Update}</button>
       </div>
+    );
+  }
 
-      <h3>{t.planTitle}</h3>
-      {plan.events.length === 0 ? <p className="muted">{t.planNone}</p> : (
-        <table className="ir-table">
-          <thead><tr><th>{t.planDate}</th><th>{t.planNet}</th><th>{t.planGross}</th><th>{t.planVolume}</th></tr></thead>
-          <tbody>
-            {plan.events.map((e) => (
-              <tr key={e.date}>
-                <td>{dOf(e.date)}</td><td>{whole.format(e.mm)}</td><td>{whole.format(e.mm / eff)}</td><td>{volume(e.mm / eff)}</td>
-              </tr>
+  // no crop yet: ask for it, and keep it in My Farm
+  if (!cropId) {
+    return (
+      <div className="ir2">
+        {plotChips}
+        <div className="ir2-need">
+          <b>{t.ir2PickCrop}</b>
+          <span className="small">{typedCrop ? fill(t.ir2CropOther, { name: typedCrop }) : t.ir2PickCropBody}</span>
+        </div>
+        {form}
+      </div>
+    );
+  }
+
+  const events = a.run.events;
+  const first = events[0];
+  const eff = METHOD_EFFICIENCY[method];
+  const headKey = first ? (first.day === 0 ? "today" : first.day <= 2 ? "soon" : "later") : "none";
+  const head = first ? (first.day === 0 ? t.ir2HeadToday : first.day === 1 ? t.ir2HeadTomorrow : fill(t.ir2HeadLater, { n: whole.format(first.day) })) : fill(t.ir2HeadNone, { n: whole.format(plus.days.length) });
+  const p = a.p;
+  const rowsNow = a.run.rows[a.today];
+  const useNow = rowsNow ? rowsNow.etc + (kind === "rice" ? p.perc : 0) : 0;
+  const level = (state) => (state == null ? null : kind === "rice" ? state : Math.max(0, Math.min(1, 1 - state / p.raw)) * 100);
+  const showLevel = (st) => (st == null ? "–" : kind === "rice" ? `${one.format(st / 10)} cm` : `${whole.format(level(st))}%`);
+  const futureCounted = a.run.rows.filter((r) => r.future && r.rainUsed > 0);
+  const countedMm = Math.round(futureCounted.reduce((s, r) => s + r.rainUsed, 0));
+  const bigRain = futureCounted.reduce((b, r) => (!b || r.rainUsed > b.rainUsed ? r : b), null);
+  const whenWord = (d) => (d == null ? "" : d === 0 ? t.ir2WhenToday : fill(t.ir2WhenInDays, { n: whole.format(d) }));
+  let rainText = t.ir2RainNothing;
+  if (a.rainShift === "beyond") rainText = fill(t.ir2RainBeyond, { n: whole.format(plus.days.length), when: whenWord(a.firstDryDay) });
+  else if (typeof a.rainShift === "number" && a.rainShift > 0 && bigRain) rainText = fill(t.ir2RainDelay, { date: shortDate.format(new Date(`${bigRain.date}T00:00:00`)), mm: whole.format(bigRain.rain), n: whole.format(a.rainShift), saved: whole.format(a.rainSaved) });
+  else if (a.rainSaved > 0) rainText = fill(t.ir2RainSaves, { saved: whole.format(a.rainSaved) });
+
+  const evWord = (c) => (c ? t[`ir2Feel_${c}`] : "");
+  const evText = (e) => {
+    const key = `ir2EvT_${e.id}_${e.status}`;
+    const tpl = t[key];
+    if (!tpl) return "";
+    return fill(tpl, { om: whole.format(e.om || 0), nasa: whole.format(e.nasa || 0), n: whole.format(e.n || 0), mine: evWord(e.mine), other: evWord(e.other), total: whole.format(e.total || 0), counted: whole.format(e.counted || 0) });
+  };
+
+  const manualAgo = manual && todayDate ? dayNum(todayDate) - dayNum(manual.date) : null;
+  const dateChoices = [0, 1, 2, 3].map((n) => ({ n, date: isoOf(dayNum(todayDate) - n) }));
+  const readingDate = manual && manualAgo != null && manualAgo >= 0 && manualAgo <= 3 ? manual.date : todayDate;
+  const putReading = (patch) => set({ irWater: { ...(fd.irWater && manual ? fd.irWater : {}), ...patch, date: patch.date || readingDate } });
+  const quick = kind === "rice"
+    ? [{ k: "dry", v: 0, label: t.ir2Dry }, { k: "mud", v: 1, label: t.ir2Mud }, { k: "2", v: 20, label: fill(t.ir2Cm, { n: 2 }) }, { k: "5", v: 50, label: fill(t.ir2Cm, { n: 5 }) }, { k: "10", v: 100, label: fill(t.ir2Cm, { n: 10 }) }]
+    : [{ k: "dry", v: "dry", label: t.ir2FeelDry }, { k: "slightly", v: "slightly", label: t.ir2FeelSlightly }, { k: "moist", v: "moist", label: t.ir2FeelMoist }, { k: "wet", v: "wet", label: t.ir2FeelWet }];
+  const activeQuick = manual ? (kind === "rice" ? quick.find((q) => q.v === manual.mm) : quick.find((q) => q.v === manual.feel)) : null;
+
+  const limit = 0.04;
+  const satNow = satellite && satellite.soilRoot && satellite.soilRoot.volumetric != null && kind === "upland" ? smapAvailable(satellite.soilRoot.volumetric, soil) : null;
+  const sw = a.weight != null ? Math.round((1 - a.weight) * 100) : 0;
+  const hours = stamp ? new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(stamp) : "";
+
+  return (
+    <div className="ir2">
+      {plotChips}
+      {!area && <p className="muted small">{t.ir2NoArea}</p>}
+
+      <section className={`ir2-hero ${headKey}`} aria-live="polite">
+        <div className="ir2-hero-top">
+          <div>
+            <h3>{head}</h3>
+            {first ? (
+              <p className="ir2-amount">{volume(first.mm / eff) ? fill(t.ir2HowMuch, { mm: whole.format(first.mm / eff), litres: volume(first.mm / eff) }) : fill(t.ir2HowMuchMm, { mm: whole.format(first.mm / eff) })}</p>
+            ) : <p className="muted">{t.ir2PlanNone}</p>}
+          </div>
+          <div className={`ir2-conf ${a.confidence}`}>
+            <small>{t.ir2Confidence}</small>
+            <b>{t[`ir2Conf_${a.confidence}`].split(":")[0]}</b>
+          </div>
+        </div>
+        <ul className="ir2-why">
+          <li>{kind === "rice"
+            ? fill(t.ir2WhyWaterRice, { cm: one.format((a.nowFinal || 0) / 10), use: one.format(useNow) })
+            : fill(t.ir2WhyWaterUpland, { pct: whole.format(Math.min(100, ((a.nowFinal || 0) / p.raw) * 100)), use: one.format(useNow) })}</li>
+          <li>{countedMm > 0 ? fill(t.ir2WhyRain, { mm: whole.format(countedMm) }) : t.ir2WhyNoRain}</li>
+          <li>{fill(t.ir2WhySoil, { soil: soilName, aw: whole.format(SOIL_AW[soil] || 0) })} {fill(t.ir2WhyStage, { stage: t[`irStage${stage}`] })}</li>
+        </ul>
+        <div className="ir2-rain"><b>{t.ir2RainEffect}</b><span>{rainText}</span></div>
+        <p className="small muted">{t[`ir2Conf_${a.confidence}`]}</p>
+      </section>
+
+      <section className="ir2-card" aria-labelledby="ir2-now">
+        <h3 id="ir2-now">{t.ir2Now}</h3>
+        <div className="ir2-nums">
+          <div><small>{t.ir2FromRain}</small><b>{showLevel(a.nowRainOnly)}</b></div>
+          <div><small>{t.ir2YourReading}</small><b>{manual ? (kind === "rice" ? `${one.format(manual.mm / 10)} cm` : t[`ir2Feel_${manual.feel === "dry" ? "dry" : manual.feel === "wet" ? "wet" : "moist"}`]) : t.ir2NoReading}</b></div>
+          <div className="main"><small>{t.ir2Combined}</small><b>{showLevel(a.nowFinal)}</b><span className="small muted">{kind === "rice" ? t.ir2NowRiceUnit : t.ir2NowUplandUnit}</span></div>
+        </div>
+        {a.anchor === "assumed" && <p className="small muted">{t.ir2Assumed}</p>}
+        <div className="ir2-read">
+          <b>{t.ir2Measure}</b>
+          <span className="small muted">{kind === "rice" ? t.ir2MeasureRice : t.ir2MeasureUpland}</span>
+          <div className="ir2-pills">
+            {quick.map((q) => (
+              <button key={q.k} type="button" className={activeQuick && activeQuick.k === q.k ? "on" : ""} onClick={() => putReading(kind === "rice" ? { mm: q.v, feel: null } : { feel: q.v, mm: null })}>{q.label}</button>
             ))}
-            <tr><th>{t.planTotal}</th><th>{whole.format(plan.totalMm)}</th><th>{whole.format(plan.totalMm / eff)}</th><th>{volume(plan.totalMm / eff)}</th></tr>
-          </tbody>
-        </table>
-      )}
+            {kind === "rice" && (
+              <label className="ir2-mm"><span className="small muted">{t.ir2OrMm}</span>
+                <input type="number" min="0" max="200" inputMode="decimal" value={manual && !activeQuick ? manual.mm : ""} onChange={(e) => (e.target.value === "" ? set({ irWater: null }) : putReading({ mm: Number(e.target.value), feel: null }))} />
+              </label>
+            )}
+          </div>
+          <div className="ir2-when">
+            <label className="small">{t.ir2WhenMeasured}
+              <select value={readingDate} onChange={(e) => (manual ? putReading({ date: e.target.value }) : null)} disabled={!manual}>
+                {dateChoices.map((c) => <option key={c.date} value={c.date}>{c.n === 0 ? t.ir2Today : c.n === 1 ? t.ir2Yesterday : fill(t.ir2DaysAgo, { n: c.n })}</option>)}
+              </select>
+            </label>
+            {kind === "upland" && (
+              <label className="small">{t.ir2Since}
+                <select value={sinceAgo != null && sinceAgo >= 0 && sinceAgo <= 7 ? String(sinceAgo) : fd.irSince ? "more" : ""} onChange={(e) => set({ irSince: e.target.value === "" ? "" : e.target.value === "more" ? isoOf(dayNum(todayDate) - 8) : isoOf(dayNum(todayDate) - Number(e.target.value)) })}>
+                  <option value="">{t.ir2SinceNever}</option>
+                  {[0, 1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n === 0 ? t.ir2Today : n === 1 ? t.ir2Yesterday : fill(t.ir2DaysAgo, { n })}</option>)}
+                  <option value="more">{t.ir2SinceMore}</option>
+                </select>
+              </label>
+            )}
+            {manual && <button type="button" className="ir2-link" onClick={() => set({ irWater: null })}>{t.ir2UseEstimate}</button>}
+          </div>
+          <span className="small muted">{t.ir2NoRainToo}</span>
+        </div>
+      </section>
 
-      <h3>{t.chartTitle}</h3>
-      <Chart rows={plan.rows} events={plan.events} rice={rice} t={t} locale={locale} />
-      <p className="muted small">{rice ? t.chartNoteRice : t.chartNote}</p>
-      <p className="small">
-        {rice
-          ? fill(t.riceInfo, { perc: whole.format(plan.perc), use: one.format(plus.days[0].et0 * plan.kc) })
-          : fill(t.soilHolds, { mm: whole.format(plan.taw), raw: whole.format(plan.raw) })}
-      </p>
-      {rice && <p className="muted small">{t.awdTip}</p>}
+      <section className="ir2-card" aria-labelledby="ir2-chart">
+        <h3 id="ir2-chart">{t.ir2ChartTitle}</h3>
+        <SoilWaterChart
+          t={t}
+          locale={locale}
+          rice={kind === "rice"}
+          rows={a.run.rows}
+          dry={a.noRain.rows}
+          today={a.today}
+          limit={limit}
+          taw={p.taw}
+          smap={satNow != null ? { i: a.today, level: Math.max(0, Math.min(1, 1 - ((1 - satNow) * p.taw) / p.raw)) } : null}
+        />
+      </section>
 
-      {smapWord && (
-        <>
-          <h3>{t.smapTitle}</h3>
-          <p className="small">{fill(t.smapBody, { state: smapWord })}</p>
-        </>
-      )}
+      <section className="ir2-card" aria-labelledby="ir2-plan">
+        <h3 id="ir2-plan">{t.ir2PlanTitle}</h3>
+        {events.length === 0 ? <p className="muted">{t.ir2PlanNone}</p> : (
+          <div className="ir2-scroll">
+            <table className="ir-table">
+              <thead><tr><th>{t.ir2PlanDate}</th><th>{t.ir2PlanNet}</th><th>{t.ir2PlanGross}</th><th>{t.ir2PlanVolume}</th></tr></thead>
+              <tbody>
+                {events.map((e) => (
+                  <tr key={e.date}><td>{dOf(e.date)}</td><td>{whole.format(e.mm)}</td><td>{whole.format(e.mm / eff)}</td><td>{volume(e.mm / eff) || "–"}</td></tr>
+                ))}
+                <tr><th>{t.ir2PlanTotal}</th><th>{whole.format(a.run.totalMm)}</th><th>{whole.format(a.run.totalMm / eff)}</th><th>{volume(a.run.totalMm / eff) || "–"}</th></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
-      <h3>{t.assumptionsTitle}</h3>
-      <p className="small muted">{t.assumptions}</p>
-      <p className="small muted">{t.assumptionsNote}</p>
-      <h3>{t.sourcesTitle}</h3>
-      <ul className="small muted">
-        <li>{t.src_et0} (<a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">open-meteo.com</a>)</li>
-        {WATER_SOURCES.filter((s) => s.id !== "W7").map((s) => (
-          <li key={s.id}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.by}: {s.title}</a></li>
-        ))}
-      </ul>
+      <section className="ir2-card" aria-labelledby="ir2-check">
+        <h3 id="ir2-check">{t.ir2CheckTitle}
+          <Info t={t} source="NASA POWER · SMAP · Open-Meteo">
+            <span>{t.ir2InfoSrcRain}</span>
+            <span>{t.ir2InfoSrcPower}</span>
+            <span>{t.ir2InfoSrcSmap}</span>
+            <span>{t.ir2InfoSrcSoil}</span>
+            <span>{t.ir2InfoLimit1}</span>
+          </Info>
+        </h3>
+        <ul className="ir2-ev">
+          {a.ev.map((e) => (
+            <li key={e.id} className={e.status}>
+              <i aria-hidden="true">{MARK[e.status] || "–"}</i>
+              <span><b>{t[`ir2Ev_${e.id}`]}</b><small>{evText(e)}</small></span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {form}
+
+      <section className="ir2-how">
+        <h3>{t.ir2HowTitle}
+          <Info t={t} source="FAO-56 · NASA · Open-Meteo">
+            <b>{t.ir2InfoMethodH}</b>
+            <span>{t.ir2InfoMethod1}</span>
+            <span>{t.ir2InfoMethod2}</span>
+            <span>{t.ir2InfoMethod3}</span>
+            <span>{fill(t.ir2InfoMethod4, { w: whole.format(sw || 40) })}</span>
+            <span>{t.ir2InfoMethod5}</span>
+            <span>{t.ir2InfoMethod6}</span>
+            <b>{t.ir2InfoSrcH}</b>
+            <span>{t.ir2InfoSrcRain}</span>
+            <span>{t.ir2InfoSrcPower}</span>
+            <span>{t.ir2InfoSrcSmap}</span>
+            <span>{t.ir2InfoSrcSoil}</span>
+            <span>{t.ir2InfoSrcRules}</span>
+            {WATER_SOURCES.filter((s) => s.id !== "W7").map((s) => (
+              <span key={s.id}><a href={s.url} target="_blank" rel="noopener noreferrer">{s.by}: {s.title}</a></span>
+            ))}
+            <span><a href="https://www.canr.msu.edu/resources/estimating-soil-moisture-by-feel-and-appearance-usda-nrcs" target="_blank" rel="noopener noreferrer">{t.ir2InfoSrcFeel}</a></span>
+            <b>{t.ir2InfoLimitH}</b>
+            <span>{t.ir2InfoLimit1}</span>
+            <span>{t.ir2InfoLimit2}</span>
+            <span>{t.ir2InfoLimit3}</span>
+          </Info>
+        </h3>
+        <p className="small muted">{t.ir2HowLine}</p>
+        <div className="ir2-foot small muted">
+          {hours && <span>{fill(t.ir2Updated, { time: hours })}</span>}
+          <button type="button" className="ir2-link" onClick={() => load(false)}>{t.ir2Update}</button>
+        </div>
+      </section>
     </div>
   );
 }
