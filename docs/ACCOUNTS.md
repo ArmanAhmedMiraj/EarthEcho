@@ -13,6 +13,7 @@ Database (Upstash Redis, from the Vercel Marketplace; it adds the first two for 
 
 Text messages, choose one provider with `SMS_PROVIDER`:
 - `twilio`: also `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`
+- `alphasms`: also `ALPHASMS_API_KEY` (and `ALPHASMS_SENDER_ID` only if you have an approved sender ID). Alpha SMS, sms.net.bd
 - `bulksmsbd`: also `BULKSMSBD_API_KEY`, `BULKSMSBD_SENDER_ID`
 
 Without the database or an SMS provider, the Log in / Register option shows "accounts not available" and guests are not affected.

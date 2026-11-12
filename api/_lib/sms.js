@@ -1,17 +1,19 @@
 // Sends the one-time code to a phone. Choose the sender with SMS_PROVIDER:
 //   twilio     needs TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM (a Twilio number or sender name)
-//   bulksmsbd  needs BULKSMSBD_API_KEY and BULKSMSBD_SENDER_ID (a Bangladesh SMS gateway)
+//   alphasms   needs ALPHASMS_API_KEY (and, if you have an approved one, ALPHASMS_SENDER_ID). Alpha SMS, a Bangladesh gateway (sms.net.bd)
+//   bulksmsbd  needs BULKSMSBD_API_KEY and BULKSMSBD_SENDER_ID (another Bangladesh gateway)
 //   dev        (only with AUTH_DEV_OTP=1) sends nothing; the code is shown on screen. For testing on your own computer.
 // Never put any of these values in the code.
 
 export const smsReady = () => {
   const p = process.env.SMS_PROVIDER;
   if (p === "twilio") return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM);
+  if (p === "alphasms") return Boolean(process.env.ALPHASMS_API_KEY);
   if (p === "bulksmsbd") return Boolean(process.env.BULKSMSBD_API_KEY && process.env.BULKSMSBD_SENDER_ID);
   return process.env.AUTH_DEV_OTP === "1";
 };
 
-export const devMode = () => process.env.AUTH_DEV_OTP === "1" && !["twilio", "bulksmsbd"].includes(process.env.SMS_PROVIDER || "");
+export const devMode = () => process.env.AUTH_DEV_OTP === "1" && !["twilio", "bulksmsbd", "alphasms"].includes(process.env.SMS_PROVIDER || "");
 
 export async function sendSms(phone, text) {
   const p = process.env.SMS_PROVIDER;
@@ -26,6 +28,15 @@ export async function sendSms(phone, text) {
       body: new URLSearchParams({ To: phone, From: process.env.TWILIO_FROM, Body: text }),
     });
     if (!res.ok) throw new Error(`sms ${res.status}`);
+    return true;
+  }
+  if (p === "alphasms") {
+    // https://api.sms.net.bd/sendsms : api_key, msg, to (880XXXXXXXXXX), optional sender_id. The reply has "error": 0 when it worked.
+    const form = new URLSearchParams({ api_key: process.env.ALPHASMS_API_KEY, msg: text, to: phone.replace(/^\+/, "") });
+    if (process.env.ALPHASMS_SENDER_ID) form.set("sender_id", process.env.ALPHASMS_SENDER_ID);
+    const res = await fetch("https://api.sms.net.bd/sendsms", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body || Number(body.error) !== 0) throw new Error("sms failed");
     return true;
   }
   if (p === "bulksmsbd") {
