@@ -15,6 +15,18 @@ export const IRRIGATION = ["none", "canal", "tubewell", "pump", "drip", "other"]
 
 export const newId = () => `f${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
+// Every location has at least one plot. A farm saved before plots existed keeps its details: they move into its first plot.
+function plotsOf(f) {
+  const legacy = f.details && typeof f.details === "object" && Object.keys(f.details).length ? f.details : null;
+  let plots = cleanParcels(f.parcels);
+  if (!plots.length) plots = [{ id: "p1", name: "", points: [] }];
+  if (legacy) {
+    const i = plots.findIndex((p) => p.details === undefined);
+    if (i >= 0) plots[i].details = legacy;
+  }
+  return plots.map((p) => ({ ...p, details: p.details || {} }));
+}
+
 const clean = (f) => ({
   id: f.id || newId(),
   name: String(f.name || "Field").slice(0, 80),
@@ -24,9 +36,9 @@ const clean = (f) => ({
   path: String(f.path || "").slice(0, 160),
   createdAt: f.createdAt || Date.now(),
   updatedAt: f.updatedAt || Date.now(),
-  details: f.details && typeof f.details === "object" ? f.details : {},
+  details: {}, // kept empty: the details now live in each plot
   system: f.system && typeof f.system === "object" ? f.system : null,
-  parcels: cleanParcels(f.parcels),
+  parcels: plotsOf(f),
 });
 
 const valid = (f) => f && Number.isFinite(Number(f.lat)) && Number.isFinite(Number(f.lon)) && Math.abs(f.lat) <= 90 && Math.abs(f.lon) <= 180;

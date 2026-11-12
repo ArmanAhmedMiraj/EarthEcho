@@ -4,23 +4,23 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { SAT_STYLE, FONT, PLOT_COLORS } from "./mapstyle.js";
-import { areaSqm, inUnits, boundsOf, toGeoJSON, selfCrosses, newParcelId, MAX_PARCELS, MAX_POINTS } from "./geo.js";
+import { areaSqm, inUnits, boundsOf, toGeoJSON, selfCrosses, newParcelId, plotLabel, MAX_PARCELS, MAX_POINTS } from "./geo.js";
 import "./farmland.css";
 
 maplibregl.setWorkerUrl(workerUrl);
 
 const fill = (s, o) => String(s).replace(/\{(\w+)\}/g, (_, k) => (o[k] == null ? "" : o[k]));
-const copy = (list) => list.map((p) => ({ ...p, points: p.points.map((q) => [...q]) }));
+const copy = (list) => list.map((p) => ({ id: p.id, name: p.name, points: p.points.map((q) => [...q]) }));
 
 // Draw and edit the boundary of a farm's land on a satellite map. Several plots can be drawn; each has its own name and area.
-export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
+export default function FarmlandEditor({ t, lang, field, initialId, hasData, onSave, onClose }) {
   const box = useRef(null);
   const map = useRef(null);
   const ready = useRef(false);
   const markers = useRef([]);
   const gpsMarker = useRef(null);
-  const [parcels, setParcels] = useState(() => (field.parcels && field.parcels.length ? copy(field.parcels) : [{ id: newParcelId(), name: "", points: [] }]));
-  const [activeId, setActiveId] = useState(() => (field.parcels && field.parcels[0] ? field.parcels[0].id : null));
+  const [parcels, setParcels] = useState(() => copy(field.parcels));
+  const [activeId, setActiveId] = useState(() => (field.parcels.some((p) => p.id === initialId) ? initialId : field.parcels[0].id));
   const [selected, setSelected] = useState(-1); // the chosen point of the active plot
   const [history, setHistory] = useState([]);
   const [gps, setGps] = useState({ state: "idle" });
@@ -59,7 +59,7 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
 
   // ---- map
   useEffect(() => {
-    const first = (field.parcels && field.parcels.length) ? field.parcels : null;
+    const first = field.parcels.some((p) => p.points.length >= 3) ? field.parcels : null;
     const m = new maplibregl.Map({ container: box.current, style: SAT_STYLE, center: [field.lon, field.lat], zoom: 16, maxZoom: 20, maxPitch: 0, dragRotate: false });
     map.current = m;
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -82,7 +82,7 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
     const m = map.current;
     if (!m || !ready.current) return;
     const { parcels: ps, aid: a, selected: sel } = live.current;
-    const named = ps.map((p, i) => ({ ...p, name: `${p.name || fill(t.flPlotN, { n: n0.format(i + 1) })} · ${n1.format(inUnits(areaSqm(p.points)).decimal)}` }));
+    const named = ps.map((p, i) => ({ ...p, name: `${plotLabel(p, i, t)} · ${n1.format(inUnits(areaSqm(p.points)).decimal)}` }));
     const src = m.getSource("plots");
     if (src) src.setData(toGeoJSON(named, a));
     markers.current.forEach((k) => k.remove());
@@ -148,6 +148,7 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
   };
   const removePlot = () => {
     if (parcels.length === 1) { change((cur) => { cur[0].points = []; return cur; }); setSelected(-1); return; }
+    if (hasData && hasData(aid) && !window.confirm(fill(t.plDeleteConfirm, { name: plotLabel(active, idx, t) }))) return;
     const rest = parcels.filter((p) => p.id !== aid);
     change(() => rest);
     setActiveId(rest[0].id); setSelected(-1);
@@ -157,8 +158,8 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
   const zoomPlot = () => { const b = boundsOf([active]); if (b && map.current) map.current.fitBounds(b, { padding: 70, maxZoom: 19 }); };
 
   const save = () => {
-    const good = parcels.filter((p) => p.points.length >= 3).map((p, i) => ({ id: p.id, name: p.name.trim() || fill(t.flPlotN, { n: i + 1 }), points: p.points.map(([x, y]) => [Math.round(x * 1e6) / 1e6, Math.round(y * 1e6) / 1e6]) }));
-    onSave(good);
+    if (parcels.some((p) => p.points.length > 0 && p.points.length < 3) && !window.confirm(t.flFewPoints)) return;
+    onSave(parcels.map((p) => ({ id: p.id, name: p.name.trim(), points: p.points.length >= 3 ? p.points.map(([x, y]) => [Math.round(x * 1e6) / 1e6, Math.round(y * 1e6) / 1e6]) : [] })));
   };
   const close = () => { if (dirty && !window.confirm(t.flDiscard)) return; onClose(); };
   useEffect(() => {
@@ -205,7 +206,7 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
             <div className="fl-plots" role="tablist" aria-label={t.flPlots}>
               {parcels.map((p, i) => (
                 <button key={p.id} role="tab" aria-selected={p.id === aid} className={`fl-chip${p.id === aid ? " on" : ""}`} style={{ borderColor: PLOT_COLORS[i % PLOT_COLORS.length] }} onClick={() => { setActiveId(p.id); setSelected(-1); }}>
-                  {p.name || fill(t.flPlotN, { n: n0.format(i + 1) })}
+                  {plotLabel(p, i, t)}
                 </button>
               ))}
               {parcels.length < MAX_PARCELS && <button className="fl-chip add" onClick={newPlot}>＋ {t.flAddPlot}</button>}
@@ -240,7 +241,7 @@ export default function FarmlandEditor({ t, lang, field, onSave, onClose }) {
         </div>
         <footer className="fl-foot">
           <button className="tab" onClick={close}>{t.flCancel}</button>
-          <button className="btn" onClick={save} disabled={anyCross || (!parcels.some((p) => p.points.length >= 3) && !(field.parcels && field.parcels.length))}>{parcels.some((p) => p.points.length >= 3) ? t.flSave : t.flRemoveAll}</button>
+          <button className="btn" onClick={save} disabled={anyCross}>{t.flSave}</button>
         </footer>
       </div>
     </div>,

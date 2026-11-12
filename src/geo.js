@@ -92,20 +92,41 @@ export function surroundingsMask(parcels) {
   };
 }
 
-// read plots from saved data and keep only what is safe to draw and store
+// read plots from saved data and keep only what is safe to draw and store.
+// A plot may have no boundary yet (points: []). Its own details (crop, soil, records ...) travel with it.
 export function cleanParcels(list) {
   if (!Array.isArray(list)) return [];
   const out = [];
+  const seen = new Set();
   for (const p of list.slice(0, MAX_PARCELS)) {
-    if (!p || !Array.isArray(p.points)) continue;
-    const points = p.points
+    if (!p || typeof p !== "object") continue;
+    const raw = Array.isArray(p.points) ? p.points : [];
+    let points = raw
       .filter((q) => Array.isArray(q) && Number.isFinite(Number(q[0])) && Number.isFinite(Number(q[1])) && Math.abs(q[0]) <= 180 && Math.abs(q[1]) <= 90)
       .slice(0, MAX_POINTS)
       .map((q) => [round6(Number(q[0])), round6(Number(q[1]))]);
-    if (points.length < 3) continue;
-    out.push({ id: String(p.id || `p${out.length + 1}${Math.random().toString(36).slice(2, 6)}`).slice(0, 20), name: String(p.name || "").slice(0, 60), points });
+    if (points.length < 3) points = [];
+    let id = String(p.id || `p${out.length + 1}${Math.random().toString(36).slice(2, 6)}`).slice(0, 20);
+    if (seen.has(id)) id = `${id.slice(0, 14)}${Math.random().toString(36).slice(2, 6)}`;
+    seen.add(id);
+    const plot = { id, name: String(p.name || "").slice(0, 60), points };
+    if (p.details && typeof p.details === "object" && !Array.isArray(p.details)) plot.details = p.details;
+    out.push(plot);
   }
   return out;
+}
+
+// the label of a plot: its name, or "Plot 2" by its place in the list
+export const plotLabel = (p, i, t) => (p && p.name ? p.name : String(t.flPlotN || "Plot {n}").replace("{n}", String(i + 1)));
+
+// the next free default name, so a deleted plot never makes two plots share a name
+export function nextPlotName(plots, t) {
+  const used = new Set(plots.map((p) => p.name));
+  for (let n = plots.length + 1; n < 99; n++) {
+    const name = String(t.flPlotN || "Plot {n}").replace("{n}", String(n));
+    if (!used.has(name)) return name;
+  }
+  return "";
 }
 
 export const newParcelId = () => `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;

@@ -30,6 +30,8 @@ import { TRUST_TEXT } from "./i18nTrust.js";
 import { SHEET_TEXT } from "./i18nSheet.js";
 import { ACCOUNT_TEXT, ACCOUNT_USER_TEXT } from "./i18nAccount.js";
 import { FARMLAND_TEXT } from "./i18nFarmland.js";
+import PlotBar from "./PlotBar.jsx";
+import { plotLabel } from "./geo.js";
 import { Landing, AuthModal, AccountControl, GuestBar, GuestReminder, Flash } from "./Account.jsx";
 import { getUser, isGuestChosen, chooseGuest, startAutoSync, checkSession } from "./account.js";
 import ErrorBoundary from "./ErrorBoundary.jsx";
@@ -73,6 +75,8 @@ import "./tabs.css";
 import "./sources.css";
 
 // The pages of the app. The address bar keeps the page (#/weather), so reload and the back button work.
+// the pages that follow the open plot (the others cover the whole location)
+const PLOT_TABS = ["farms", "irrigation", "rotation", "assistant", "suitability", "soil"];
 const TABS = ["farms", "weather", "disasters", "irrigation", "rotation", "market", "suppliers", "assistant", "suitability", "soil", "environment", "data"];
 
 function tabFromHash() {
@@ -156,6 +160,10 @@ export default function App() {
   // "boot": saved fields exist, so the app opens the active one straight away
   const [fields, setFields] = useState(loadFields);
   const [activeId, setActiveId] = useState(loadActiveId);
+  // the plot that is open in each location (kept on this device)
+  const [activePlots, setActivePlots] = useState(() => { try { return JSON.parse(localStorage.getItem("ef-active-plots") || "{}") || {}; } catch { return {}; } });
+  const activePlotsRef = useRef(activePlots);
+  activePlotsRef.current = activePlots;
   const bootRef = useRef(fields.length > 0);
   const nextTab = useRef("farms"); // the tab to open once a field has been prepared
   const [movingId, setMovingId] = useState(""); // a saved field whose pin is being moved
@@ -227,6 +235,17 @@ export default function App() {
 
   // ---- My Farm: the saved fields, and the one that is open ----
   const activeField = fields.find((f) => f.id === activeId) || null;
+  const plots = activeField ? activeField.parcels : [];
+  const activePlotId = activeField ? (plots.some((p) => p.id === activePlots[activeId]) ? activePlots[activeId] : plots[0].id) : "";
+  const activePlot = plots.find((p) => p.id === activePlotId) || null;
+  // the open location as the plot pages see it: the plot's own details, and its name next to the location's
+  const plotField = useMemo(() => {
+    if (!activeField || !activePlot) return activeField;
+    const i = plots.indexOf(activePlot);
+    return { ...activeField, details: activePlot.details || {}, plotId: activePlot.id, name: plots.length > 1 ? `${activeField.name} · ${plotLabel(activePlot, i, t)}` : activeField.name };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeField, activePlotId, lang]);
+  const patchPlot = (patch) => activeField && updateField(activeField.id, { details: { ...((activePlot && activePlot.details) || {}), ...patch } });
   useEffect(() => { saveFields(fields); }, [fields]);
   useEffect(() => {
     const saveData = navigator.connection && navigator.connection.saveData;
@@ -236,8 +255,27 @@ export default function App() {
   }, []);
   useEffect(() => { saveActiveId(activeId); }, [activeId]);
   useEffect(() => { keepStorage(); }, []);
+  // Details (crop, soil, records ...) belong to a plot: a "details" change is written into the open plot of that location.
   const updateField = (id, patch) =>
-    setFields((list) => list.map((f) => (f.id === id ? { ...f, ...patch, updatedAt: Date.now() } : f)));
+    setFields((list) => list.map((f) => {
+      if (f.id !== id) return f;
+      const next = { ...patch };
+      if (next.details) {
+        const want = activePlotsRef.current[f.id];
+        const pid = f.parcels.some((p) => p.id === want) ? want : f.parcels[0].id;
+        next.parcels = (next.parcels || f.parcels).map((p) => (p.id === pid ? { ...p, details: next.details } : p));
+        delete next.details;
+      }
+      return { ...f, ...next, updatedAt: Date.now() };
+    }));
+  const selectPlot = (plotId) => {
+    if (!activeId) return;
+    setActivePlots((cur) => {
+      const next = { ...cur, [activeId]: plotId };
+      try { localStorage.setItem("ef-active-plots", JSON.stringify(next)); } catch { /* not remembered */ }
+      return next;
+    });
+  };
   // what EarthEcho worked out for the open field (kept apart from what the farmer types)
   const systemNow = useMemo(() => {
     if (stage !== "app" || !activeId) return null;
@@ -257,8 +295,8 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [systemKey, activeId]);
   // the farmer's own soil replaces the estimate for every tab (the estimate itself stays saved)
-  const soilOverride = activeField && activeField.details ? activeField.details.soil || "" : "";
-  useEffect(() => { if (activeId) setSoilChoice(soilOverride || "auto"); }, [soilOverride, activeId]);
+  const soilOverride = activePlot && activePlot.details ? activePlot.details.soil || "" : "";
+  useEffect(() => { if (activeId) setSoilChoice(soilOverride || "auto"); }, [soilOverride, activeId, activePlotId]);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -735,6 +773,13 @@ export default function App() {
     setStage("prepare");
   }
 
+  // the soil the farmer chose for the plot that is open in a location
+  const plotSoil = (f) => {
+    const want = activePlotsRef.current[f.id];
+    const p = (f.parcels || []).find((x) => x.id === want) || (f.parcels || [])[0];
+    return (p && p.details && p.details.soil) || "auto";
+  };
+
   // saving the chosen place as a field (or opening the field that is already saved there)
   function confirmLocation() {
     if (!userPicked) return;
@@ -753,7 +798,7 @@ export default function App() {
     const existing = fields.find((f) => sameSpot(f, here));
     if (existing) {
       setActiveId(existing.id);
-      setSoilChoice((existing.details && existing.details.soil) || "auto");
+      setSoilChoice(plotSoil(existing));
     } else {
       const field = {
         id: newId(),
@@ -765,6 +810,7 @@ export default function App() {
         createdAt: Date.now(),
         updatedAt: Date.now(),
         details: {},
+        parcels: [{ id: "p1", name: "", points: [], details: {} }],
         system: null,
       };
       setFields((list) => [...list, field]);
@@ -779,7 +825,7 @@ export default function App() {
   async function openField(field, opts = {}) {
     setActiveId(field.id);
     await pickPoint(field.lat, field.lon, { name: field.name });
-    setSoilChoice((field.details && field.details.soil) || "auto");
+    setSoilChoice(plotSoil(field));
     nextTab.current = opts.tab || "farms";
     startPrepare();
   }
@@ -924,6 +970,16 @@ export default function App() {
                 ))}
                 <button className="fd-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
               </div>
+              {activeField && (
+                <PlotBar
+                  t={t}
+                  plots={plots}
+                  activeId={activePlotId}
+                  onSelect={selectPlot}
+                  whole={!PLOT_TABS.includes(tab)}
+                  hidden={tab === "data"}
+                />
+              )}
             </div>
           </Gallery>
         </>
@@ -1028,14 +1084,14 @@ export default function App() {
       {stage === "app" && tab === "suitability" && (
         <main className="page">
           <Suitability
-            key={`${pos.lat},${pos.lon}`}
+            key={`${pos.lat},${pos.lon},${activePlotId}`}
             t={t}
             lang={lang}
             lat={pos.lat}
             lon={pos.lon}
             env={envData}
             soilData={soilData}
-            field={activeField}
+            field={plotField}
           />
         </main>
       )}
@@ -1054,7 +1110,7 @@ export default function App() {
           <div className="viewer">
             <h2>{t.irTitle}</h2>
             <Irrigation
-              key={`${pos.lat},${pos.lon}`}
+              key={`${pos.lat},${pos.lon},${activePlotId}`}
               t={t}
               lang={lang}
               lat={pos.lat}
@@ -1063,8 +1119,8 @@ export default function App() {
               soil={soil}
               soilMapped={suggested}
               satellite={satellite}
-              field={activeField}
-              onFieldChange={(patch) => activeField && updateField(activeField.id, { details: { ...activeField.details, ...patch } })}
+              field={plotField}
+              onFieldChange={patchPlot}
             />
           </div>
         </main>
@@ -1074,7 +1130,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.rtTitle}</h2>
-            <RotationPlanner key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={activeField} onExplain={explainStrategy} onFieldChange={(patch) => activeField && updateField(activeField.id, { details: { ...activeField.details, ...patch } })} />
+            <RotationPlanner key={`${pos.lat},${pos.lon},${activePlotId}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} env={envData} soilData={soilData} field={plotField} onExplain={explainStrategy} onFieldChange={patchPlot} />
           </div>
         </main>
       )}
@@ -1106,6 +1162,8 @@ export default function App() {
               lang={lang}
               fields={fields}
               active={activeField}
+              plotId={activePlotId}
+              onPlot={selectPlot}
               system={systemNow}
               onUpdate={updateField}
               onRemove={removeField}
@@ -1122,7 +1180,7 @@ export default function App() {
         <main className="page">
           <div className="viewer">
             <h2>{t.asTitle}</h2>
-            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={activeField} request={explainReq} onRequestHandled={() => setExplainReq(null)} />
+            <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={plotField} request={explainReq} onRequestHandled={() => setExplainReq(null)} />
           </div>
         </main>
       )}

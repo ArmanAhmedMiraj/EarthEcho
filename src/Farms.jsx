@@ -4,7 +4,7 @@ import SeasonRecord from "./SeasonRecord.jsx";
 import "./farms.css";
 import FarmMap from "./FarmMap.jsx";
 import FarmlandEditor from "./FarmlandEditor.jsx";
-import { areaSqm, inUnits, totalSqm } from "./geo.js";
+import { areaSqm, inUnits, totalSqm, plotLabel, nextPlotName, newParcelId } from "./geo.js";
 import { PLOT_COLORS } from "./mapstyle.js";
 import { AREA_UNITS, DETAIL_KEYS, HECTARES_PER, IRRIGATION, OWNERSHIP, detailCount, exportFields, parseFields, sameSpot } from "./fields.js";
 import { SOIL_TYPES } from "./soil.js";
@@ -28,12 +28,12 @@ function checkFarm(farm, onPart) {
 // a small label that says where a value comes from
 const Chip = ({ kind, children }) => <span className={`fd-chip ${kind}`}>{children}</span>;
 
-export default function Farms({ t, lang, fields, active, system, onUpdate, onRemove, onOpen, onAdd, onMove, onImport }) {
+export default function Farms({ t, lang, fields, active, system, plotId, onPlot, onUpdate, onRemove, onOpen, onAdd, onMove, onImport }) {
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
   const [note, setNote] = useState("");
   const [section, setSection] = useState("overview");
   const [editing, setEditing] = useState(false);
-  const [renaming, setRenaming] = useState(false);
+  const [renaming, setRenaming] = useState(null); // null | "farm" | "plot" | "newplot"
   const [nameDraft, setNameDraft] = useState("");
   const [focusId, setFocusId] = useState("");
   const [crops, setCrops] = useState([]);
@@ -66,7 +66,12 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
   }, []);
   useEffect(() => { check(fields); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const d = (active && active.details) || {};
+  // a location holds plots; the details, crops and records below belong to the open plot
+  const plots = (active && active.parcels) || [];
+  const plotIdx = Math.max(0, plots.findIndex((p) => p.id === plotId));
+  const plot = plots[plotIdx] || null;
+  const plotName = plot ? plotLabel(plot, plotIdx, t) : "";
+  const d = (plot && plot.details) || {};
   const setDetail = (key, value) => active && onUpdate(active.id, { details: { ...d, [key]: value } });
   const area = d.area || { value: "", unit: "bigha" };
   const setDetails = (patch) => active && onUpdate(active.id, { details: { ...d, ...patch } });
@@ -100,16 +105,42 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
     });
     e.target.value = "";
   };
-  const openRename = () => { if (active) { setNameDraft(active.name); setRenaming(true); } };
+  const openRename = (mode) => {
+    if (!active) return;
+    setNameDraft(mode === "farm" ? active.name : mode === "plot" ? (plot && plot.name) || plotName : nextPlotName(plots, t));
+    setRenaming(mode);
+  };
   const saveName = () => {
     const v = nameDraft.trim();
     if (!v || !active) return;
-    onUpdate(active.id, { name: v.slice(0, 80) });
-    setRenaming(false);
+    if (renaming === "farm") onUpdate(active.id, { name: v.slice(0, 80) });
+    else if (renaming === "plot") onUpdate(active.id, { parcels: plots.map((p) => (p.id === plot.id ? { ...p, name: v.slice(0, 60) } : p)) });
+    else if (renaming === "newplot") {
+      const fresh = { id: newParcelId(), name: v.slice(0, 60), points: [], details: {} };
+      onUpdate(active.id, { parcels: [...plots, fresh] });
+      onPlot(fresh.id);
+    }
+    setRenaming(null);
   };
-  const parcels = (active && active.parcels) || [];
-  const mappedSqm = totalSqm(parcels);
-  const saveParcels = (list) => { if (active) onUpdate(active.id, { parcels: list }); setEditing(false); };
+  const removePlot = () => {
+    if (!plot || plots.length < 2) return;
+    if (!window.confirm(fill(t.plDeleteConfirm, { name: plotName }))) return;
+    const rest = plots.filter((p) => p.id !== plot.id);
+    onUpdate(active.id, { parcels: rest });
+    onPlot(rest[0].id);
+  };
+  const totalMapped = totalSqm(plots);
+  const mappedSqm = plot ? areaSqm(plot.points) : 0;
+  // the editor returns every plot with its boundary; each plot keeps its own details
+  const saveParcels = (list) => {
+    if (active) {
+      const old = new Map(plots.map((p) => [p.id, p]));
+      const next = list.map((p) => ({ ...p, details: (old.get(p.id) && old.get(p.id).details) || {} }));
+      onUpdate(active.id, { parcels: next });
+      if (!next.some((p) => p.id === plotId)) onPlot(next[0].id);
+    }
+    setEditing(false);
+  };
 
   const alertText = (a) => {
     const v = a.value == null ? "" : num.format(a.value);
@@ -122,10 +153,24 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
   const soilSource = sysSoil ? { satellite: t.fdSoilSat, map: t.fdSoilMap, region: t.fdSoilRegion }[sysSoil.source] : "";
   const confWord = sysSoil && sysSoil.level ? { high: t.confHigh, medium: t.confMedium, low: t.confLow }[sysSoil.level] : null;
   const areaLine = (f) => {
-    const a = f.details && f.details.area;
-    return a && String(a.value || "").trim() ? fill(t.fdAreaLine, { v: a.value, u: t[`fdUnit_${a.unit}`] || a.unit }) : "";
+    const n = (f.parcels || []).length;
+    const sq = totalSqm(f.parcels);
+    const parts = [n > 1 ? fill(t.plCount, { n: num.format(n) }) : ""];
+    if (sq > 0) parts.push(`${num1.format(inUnits(sq).decimal)} ${t.flDecimal}`);
+    return parts.filter(Boolean).join(" · ");
   };
 
+  const plotSwitch = plots.length > 0 && (
+    <div className="pl-switch">
+      <b className="small">{t.plPlotLabel}</b>
+      <select value={plot ? plot.id : ""} onChange={(e) => onPlot(e.target.value)} aria-label={t.plPlot}>
+        {plots.map((p, i) => <option key={p.id} value={p.id}>{plotLabel(p, i, t)}</option>)}
+      </select>
+      <button className="tab" onClick={() => openRename("newplot")} disabled={plots.length >= 12}>＋ {t.plAdd}</button>
+      <button className="tab" onClick={() => openRename("plot")}>✎ {t.plRename}</button>
+      {plots.length > 1 && <p className="small pl-note">{fill(t.plPlotNote, { name: plotName })}</p>}
+    </div>
+  );
   const st0 = (active && status[active.id]) || {};
   const alertBlock = (st) => (
     <>
@@ -142,6 +187,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
       )}
     </>
   );
+  const hasData = (id) => { const p = plots.find((x) => x.id === id); return !!(p && p.details && Object.keys(p.details).length); };
   const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["record", t.srSection]];
 
   return (
@@ -174,29 +220,42 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
         <section className="fd-card" aria-label={t.fdCurrent}>
           <div className="fl-namerow">
             <strong>{active.name}</strong>
-            <button className="fl-pencil" onClick={openRename} aria-label={t.flRenameFarm} title={t.flRenameFarm}>✎</button>
+            <button className="fl-pencil" onClick={() => openRename("farm")} aria-label={t.flRenameFarm} title={t.flRenameFarm}>✎</button>
             <span className="small muted">✓ {t.fdSaved}</span>
           </div>
           <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)} · <button className="fd-link" onClick={onMove}>{t.fdMove}</button></p>
 
-          <h3>{t.flFarmland}{mappedSqm > 0 && <span className="small muted"> · {num1.format(inUnits(mappedSqm).decimal)} {t.flDecimal} ({num2.format(inUnits(mappedSqm).hectare)} ha)</span>}</h3>
-          <FarmMap t={t} lang={lang} field={active} focusId={focusId} onEdit={() => setEditing(true)} />
-          {parcels.length === 0 && <p className="small muted">{t.flNoLand}</p>}
-          {parcels.length > 0 && (
-            <div className="fl-plotlist">
-              {parcels.map((p, i) => (
-                <button key={p.id} className="fl-plotrow" onClick={() => setFocusId(p.id + ":" + Date.now())}>
-                  <span><i className="fl-dot" style={{ background: PLOT_COLORS[i % PLOT_COLORS.length] }} />{p.name}</span>
-                  <span className="small muted">{num1.format(inUnits(areaSqm(p.points)).decimal)} {t.flDecimal} · {num2.format(inUnits(areaSqm(p.points)).acre)} {t.flAcre}</span>
+          <h3>{t.flFarmland} <span className="small muted">· {fill(plots.length === 1 ? t.plCountOne : t.plCount, { n: num.format(plots.length) })}{totalMapped > 0 ? ` · ${num1.format(inUnits(totalMapped).decimal)} ${t.flDecimal} (${num2.format(inUnits(totalMapped).hectare)} ha)` : ""}</span></h3>
+          <FarmMap t={t} lang={lang} field={active} activeId={plot ? plot.id : ""} onSelect={onPlot} focusId={focusId} onEdit={() => setEditing(true)} />
+          {totalMapped === 0 && <p className="small muted">{t.flNoLand}</p>}
+
+          <h3>{t.plPlotsTitle}</h3>
+          <div className="pl-grid">
+            {plots.map((p, i) => {
+              const pd = p.details || {};
+              const sq = areaSqm(p.points);
+              const typed = pd.area && String(pd.area.value || "").trim() ? fill(t.fdAreaLine, { v: pd.area.value, u: t[`fdUnit_${pd.area.unit}`] || pd.area.unit }) : "";
+              const recs = Array.isArray(pd.records) ? pd.records.length : 0;
+              return (
+                <button key={p.id} className={`pl-card${plot && p.id === plot.id ? " on" : ""}`} aria-pressed={!!plot && p.id === plot.id} onClick={() => onPlot(p.id)}>
+                  <span className="pl-row"><span><i className="fl-dot" style={{ background: p.points.length ? PLOT_COLORS[i % PLOT_COLORS.length] : "#999" }} /><b>{plotLabel(p, i, t)}</b></span>{plot && p.id === plot.id && <Chip kind="you">{t.plSelected}</Chip>}</span>
+                  <span className="small">{sq > 0 ? `${num1.format(inUnits(sq).decimal)} ${t.flDecimal}` : typed || t.plNoBoundary}{sq > 0 && typed ? ` · ${typed}` : ""}</span>
+                  <span className="small">{t.plCrop}: {pd.currentCrop || t.plNoCrop}{pd.plannedCrop ? ` → ${pd.plannedCrop}` : ""}</span>
+                  <span className="small muted">{pd.soil ? `${t.fdSoil}: ${t.soilNames[pd.soil]} · ` : ""}{fill(t.plRecords, { n: num.format(recs) })}</span>
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+          <div className="pl-tools">
+            <button className="tab" onClick={() => openRename("newplot")} disabled={plots.length >= 12}>＋ {t.plAdd}</button>
+            <button className="tab" onClick={() => openRename("plot")}>✎ {t.plRename}</button>
+            <button className="tab" onClick={removePlot} disabled={plots.length < 2} title={plots.length < 2 ? t.plOnlyOne : undefined}>{t.plDelete}</button>
+          </div>
 
           <h3>{t.fdFoundTitle} <Chip kind="system">{t.fdSystem}</Chip></h3>
           <div className="fd-rows">
             <div className="fd-line">
-              <b>{t.fdSoil}</b>
+              <b>{t.fdSoil}{plots.length > 1 ? ` · ${plotName}` : ""}</b>
               <span className="fd-v">
                 {d.soil ? (
                   <>{t.soilNames[d.soil]} <Chip kind="you">{t.fdYou}</Chip>
@@ -225,7 +284,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
           {alertBlock(st0)}
 
           <div className="fd-nudge">
-            <span className="small">{t.fdAboutHelp}</span>
+            <span className="small">{plots.length > 1 ? fill(t.plPlotNote, { name: plotName }) : t.fdAboutHelp}</span>
             <button className="btn" onClick={() => setSection("details")}>{t.fdSecDetails} → ({num.format(detailCount(d))}/{num.format(DETAIL_KEYS.length)})</button>
           </div>
         </section>
@@ -233,6 +292,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
 
       {active && section === "details" && (
         <section className="fd-card">
+          {plotSwitch}
           <p className="small muted">{t.fdAboutHelp}</p>
           <div className="fd-form">
             <label className="fd-field">
@@ -311,7 +371,12 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
         </section>
       )}
 
-      {active && section === "record" && <SeasonRecord t={t} lang={lang} locale={locale} field={active} onUpdate={onUpdate} cropNames={crops} />}
+      {active && section === "record" && (
+        <>
+          <div className="fd-card">{plotSwitch}</div>
+          <SeasonRecord key={plot ? plot.id : "x"} t={t} lang={lang} locale={locale} field={{ ...active, details: d, name: plots.length > 1 ? `${active.name} · ${plotName}` : active.name }} onUpdate={onUpdate} cropNames={crops} />
+        </>
+      )}
 
       <details className="fl-manage">
         <summary>{t.flManage}</summary>
@@ -319,7 +384,7 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
       {fields.map((farm) => {
         const st = status[farm.id] || {};
         const current = active && farm.id === active.id;
-        const line = [areaLine(farm), farm.details && farm.details.currentCrop].filter(Boolean).join(" · ");
+        const line = [areaLine(farm), ...[...new Set((farm.parcels || []).map((p) => p.details && p.details.currentCrop).filter(Boolean))]].filter(Boolean).join(" · ");
         return (
           <div className={`fm-card${current ? " current" : ""}`} key={farm.id}>
             <div className="fm-head">
@@ -358,13 +423,13 @@ export default function Farms({ t, lang, fields, active, system, onUpdate, onRem
       <p className="small muted">{t.fmInstallHelp}</p>
       </details>
 
-      {editing && active && <FarmlandEditor t={t} lang={lang} field={active} onSave={saveParcels} onClose={() => setEditing(false)} />}
+      {editing && active && <FarmlandEditor t={t} lang={lang} field={active} initialId={plot ? plot.id : ""} hasData={hasData} onSave={saveParcels} onClose={() => setEditing(false)} />}
       {renaming && createPortal(
-        <div className="ac-overlay" role="dialog" aria-modal="true" aria-label={t.flRenameFarm} onKeyDown={(e) => { if (e.key === "Escape") setRenaming(false); }}>
+        <div className="ac-overlay" role="dialog" aria-modal="true" aria-label={renaming === "farm" ? t.flRenameFarm : renaming === "plot" ? t.plRename : t.plAdd} onKeyDown={(e) => { if (e.key === "Escape") setRenaming(null); }}>
           <form className="ac-modal small" onSubmit={(e) => { e.preventDefault(); saveName(); }}>
-            <h3>{t.flRenameFarm}</h3>
-            <label className="fd-field"><span>{t.fdName}</span><input autoFocus value={nameDraft} maxLength={80} onChange={(e) => setNameDraft(e.target.value)} /></label>
-            <div className="fm-actions"><button type="button" className="tab" onClick={() => setRenaming(false)}>{t.flCancel}</button><button type="submit" className="btn" disabled={!nameDraft.trim()}>{t.flSaveName}</button></div>
+            <h3>{renaming === "farm" ? t.flRenameFarm : renaming === "plot" ? t.plRename : t.plAdd}</h3>
+            <label className="fd-field"><span>{renaming === "farm" ? t.fdName : t.flPlotName}</span><input autoFocus value={nameDraft} maxLength={renaming === "farm" ? 80 : 60} onChange={(e) => setNameDraft(e.target.value)} /></label>
+            <div className="fm-actions"><button type="button" className="tab" onClick={() => setRenaming(null)}>{t.flCancel}</button><button type="submit" className="btn" disabled={!nameDraft.trim()}>{t.flSaveName}</button></div>
           </form>
         </div>,
         document.body,

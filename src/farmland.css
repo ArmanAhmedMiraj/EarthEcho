@@ -7,7 +7,7 @@
 .fl-body { flex: 1; min-height: 0; display: flex; flex-direction: column-reverse; }
 .fl-side { padding: 10px 14px; overflow: auto; max-height: 48vh; display: flex; flex-direction: column; gap: 10px; }
 .fl-mapwrap { flex: 1; min-height: 40vh; position: relative; }
-.fl-map { position: absolute; inset: 0; }
+.fl-mapwrap .fl-map, .fl-ovmap .fl-map { position: absolute; inset: 0; width: 100%; height: 100%; }
 .fl-box { border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; }
 .fl-box p { margin: 4px 0; }
 .fl-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -46,3 +46,15 @@
   .fl-ovmap { height: 420px; }
 }
 .fl-ovbar .tab { background: rgba(255,255,255,0.92); color: #123; }
+/* plot switcher */
+.pl-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.pl-label { font-size: 0.8rem; font-weight: 700; opacity: 0.9; }
+.pl-whole { margin: 8px 0 0; opacity: 0.9; }
+.pl-card { border: 2px solid var(--border); border-radius: 14px; padding: 10px 12px; background: transparent; color: var(--text); font: inherit; text-align: left; display: flex; flex-direction: column; gap: 4px; cursor: pointer; width: 100%; }
+.pl-card.on { border-color: var(--accent); background: rgba(46, 160, 110, 0.12); }
+.pl-card .pl-row { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.pl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin: 8px 0; }
+.pl-tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+.pl-switch { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
+.pl-switch select { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--accent); background: var(--panel); color: var(--text); }
+.pl-note { border-left: 4px solid var(--accent); padding: 4px 10px; margin: 6px 0 10px; }

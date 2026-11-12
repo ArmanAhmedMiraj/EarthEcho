@@ -3,18 +3,21 @@ import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { SAT_STYLE, FONT, PLOT_COLORS } from "./mapstyle.js";
-import { boundsOf, surroundingsMask, areaSqm, inUnits } from "./geo.js";
+import { boundsOf, surroundingsMask, areaSqm, inUnits, plotLabel } from "./geo.js";
 import "./farmland.css";
 
 maplibregl.setWorkerUrl(workerUrl);
 
 // The Overview map: opens on the saved farmland, tints each plot, dims the surroundings; zoom and pan stay free.
-export default function FarmMap({ t, lang, field, focusId, onEdit }) {
+export default function FarmMap({ t, lang, field, activeId, onSelect, focusId, onEdit }) {
   const box = useRef(null);
   const map = useRef(null);
   const ready = useRef(false);
   const pin = useRef(null);
-  const parcels = field.parcels || [];
+  const parcels = (field.parcels || []).filter((p) => p.points.length >= 3);
+  const all = field.parcels || [];
+  const pick = useRef(onSelect);
+  pick.current = onSelect;
   const n1 = new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en-GB", { maximumFractionDigits: 1 });
 
   const fit = (list, instant) => {
@@ -34,9 +37,12 @@ export default function FarmMap({ t, lang, field, focusId, onEdit }) {
       m.addSource("mask", { type: "geojson", data: surroundingsMask([]) });
       m.addSource("plots", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       m.addLayer({ id: "mask", type: "fill", source: "mask", paint: { "fill-color": "#04120c", "fill-opacity": 0.45 } });
-      m.addLayer({ id: "plots-fill", type: "fill", source: "plots", paint: { "fill-color": ["get", "color"], "fill-opacity": 0.28 } });
-      m.addLayer({ id: "plots-line", type: "line", source: "plots", paint: { "line-color": ["get", "color"], "line-width": 3 } });
+      m.addLayer({ id: "plots-fill", type: "fill", source: "plots", paint: { "fill-color": ["get", "color"], "fill-opacity": ["case", ["==", ["get", "active"], 1], 0.42, 0.2] } });
+      m.addLayer({ id: "plots-line", type: "line", source: "plots", paint: { "line-color": ["get", "color"], "line-width": ["case", ["==", ["get", "active"], 1], 5, 2] } });
       m.addLayer({ id: "plots-name", type: "symbol", source: "plots", layout: { "text-field": ["get", "label"], "text-font": FONT, "text-size": 13 }, paint: { "text-color": "#fff", "text-halo-color": "#000", "text-halo-width": 1.5 } });
+      m.on("click", "plots-fill", (e) => { const f = e.features && e.features[0]; if (f && pick.current) pick.current(f.properties.id); });
+      m.on("mouseenter", "plots-fill", () => { m.getCanvas().style.cursor = "pointer"; });
+      m.on("mouseleave", "plots-fill", () => { m.getCanvas().style.cursor = ""; });
       ready.current = true;
       paint();
       fit(parcels, true);
@@ -47,21 +53,22 @@ export default function FarmMap({ t, lang, field, focusId, onEdit }) {
   function paint() {
     const m = map.current;
     if (!m || !ready.current) return;
-    const ok = parcels.filter((p) => p.points.length >= 3);
+    const ok = parcels;
     m.getSource("mask").setData(surroundingsMask(ok));
     m.getSource("plots").setData({
       type: "FeatureCollection",
       features: ok.map((p, i) => ({
         type: "Feature",
-        properties: { color: PLOT_COLORS[i % PLOT_COLORS.length], label: `${p.name} · ${n1.format(inUnits(areaSqm(p.points)).decimal)}` },
+        properties: { id: p.id, active: p.id === activeId ? 1 : 0, color: PLOT_COLORS[all.indexOf(p) % PLOT_COLORS.length], label: `${plotLabel(p, all.indexOf(p), t)} · ${n1.format(inUnits(areaSqm(p.points)).decimal)}` },
         geometry: { type: "Polygon", coordinates: [[...p.points, p.points[0]]] },
       })),
     });
     if (pin.current) { pin.current.remove(); pin.current = null; }
     if (!ok.length) pin.current = new maplibregl.Marker({ color: "#e53935" }).setLngLat([field.lon, field.lat]).addTo(m);
   }
-  const sig = JSON.stringify(parcels);
+  const sig = JSON.stringify(all.map((p) => [p.id, p.name, p.points]));
   useEffect(() => { paint(); fit(parcels, false); }, [sig]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { paint(); }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!focusId) return;
     const p = parcels.find((x) => x.id === String(focusId).split(":")[0]);
