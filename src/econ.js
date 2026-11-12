@@ -43,6 +43,9 @@ const COST_USD_HA = {
 const GROUP_COST = { cereal: 600, pulse: 350, oilseed: 400, vegetable: 2000, root: 1500, fibre: 700, cash: 1500, fruit: 1500 };
 const GROUP_YIELD = { cereal: 3, pulse: 1, oilseed: 1.5, vegetable: 15, root: 12, fibre: 2, cash: 40, fruit: 10 };
 
+// the rough farm-gate price of a crop in US dollars per kg (used when no market near the farmer reports the crop)
+export const estimateUsdPrice = (crop) => (PRICE_USD_KG[crop.id] != null ? PRICE_USD_KG[crop.id] : GROUP_PRICE[crop.group] || 0.3);
+
 const num = (v) => { const n = Number(v); return v !== "" && v != null && Number.isFinite(n) && n >= 0 ? n : null; };
 
 // ctx: { inputs: { [cropId]: { yield, price, cost } } typed by the farmer, market: { [cropId]: { perKg, market, km, month } },

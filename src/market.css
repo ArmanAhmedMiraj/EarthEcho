@@ -1,9 +1,36 @@
-.mk-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
-.mk-bar select { font: inherit; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
-.mk-list { display: flex; flex-direction: column; }
-.mk-row { display: grid; grid-template-columns: minmax(160px, 2fr) minmax(130px, 1.2fr) minmax(130px, 1fr) 120px auto; gap: 8px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.mk-name, .mk-price, .mk-change { display: flex; flex-direction: column; }
-.mk-name strong, .mk-price strong { color: var(--text); }
-.mk-spark { width: 120px; height: 32px; }
-@media (max-width: 760px) { .mk-row { grid-template-columns: 1fr 1fr; } }
-.mk-wrap { white-space: normal; max-width: 100%; text-align: center; line-height: 1.3; }
+.mk2 h3 { margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
+.mk2-n { font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 18%, transparent); color: var(--muted); }
+.mk2-meta { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 10px 0; }
+.mk2-pill { font-size: 0.8rem; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); }
+.mk2-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+.mk2-search { flex: 1 1 180px; min-width: 0; font: inherit; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+.mk2-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; flex-wrap: wrap; }
+.mk2-seg button { font: inherit; font-size: 0.85rem; padding: 8px 12px; border: 0; background: var(--panel); color: var(--text); cursor: pointer; }
+.mk2-seg button + button { border-left: 1px solid var(--border); }
+.mk2-seg button.on { background: var(--accent); color: #fff; }
+.mk2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.mk2-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); min-width: 0; }
+.mk2-card.est { border-style: dashed; }
+.mk2-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mk2-card h4 { margin: 0; font-size: 1rem; min-width: 0; overflow-wrap: anywhere; }
+.mk2-chip { flex: none; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid; }
+.mk2-chip.real { color: #2b6cb0; border-color: #2b6cb0; background: color-mix(in srgb, #2b6cb0 12%, transparent); }
+.mk2-chip.est { color: #b7791f; border-color: #b7791f; background: color-mix(in srgb, #b7791f 12%, transparent); }
+.mk2-price { margin: 2px 0 0; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.mk2-price b { font-size: 1.5rem; line-height: 1.1; }
+.mk2-price span { color: var(--muted); font-size: 0.82rem; }
+.mk2-sub { margin: 0; font-size: 0.74rem; color: var(--muted); }
+.mk2-farm { margin: 2px 0; font-size: 0.8rem; }
+.mk2-chg { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.mk2-ch { font-size: 0.76rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
+.mk2-ch em { font-style: normal; color: var(--muted); margin-right: 2px; }
+.mk2-ch.up { color: #c05621; border-color: #c05621; }
+.mk2-ch.down { color: #2f855a; border-color: #2f855a; }
+.mk2-spark { width: 100%; height: 44px; display: block; margin: 2px 0; }
+.mk2-spark .line { stroke: #2b6cb0; }
+.mk2-spark .area { fill: color-mix(in srgb, #2b6cb0 16%, transparent); }
+.mk2-spark .dot { fill: #2b6cb0; }
+.mk2-src { margin: 0; font-size: 0.72rem; color: var(--muted); overflow-wrap: anywhere; }
+.mk2-toggle { font: inherit; font-weight: 700; background: none; border: 0; color: inherit; cursor: pointer; padding: 0; display: inline-flex; gap: 6px; align-items: center; }
+.mk2-grid.slim { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.mk2-card.slim .mk2-price b { font-size: 1.2rem; }
