@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import "./disasters.css";
 import { DISASTER_OFFICES } from "./i18nDisasters.js";
 import { TWO_LETTER } from "./i18nWeather.js";
-import UpstreamRain from "./UpstreamRain.jsx";
+import Info from "./Info.jsx";
+import RiverNow, { riverState } from "./RiverNow.jsx";
+import Upstream from "./Upstream.jsx";
 
 // the overall level from simple rules on the data
 export function levelOf(d) {
@@ -22,35 +24,31 @@ export function levelOf(d) {
   return ["calm", "watch", "alert"][level];
 }
 
-function Spark({ series }) {
-  const pts = series.filter((s) => s.v != null);
-  if (pts.length < 3) return null;
-  const W = 600, H = 100, L = 4, R = 4, T = 8, B = 16;
-  const lo = Math.min(...pts.map((p) => p.v)), hi = Math.max(...pts.map((p) => p.v), lo + 0.1);
-  const x = (i) => L + (i * (W - L - R)) / (pts.length - 1);
-  const y = (v) => T + ((hi - v) * (H - T - B)) / (hi - lo);
-  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
-  const todayI = Math.min(7, pts.length - 1);
-  return (
-    <svg className="ds-spark" viewBox={`0 0 ${W} ${H}`} role="img" aria-hidden="true">
-      <line x1={x(todayI)} x2={x(todayI)} y1={T} y2={H - B} stroke="var(--border)" strokeDasharray="3 3" />
-      <path d={path} fill="none" stroke="var(--a2)" strokeWidth="2.2" />
-      <text x={x(todayI) + 4} y={H - 3}>{pts[todayI].t.slice(5)}</text>
-    </svg>
-  );
+const RANK = { calm: 0, watch: 1, alert: 2 };
+const worstOf = (...l) => l.reduce((b, x) => (RANK[x] > RANK[b] ? x : b), "calm");
+const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
+
+async function getJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(String(r.status));
+  const d = await r.json();
+  if (d.ok === false) throw new Error("not ok");
+  return d;
 }
 
 export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState("loading");
+  const [rw, setRw] = useState(null);
+  const [rwState, setRwState] = useState("loading");
   const country = TWO_LETTER[appCountry] || null;
+  const inBd = country === "BD";
   const locale = lang === "bn" ? "bn-BD" : "en-GB";
 
   const load = useCallback(() => {
     setState("loading");
     const ask = (n) =>
-      fetch(`/api/disasters?lat=${lat}&lon=${lon}`)
-        .then((r) => r.json())
+      getJson(`/api/disasters?lat=${lat}&lon=${lon}`)
         .then((d) => {
           if (d.failed && d.failed.length === 4) throw new Error("all failed");
           setData(d);
@@ -61,68 +59,111 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
   }, [lat, lon]);
   useEffect(load, [load]);
 
-  // rain upstream of Bangladesh does not depend on the other disaster feeds, so it shows even when they fail
-  const upstream = country === "BD" ? <UpstreamRain t={t} lang={lang} locale={lang === "bn" ? "bn-BD" : "en-GB"} lat={lat} lon={lon} /> : null;
-  if (state === "loading") return <p className="muted">{t.dsLoading}</p>;
-  if (state === "failed" || !data) {
-    return (
-      <div>
-        <p className="warn">{t.dsFailed}</p>
-        <button className="tab" onClick={load}>{t.dsRetry}</button>
-        {upstream}
-      </div>
-    );
-  }
+  // the river and (in Bangladesh) the places upstream of it load on their own, so a slow source never blocks the page
+  const loadRiver = useCallback(() => {
+    setRwState("loading");
+    const ask = (n) =>
+      getJson(`/api/disasters?mode=${inBd ? "upstream" : "river"}&lat=${lat}&lon=${lon}`)
+        .then((d) => { setRw(d); setRwState("ok"); })
+        .catch(() => (n < 1 ? ask(n + 1) : setRwState("failed")));
+    ask(0);
+  }, [lat, lon, inBd]);
+  useEffect(loadRiver, [loadRiver]);
 
   const num = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const dateFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
-  const level = levelOf(data);
   const office = country && DISASTER_OFFICES[country];
-  const nearby = [...data.alerts, ...data.events].sort((a, b) => a.km - b.km);
-  const kinds = new Set([...nearby.map((e) => e.kind), data.earthquakes.length ? "earthquake" : null]);
-  const rising = data.river && data.river.ratio != null && data.river.ratio >= 2 && data.river.peak - data.river.now >= 2;
+
+  const flow = rw && rw.flow;
+  const rState = flow ? riverState(flow) : null;
+  const riverName = inBd && rw && rw.river ? t[`rvName_${rw.river.id}`] : null;
+  const upWorst = inBd && rw ? rw.stations.reduce((b, s) => worstOf(b, s.level), "calm") : "calm";
+  const riverLevel = rw ? (inBd ? rw.overall : flow ? flow.level : "calm") : "calm";
+
+  const base = data || { alerts: [], events: [], earthquakes: [], river: null, failed: [], provenance: [] };
+  const level = worstOf(levelOf({ ...base, river: null }), riverLevel);
+  const nearby = [...base.alerts, ...base.events].sort((a, b) => a.km - b.km);
+  const kinds = new Set([...nearby.map((e) => e.kind), base.earthquakes.length ? "earthquake" : null]);
+  const floodish = rState === "high" || rState === "flood" || rState === "severe" || upWorst !== "calm";
 
   // plain-sentence summary by rules
   const lines = [];
-  if (data.earthquakes.length) {
-    const q = data.earthquakes[0];
-    lines.push(t.sumQuake.replace("{n}", whole.format(data.earthquakes.length)).replace("{mag}", num.format(q.magnitude)).replace("{km}", whole.format(q.km)));
-  } else if (!data.failed.includes("earthquakes")) lines.push(t.sumNoQuake);
-  if (data.alerts.length) {
-    lines.push(t.sumAlerts.replace("{n}", whole.format(data.alerts.length)).replace("{list}", data.alerts.slice(0, 3).map((a) => `${t[`kind_${a.kind}`]} (${t[`alertLevel_${a.alert}`] || a.alert})`).join(", ")));
+  if (data) {
+    if (data.earthquakes.length) {
+      const q = data.earthquakes[0];
+      lines.push(t.sumQuake.replace("{n}", whole.format(data.earthquakes.length)).replace("{mag}", num.format(q.magnitude)).replace("{km}", whole.format(q.km)));
+    } else if (!data.failed.includes("earthquakes")) lines.push(t.sumNoQuake);
+    if (data.alerts.length) lines.push(t.sumAlerts.replace("{n}", whole.format(data.alerts.length)).replace("{list}", data.alerts.slice(0, 3).map((a) => `${t[`kind_${a.kind}`]} (${t[`alertLevel_${a.alert}`] || a.alert})`).join(", ")));
+    if (data.events.length) lines.push(t.sumEvents.replace("{n}", whole.format(data.events.length)).replace("{list}", [...new Set(data.events.map((e) => t[`kind_${e.kind}`]))].join(", ")));
   }
-  if (data.events.length) {
-    lines.push(t.sumEvents.replace("{n}", whole.format(data.events.length)).replace("{list}", [...new Set(data.events.map((e) => t[`kind_${e.kind}`]))].join(", ")));
+  if (flow) lines.push(`${riverName ? `${riverName}: ` : ""}${t[`rvHead_${rState}`]}.`);
+  if (inBd && rw && rw.stations.length) {
+    const hot = rw.stations.filter((s) => s.level !== "calm" && s.eta).sort((a, b) => (a.eta.from < b.eta.from ? -1 : 1))[0];
+    const d = (s) => dateFmt.format(new Date(`${s}T00:00:00Z`));
+    lines.push(hot ? fill(t.urEta, { name: riverName, a: d(hot.eta.from), b: d(hot.eta.to) }) : fill(t.urCalmP, { name: riverName }));
   }
-  if (data.river) {
-    lines.push(rising ? t.sumRiver.replace("{ratio}", num.format(data.river.ratio)).replace("{day}", dateFmt.format(new Date(data.river.peakDay))) : t.sumRiverSteady);
-  }
-  if (level === "calm") lines.unshift(t.sumCalm);
+  if (level === "calm" && data) lines.unshift(t.sumCalm);
 
   const tips = [
     kinds.has("earthquake") && t.tipQuake,
-    (kinds.has("flood") || rising) && t.tipFlood,
+    (kinds.has("flood") || floodish) && t.tipFlood,
     (kinds.has("cyclone") || kinds.has("storm")) && t.tipCyclone,
     kinds.has("wildfire") && t.tipFire,
     kinds.has("drought") && t.tipDrought,
   ].filter(Boolean);
 
+  if (state === "loading" && rwState === "loading") return <p className="muted">{t.dsLoading}</p>;
+
+  const tile = (id, label, value, sub, lv) => (
+    <a className={`ds-tile ${lv}`} href={`#${id}`} onClick={(e) => { e.preventDefault(); const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
+      <span className="ds-dot" aria-hidden="true" />
+      <span className="ds-tl">{label}</span>
+      <b>{value}</b>
+      <span className="small muted">{sub}</span>
+    </a>
+  );
+  const quakeLv = base.earthquakes.some((q) => q.magnitude >= 6 && q.km <= 300) ? "alert" : base.earthquakes.some((q) => q.magnitude >= 5 && q.km <= 300) ? "watch" : "calm";
+  const alertLv = base.alerts.some((a) => a.alert === "red") ? "alert" : nearby.length ? "watch" : "calm";
+
   return (
-    <div>
+    <div className="ds-page">
       <p className="muted">{t.dsIntro}</p>
-      {data.failed.length > 0 && (
-        <p className="warn small">{t.dsPartial.replace("{list}", data.failed.map((f) => t[`src_${f}`]).join(", "))}</p>
+      {state === "failed" && (
+        <p className="warn small">{t.dsFailed} <button className="tab" onClick={load}>{t.dsRetry}</button></p>
+      )}
+      {data && data.failed.length > 0 && (
+        <p className="warn small">{t.dsPartial.replace("{list}", data.failed.filter((f) => f !== "river").map((f) => t[`src_${f}`]).join(", "))}</p>
       )}
       <div className={`ds-level ${level}`}>
         <span className="ds-dot" aria-hidden="true" />
         <div><span className="muted small">{t.levelTitle}</span><br /><strong>{t[`level_${level}`]}</strong></div>
       </div>
-      <h3>{t.sumTitle}</h3>
-      <ul className="ds-sum">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
-      <p className="muted small">{t.sumNote}</p>
 
-      <h3>{t.alertsTitle}</h3>
+      <h3>{t.dsGlance}</h3>
+      <div className="ds-tiles">
+        {tile("ds-quakes", t.dsGlQuake, base.earthquakes.length ? `M ${num.format(base.earthquakes[0].magnitude)}` : t.dsGlQuakeNone, t.dsGlQuakeSub, quakeLv)}
+        {tile("ds-alerts", t.dsGlAlerts, nearby.length ? whole.format(nearby.length) : t.dsGlAlertsNone, t.dsGlAlertsSub, alertLv)}
+        {tile("ds-river", t.dsGlRiver, flow ? t[`rvShort_${rState}`] : "…", riverName || "", flow ? (riverLevel === "alert" ? "alert" : riverLevel === "watch" ? "watch" : "calm") : "calm")}
+        {inBd && tile("ds-upstream", t.dsGlUp, rw ? t[`urLevel_${upWorst}`] : "…", t.dsGlUpSub, upWorst)}
+      </div>
+
+      {lines.length > 0 && (
+        <>
+          <h3>{t.sumTitle}
+            <Info t={t} source="USGS · GDACS · NASA EONET · GloFAS">
+              <b>{t.dsSrcTitle}</b>
+              <ul><li>{t.dsSrcQuake}</li><li>{t.dsSrcGdacs}</li><li>{t.dsSrcEonet}</li><li>{t.rvInfoSource}</li></ul>
+              <span>{t.dsSrcNote}</span>
+            </Info>
+          </h3>
+          <ul className="ds-sum">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+        </>
+      )}
+
+      <h3 id="ds-alerts">{t.alertsTitle}
+        <Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info>
+      </h3>
       {nearby.length === 0 ? <p className="muted">{t.alertsNone}</p> : (
         <ul className="ds-list">
           {nearby.map((e, i) => (
@@ -130,43 +171,38 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
               {e.alert && <span className={`ds-chip ${e.alert}`}>{t[`alertLevel_${e.alert}`] || e.alert}</span>}
               <span className="ds-chip">{t[`kind_${e.kind}`]}</span>
               {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : <strong>{e.title}</strong>}
-              <span className="muted small">{t.away.replace("{km}", whole.format(e.km))} · {e.source}{e.size ? ` · ${e.size}` : ""}</span>
+              <span className="muted small">{t.away.replace("{km}", whole.format(e.km))}{e.size ? ` · ${e.size}` : ""}</span>
             </li>
           ))}
         </ul>
       )}
-      {data.alerts.length > 0 && <p className="muted small">{t.gdacsNote}</p>}
 
-      <h3>{t.quakeTitle}</h3>
-      {data.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
-        <ul className="ds-list">
-          {data.earthquakes.map((q, i) => (
-            <li key={i}>
-              <a href={q.url} target="_blank" rel="noopener noreferrer">
-                {t.quakeLine.replace("{mag}", num.format(q.magnitude)).replace("{km}", whole.format(q.km)).replace("{depth}", whole.format(q.depthKm)).replace("{date}", dateFmt.format(new Date(q.time)))}
-              </a>
-              <span className="muted small">{q.title.replace(/^M [\d.]+ - /, "")}</span>
-            </li>
-          ))}
+      <h3 id="ds-quakes">{t.quakeTitle}
+        <Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info>
+      </h3>
+      {base.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
+        <ul className="ds-quakes">
+          {base.earthquakes.map((q, i) => {
+            const k = q.magnitude >= 5.5 ? "high" : q.magnitude >= 4.5 ? "mid" : "low";
+            return (
+              <li key={i}>
+                <span className={`ds-mag ${k}`}>{num.format(q.magnitude)}</span>
+                <div>
+                  <a href={q.url} target="_blank" rel="noopener noreferrer">{t.away.replace("{km}", whole.format(q.km))} · {dateFmt.format(new Date(q.time))}</a>
+                  <span className="small muted">{q.title.replace(/^M [\d.]+ - /, "")}</span>
+                  <span className="small">{t[`qFelt_${k}`]} · {t.quakeDepth.replace("{depth}", whole.format(q.depthKm))}</span>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
-      <p className="muted small">{t.quakeNote}</p>
+      <p className="muted small">{t.qNoteShort}</p>
 
-      <h3>{t.riverTitle}</h3>
-      {data.river ? (
-        <>
-          <div className="ds-river">
-            <div><span>{t.riverNow}</span><strong>{num.format(data.river.now)}</strong></div>
-            <div><span>{t.riverPeak}</span><strong>{num.format(data.river.peak)}</strong></div>
-            <div><span>{t.riverTypical}</span><strong>{num.format(data.river.typical)}</strong></div>
-          </div>
-          <p className="muted small">{t.riverUnit}</p>
-          <Spark series={data.river.series} />
-          <p className={rising ? "warn small" : "muted small"}>{rising ? t.riverRising : t.riverSteady}</p>
-        </>
-      ) : <p className="muted">{data.failed.includes("river") ? t.src_river : t.riverNoData}</p>}
-      <p className="muted small">{t.riverNote}</p>
-      {upstream}
+      {rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
+      {rwState === "failed" && <p className="warn small">{t.urFailed} <button className="tab" onClick={loadRiver}>{t.urRetry}</button></p>}
+      {rw && <RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} />}
+      {inBd && rw && rw.stations.length > 0 && <Upstream t={t} locale={locale} rw={rw} />}
 
       {tips.length > 0 && (
         <>
@@ -182,12 +218,6 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
           {t.officialTitle}: <a href={office.url} target="_blank" rel="noopener noreferrer">{office.name}</a>
         </p>
       )}
-      <h3>{t.creditsTitle}</h3>
-      <ul className="small muted">
-        {data.provenance.map((p) => (
-          <li key={p.name}><a href={p.url} target="_blank" rel="noopener noreferrer">{p.name}</a>: {p.note}</li>
-        ))}
-      </ul>
     </div>
   );
 }

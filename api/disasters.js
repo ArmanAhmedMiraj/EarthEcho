@@ -3,6 +3,7 @@
 //   NASA EONET (open natural events such as wildfires and storms) and the Open-Meteo river-flow (flood) model.
 // Example: /api/disasters?lat=24&lon=90.4
 import { badRequest, cacheFor, readPoint } from "./_lib/answer.js";
+import { localRiver, riverWatch } from "./_lib/riverwatch.js";
 
 const DAY = 86400000;
 const km = (aLat, aLon, bLat, bLon) => {
@@ -121,6 +122,27 @@ export default async function handler(req, res) {
   const point = readPoint(req.query);
   if (!point) return badRequest(res, "Use ?lat=..&lon=.. with real coordinates.");
   const { lat, lon } = point;
+  // ?mode=upstream: the nearest big river, the places upstream of it and early warnings (Bangladesh basin)
+  if (req.query.mode === "upstream") {
+    try {
+      const w = await riverWatch(lat, lon);
+      cacheFor(res, 1800);
+      return res.status(200).json({ ok: true, location: point, ...w });
+    } catch (e) {
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(502).json({ ok: false, error: "The river sources did not answer." });
+    }
+  }
+  if (req.query.mode === "river") {
+    try {
+      const w = await localRiver(lat, lon);
+      cacheFor(res, 1800);
+      return res.status(200).json({ ok: true, location: point, ...w });
+    } catch (e) {
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(502).json({ ok: false, error: "The river sources did not answer." });
+    }
+  }
   const names = ["earthquakes", "alerts", "events", "river"];
   const results = await Promise.allSettled([earthquakes(lat, lon), gdacs(lat, lon), eonet(lat, lon), river(lat, lon)]);
   const out = {};

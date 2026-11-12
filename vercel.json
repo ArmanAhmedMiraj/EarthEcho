@@ -10,7 +10,7 @@
       "maxDuration": 40
     },
     "api/disasters.js": {
-      "maxDuration": 30
+      "maxDuration": 45
     },
     "api/markets.js": {
       "maxDuration": 30
