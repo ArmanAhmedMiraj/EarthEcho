@@ -94,14 +94,6 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   const mappedName = t[`irSoil_${soilMapped}`] || soilMapped || "";
 
   // ---- the plot header, form ----
-  const plotChips = (
-    <div className="ir2-chips">
-      <span className="ir2-chip"><small>{t.ir2PlotCrop}</small><b>{cropId ? cropName(cropId) : typedCrop || t.ir2PlotNoCrop}</b></span>
-      <span className="ir2-chip"><small>{t.ir2PlotSize}</small><b>{area ? `${area.value} ${t[`unit_${unit}`] || unit}` : "–"}</b></span>
-      <span className="ir2-chip"><small>{t.ir2PlotSoil}</small><b>{soilName}</b></span>
-    </div>
-  );
-
   const soilSrcWord = soilUser ? t.ir2SoilSrcYou : sys ? (sys.source === "satellite" ? t.ir2SoilSrcSat : sys.source === "map" ? t.ir2SoilSrcMap : t.ir2SoilSrcRegion) : t.ir2SoilSrcRegion;
   const form = (
     <section className="ir2-card" aria-labelledby="ir2-plot">
@@ -162,12 +154,11 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   if (!cropId) {
     return (
       <div className="ir2">
-        {plotChips}
+        {form}
         <div className="ir2-need">
           <b>{t.ir2PickCrop}</b>
           <span className="small">{typedCrop ? fill(t.ir2CropOther, { name: typedCrop }) : t.ir2PickCropBody}</span>
         </div>
-        {form}
       </div>
     );
   }
@@ -211,11 +202,13 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   const limit = 0.04;
   const satNow = satellite && satellite.soilRoot && satellite.soilRoot.volumetric != null && kind === "upland" ? smapAvailable(satellite.soilRoot.volumetric, soil) : null;
   const sw = a.weight != null ? Math.round((1 - a.weight) * 100) : 0;
+  const nowText = showLevel(a.nowFinal);
+  const reading = first ? (first.day === 0 ? fill(t.ir2ReadToday, { now: nowText }) : fill(t.ir2ReadSoon, { now: nowText, date: shortDate.format(new Date(`${first.date}T00:00:00`)) })) : fill(t.ir2ReadOk, { now: nowText, n: whole.format(plus.days.length) });
   const hours = stamp ? new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(stamp) : "";
 
   return (
     <div className="ir2">
-      {plotChips}
+      {form}
       {!area && <p className="muted small">{t.ir2NoArea}</p>}
 
       <section className={`ir2-hero ${headKey}`} aria-live="polite">
@@ -295,6 +288,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
           today={a.today}
           limit={limit}
           taw={p.taw}
+          reading={reading}
           smap={satNow != null ? { i: a.today, level: Math.max(0, Math.min(1, 1 - ((1 - satNow) * p.taw) / p.raw)) } : null}
         />
       </section>
@@ -335,8 +329,6 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
           ))}
         </ul>
       </section>
-
-      {form}
 
       <section className="ir2-how">
         <h3>{t.ir2HowTitle}

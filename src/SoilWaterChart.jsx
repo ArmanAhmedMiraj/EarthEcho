@@ -4,7 +4,7 @@ const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${
 
 // Water in the soil, day by day: rain bars, the estimate so far, the prediction, and the same prediction without the forecast rain.
 // Slide a finger or the mouse over it (or use the arrow keys) to read any day.
-export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limit, taw, smap, onPick }) {
+export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limit, taw, smap, onPick, reading }) {
   const holder = useRef(null);
   const [W, setW] = useState(640);
   const [showDry, setShowDry] = useState(false);
@@ -17,7 +17,7 @@ export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limi
     return () => ro.disconnect();
   }, []);
   const small = W < 480;
-  const H = small ? 300 : 290, L = small ? 40 : 46, R = 10, T = 14, B = 34, RAIN_H = 48;
+  const H = small ? 310 : 300, L = small ? 44 : 54, R = 10, T = 14, B = 34, RAIN_H = 48;
   const n = rows.length;
   const plotH = H - T - B - RAIN_H - 10;
   const x = (i) => L + (i + 0.5) * ((W - L - R) / n);
@@ -65,7 +65,7 @@ export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limi
 
   const r = sel != null ? rows[sel] : null;
   const rd = sel != null && dry ? dry[sel] : null;
-  const levelWord = (lv) => (rice ? `${nf.format((lv || 0) * 100 / 10)} cm` : `${nf.format((lv || 0) * 100)}%`);
+  const levelWord = (lv) => (rice ? `${nf.format((lv || 0) * 10)} cm` : (lv || 0) > 0.66 ? t.ir2Full : (lv || 0) > 0.25 ? t.ir2Okay : t.ir2Empty);
   const anyDiff = dry && rows.some((q, i) => i >= today && dry[i] && q.level != null && dry[i].level != null && Math.abs(q.level - dry[i].level) > 0.04);
   const ev = rows.filter((q) => q.given > 0);
   const mark = (i) => (i === 0 || dayF.format(dOf(rows[i].date)) === "1" ? monF.format(dOf(rows[i].date)) : null);
@@ -73,12 +73,13 @@ export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limi
   return (
     <figure className="swc" ref={holder}>
       <figcaption><b>{rice ? t.ir2ChartRice : t.ir2ChartUpland}</b><span className="small muted">{t.ir2ChartHint}</span></figcaption>
+      {reading && <p className="swc-read">{reading}</p>}
       <svg viewBox={`0 0 ${W} ${H}`} role="img" tabIndex={0} aria-label={t.ir2ChartTitle} onPointerMove={move} onPointerDown={move} onPointerLeave={(e) => { if (e.pointerType === "mouse") setSel(null); }} onKeyDown={key}>
         <rect className="swc-fc" x={x(today) - (W - L - R) / n / 2} y={T} width={W - R - (x(today) - (W - L - R) / n / 2)} height={H - T - B} />
-        {[0, 0.5, 1].map((lv) => (
+        {(rice ? [0, 0.5, 1] : [0, 1]).map((lv) => (
           <g key={lv}>
             <line className="swc-grid" x1={L} x2={W - R} y1={y(lv)} y2={y(lv)} />
-            <text className="swc-ax" x={L - 5} y={y(lv) + 4} textAnchor="end">{lv === 1 ? t.ir2Full : lv === 0 ? t.ir2Empty : ""}</text>
+            <text className="swc-ax" x={L - 5} y={y(lv) + 4} textAnchor="end">{rice ? `${nf.format(lv * 10)} cm` : lv === 1 ? t.ir2Full : t.ir2Empty}</text>
           </g>
         ))}
         {limit != null && (
@@ -97,6 +98,7 @@ export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limi
           const unlikely = q.future && !q.counted;
           return <rect key={q.date} className={`swc-rain ${unlikely ? "unlikely" : ""} ${q.future ? "fc" : "was"}`} x={x(i) - bw / 2} y={base - h} width={bw} height={h} rx="2" />;
         })}
+        {rows.map((q, i) => ((q.rain || 0) >= 5 ? <text key={`rl${q.date}`} className="swc-rl" x={x(i)} y={base - rainY(q.rain) - 4} textAnchor="middle">{nf.format(q.rain)} mm</text> : null))}
         {ev.map((q) => (
           <g key={`e${q.date}`} className="swc-irr">
             <line x1={x(q.i)} x2={x(q.i)} y1={T + 6} y2={base - RAIN_H - 10} />
@@ -131,10 +133,10 @@ export default function SoilWaterChart({ t, locale, rice, rows, dry, today, limi
         {r ? (
           <>
             <b>{fullF.format(dOf(r.date))}</b>
-            <span>{t.ir2DayRain}: {nf.format(r.rain || 0)} mm {r.future ? (r.rain > 0 ? `· ${fill(t.ir2DayChance, { p: nf.format(r.chance == null ? 0 : r.chance) })} · ${r.counted ? t.ir2DayCounted : t.ir2DayNotCounted}` : "") : r.rain > 0 ? `· ${t.ir2DayFell}` : ""}</span>
-            {r.level != null ? <span>{rice ? t.ir2DayWaterRice : t.ir2DayWater}: <b>{rice ? `${nf.format(r.state)} mm` : levelWord(r.level)}</b></span> : <span className="muted">{t.ir2DayNoData}</span>}
-            {rd && rd.level != null && r.future && Math.abs(rd.level - (r.level || 0)) > 0.02 && <span>{t.ir2DayNoRainWater}: {rice ? `${nf.format(rd.state)} mm` : levelWord(rd.level)}</span>}
-            {r.given > 0 && <span className="swc-gi">{fill(t.ir2DayIrr, { mm: nf.format(r.given) })}</span>}
+            <span>🌧 {t.ir2DayRain}: <b>{nf.format(r.rain || 0)} mm</b>{r.future && r.rain > 0 ? ` (${fill(t.ir2DayChance, { p: nf.format(r.chance == null ? 0 : r.chance) })}, ${r.counted ? t.ir2DayCounted : t.ir2DayNotCounted})` : !r.future && r.rain > 0 ? ` (${t.ir2DayFell})` : ""}</span>
+            {r.level != null ? <span>💧 {rice ? t.ir2DayWaterRice : t.ir2DayWater}: <b>{rice ? `${nf.format(r.pre != null ? r.pre : r.state)} mm (${(Math.round((r.pre != null ? r.pre : r.state)) / 10).toFixed(1)} cm)` : levelWord(r.level)}</b></span> : <span className="muted">{t.ir2DayNoData}</span>}
+            {rd && rd.level != null && r.future && Math.abs(rd.level - (r.level || 0)) > 0.02 && <span>☀ {t.ir2DayNoRainWater}: <b>{rice ? `${nf.format(rd.pre != null ? rd.pre : rd.state)} mm` : levelWord(rd.level)}</b></span>}
+            {r.given > 0 && <span className="swc-gi">🚰 {fill(t.ir2DayIrr, { mm: nf.format(r.given) })}</span>}
           </>
         ) : <span className="muted">{t.ir2ChartHint}</span>}
       </div>

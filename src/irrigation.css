@@ -106,3 +106,8 @@
   .ir2-hero-top { flex-direction: column; }
   .ir2-nums { grid-template-columns: 1fr; }
 }
+.swc-read { margin: 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, #2f8fd8 12%, transparent); font-size: 1.02rem; font-weight: 600; }
+.swc-rl { fill: var(--text); font-size: 11px; font-weight: 600; }
+.swc-ax { font-size: 12px; }
+.swc-card { font-size: 1rem; gap: 5px; }
+.swc-legend { font-size: 0.9rem; }
