@@ -38,13 +38,14 @@ export function smapAvailable(v, soil) {
 
 // One run of the balance. start = { i, value } (the state at the START of day i, before that day's rain and use).
 // assim = { weight, target } nudges today's end state towards target (depletion mm). noRain removes forecast rain.
-export function run({ kind, crop, stage, soil, past, days, start, assim, noRain }) {
+export function run({ kind, crop, stage, soil, past, days, start, assim, noRain, inject, auto = true }) {
   const p = params({ kind, crop, stage, soil });
   const t0 = past.length;
   const series = [...past, ...days];
   let s = start.value; // rice: depth mm; upland: depletion mm
   const rows = [];
   const events = [];
+  let due = null;
   for (let i = 0; i < series.length; i++) {
     const d = series[i];
     const future = i >= t0;
@@ -58,20 +59,24 @@ export function run({ kind, crop, stage, soil, past, days, start, assim, noRain 
     if (kind === "rice") {
       s = Math.min(RICE_CAP, s + counted - row.etc - p.perc);
       row.pre = Math.max(0, s);
-      if (future && s <= 0) { given = RICE_REFILL - s; events.push({ date: d.date, mm: Math.round(given), day: i - t0 }); s = RICE_REFILL; }
+      const inj = inject && inject.find((x) => i === t0 + x.day);
+      if (inj) { s = Math.min(RICE_CAP, Math.max(0, s) + inj.mm); row.injected = inj.mm; }
+      if (future && s <= 0) { if (due == null) due = i - t0; if (auto) { given = RICE_REFILL - s; events.push({ date: d.date, mm: Math.round(given), day: i - t0 }); s = RICE_REFILL; } }
       s = clamp(s, 0, RICE_CAP);
       row.level = s / RICE_CAP; row.state = s;
     } else {
       s = clamp(s + row.etc - effectiveRain(counted), 0, p.taw);
       if (i === t0 && assim) s = clamp(assim.weight * s + (1 - assim.weight) * assim.target, 0, p.taw);
+      const inj = inject && inject.find((x) => i === t0 + x.day);
+      if (inj) { s = Math.max(0, s - inj.mm); row.injected = inj.mm; }
       row.pre = s;
-      if (future && s >= p.raw) { given = s; events.push({ date: d.date, mm: Math.round(s), day: i - t0 }); s = 0; }
+      if (future && s >= p.raw) { if (due == null) due = i - t0; if (auto) { given = s; events.push({ date: d.date, mm: Math.round(s), day: i - t0 }); s = 0; } }
       row.level = clamp(1 - s / p.raw, 0, 1); row.state = s;
     }
     row.given = given;
     rows.push(row);
   }
-  return { p, rows, events, totalMm: events.reduce((a, e) => a + e.mm, 0) };
+  return { p, rows, events, due, totalMm: events.reduce((a, e) => a + e.mm, 0) };
 }
 
 const cls3 = (c) => (c === "dry" ? "dry" : c === "moist" ? "moist" : c ? "wet" : null);
@@ -172,8 +177,30 @@ export function assess({ kind, crop, stage, soil, plus, manual, since, smap, nas
   const rainShift = first && firstDry ? first.day - firstDry.day : !first && firstDry ? "beyond" : 0;
   const rainSaved = Math.max(0, noRain.totalMm - finalRun.totalMm);
 
+  // --- what each choice would do (simulated) ---
+  const pre0 = nowFinal && nowFinal.pre != null ? nowFinal.pre : 0;
+  const fullNet = kind === "rice" ? Math.max(0, RICE_REFILL - pre0) : Math.max(0, pre0);
+  const cr = (k) => { const r = finalRun.rows[t0 + k]; return r ? r.rainUsed || 0 : 0; };
+  const rain3 = cr(1) + cr(2) + cr(3);
+  const lessNet = Math.max(0, fullNet - 0.8 * rain3);
+  const simBase = { ...base, start: start.skipToday ? { i: t0, value: start.value } : start, assim };
+  const sim = (o) => {
+    const r = run({ ...simBase, ...o });
+    const first = r.events.find((e) => e.day >= 1);
+    const inj = (o.inject || []).reduce((s2, x) => s2 + x.mm, 0);
+    const lv = (k) => (r.rows[t0 + k] ? r.rows[t0 + k].pre : null);
+    return { rows: r.rows, nextDay: first ? first.day : null, due: r.due, total: Math.round(inj + r.totalMm), lv };
+  };
+  const opts = {
+    now: sim({ inject: [{ day: 0, mm: fullNet }] }),
+    less: lessNet > 0.25 * fullNet && lessNet < 0.85 * fullNet ? sim({ inject: [{ day: 0, mm: lessNet }] }) : null,
+    wait: sim({ auto: false }),
+  };
+  const rainDays = finalRun.rows.filter((r) => r.future && r.rainUsed > 0);
+  const bigRain = rainDays.reduce((b, r) => (!b || r.rainUsed > b.rainUsed ? r : b), null);
+
   return {
-    p, run: finalRun, noRain, rainOnly, ev, confidence, anchor, mAge, start, weight: assim ? weight : null,
+    options: { fullNet, lessNet, rain3, opts, bigRain, pre0, noRainTotal: noRain.totalMm }, p, run: finalRun, noRain, rainOnly, ev, confidence, anchor, mAge, start, weight: assim ? weight : null,
     smapAvail, nowRainOnly: nowRainOnly && nowRainOnly.pre, nowFinal: nowFinal && nowFinal.pre,
     rainShift, rainSaved, firstDryDay: firstDry ? firstDry.day : null, today: t0,
   };

@@ -5,7 +5,7 @@ import SoilWaterChart from "./SoilWaterChart.jsx";
 import { fetchWeatherPlus } from "./weatherPlus.js";
 import { IRRIGATION_CROPS, METHOD_EFFICIENCY, SOIL_AW, WATER_SOURCES } from "./water.js";
 import { IRR_CROP_NAMES } from "./i18nIrrigation.js";
-import { assess, isoOf, smapAvailable } from "./irrigationEngine.js";
+import { assess, isoOf } from "./irrigationEngine.js";
 
 const SOILS = Object.keys(SOIL_AW);
 const SQUARE_METRES = { hectare: 10000, acre: 4046.86, decimal: 40.4686, bigha: 1337.8, katha: 66.89, sqm: 1 };
@@ -199,11 +199,50 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
     : [{ k: "dry", v: "dry", label: t.ir2FeelDry }, { k: "slightly", v: "slightly", label: t.ir2FeelSlightly }, { k: "moist", v: "moist", label: t.ir2FeelMoist }, { k: "wet", v: "wet", label: t.ir2FeelWet }];
   const activeQuick = manual ? (kind === "rice" ? quick.find((q) => q.v === manual.mm) : quick.find((q) => q.v === manual.feel)) : null;
 
-  const limit = 0.04;
-  const satNow = satellite && satellite.soilRoot && satellite.soilRoot.volumetric != null && kind === "upland" ? smapAvailable(satellite.soilRoot.volumetric, soil) : null;
   const sw = a.weight != null ? Math.round((1 - a.weight) * 100) : 0;
   const nowText = showLevel(a.nowFinal);
   const reading = first ? (first.day === 0 ? fill(t.ir2ReadToday, { now: nowText }) : fill(t.ir2ReadSoon, { now: nowText, date: shortDate.format(new Date(`${first.date}T00:00:00`)) })) : fill(t.ir2ReadOk, { now: nowText, n: whole.format(plus.days.length) });
+  // ---- the choices ----
+  const O = a.options;
+  const lvl = (st) => (st == null ? 0 : kind === "rice" ? st / 100 : Math.max(0, Math.min(1, 1 - st / p.raw)));
+  const sayLv = (st) => showLevel(st);
+  const gross = (net) => net / eff;
+  const amt = (net) => (volume(gross(net)) ? fill(t.ir2HowMuch, { mm: whole.format(gross(net)), litres: volume(gross(net)) }) : fill(t.ir2HowMuchMm, { mm: whole.format(gross(net)) }));
+  const dShort = (iso) => shortDate.format(new Date(`${iso}T00:00:00`));
+  const rainLine = (k) => {
+    const rs = a.run.rows.filter((r) => r.future && r.rainUsed > 0 && r.i - a.today <= 3);
+    if (rs.length) { const b = rs.reduce((m, r) => (r.rainUsed > m.rainUsed ? r : m)); return fill(t.ir2ORainSome, { date: dShort(b.date), mm: whole.format(b.rain) }); }
+    const later = O.bigRain;
+    return later ? `${t.ir2ORainNone} ${fill(t.ir2ORainLater, { date: dShort(later.date), mm: whole.format(later.rain) })}` : t.ir2ORainNone;
+  };
+  const waterLine = kind === "rice"
+    ? fill(t.ir2WhyWaterRice, { cm: one.format((a.nowFinal || 0) / 10), use: one.format(useNow) })
+    : fill(t.ir2WhyWaterUpland, { pct: whole.format(Math.min(100, ((a.nowFinal || 0) / p.raw) * 100)), use: one.format(useNow) });
+  const afterOf = (rows, total, nextDay) => ({
+    line: fill(t.ir2OAfterLine, { l1: sayLv(rows[a.today + 1] ? rows[a.today + 1].pre : null), l7: sayLv(rows[a.today + 7] ? rows[a.today + 7].pre : null) }),
+    next: nextDay == null ? fill(t.ir2ONextNone, { n: whole.format(plus.days.length) }) : fill(t.ir2ONext, { when: nextDay === 0 ? t.ir2WhenToday : fill(t.ir2OWhen, { date: dShort(a.run.rows[a.today + nextDay].date) }) }),
+    total: fill(t.ir2OTotal, { n: whole.format(plus.days.length), tot: whole.format(gross(total)) }),
+  });
+  const choices = [];
+  const dueDay = first ? first.day : null;
+  if (dueDay === 0) {
+    const waitOk = lvl(O.opts.wait.lv(2)) > lvl(O.pre0) + 0.02 || O.rain3 >= 0.8 * O.fullNet;
+    const best = O.opts.less ? "less" : O.rain3 >= 0.8 * O.fullNet && waitOk ? "wait" : "now";
+    const nowO = O.opts.now, lessO = O.opts.less, waitO = O.opts.wait;
+    choices.push({ id: "now", tone: best === "now" ? "best" : "ok", tag: t.ir2TagNow, title: t.ir2OptNow, net: O.fullNet, why: [waterLine, t.ir2OWhyNow], rain: rainLine(), after: afterOf(nowO.rows, nowO.total, nowO.nextDay), mmNet: O.fullNet });
+    if (lessO) choices.push({ id: "less", tone: best === "less" ? "best" : "ok", tag: t.ir2TagLess, title: t.ir2OptLess, net: O.lessNet, why: [waterLine, t.ir2OWhyLess], rain: rainLine(), after: afterOf(lessO.rows, lessO.total, lessO.nextDay) });
+    choices.push({ id: "wait", tone: best === "wait" ? "best" : waitOk ? "ok" : "risky", tag: t.ir2TagWait, title: waitOk ? t.ir2OptWaitRain : fill(t.ir2OptWait, { n: 2 }), net: 0, why: [waterLine, waitOk ? t.ir2OWhyWaitRain : t.ir2OWhyWaitRisk], rain: rainLine(), after: { line: fill(t.ir2OAfterLine, { l1: sayLv(waitO.rows[a.today + 1].pre), l7: sayLv(waitO.rows[a.today + 7].pre) }), next: "", total: "" } });
+  } else if (dueDay != null) {
+    choices.push({ id: "wait", tone: "best", tag: t.ir2TagWait, title: fill(t.ir2OptWait, { n: whole.format(dueDay) }), net: first.mm, why: [waterLine, fill(t.ir2OWhyWaitOk, { n: whole.format(dueDay) })], rain: rainLine(), after: afterOf(a.run.rows, a.run.totalMm, dueDay), later: true });
+    const nowO = O.opts.now;
+    choices.push({ id: "anyway", tone: "risky", tag: t.ir2TagNow, title: t.ir2OptAnyway, net: O.fullNet, why: [t.ir2OWhyAnyway], rain: rainLine(), after: { ...afterOf(nowO.rows, nowO.total, nowO.nextDay), extra: fill(t.ir2OExtra, { x: whole.format(gross(Math.max(0, nowO.total - a.run.totalMm))) }) } });
+  } else {
+    const nowO = O.opts.now;
+    choices.push({ id: "skip", tone: "best", tag: t.ir2TagSkip, title: t.ir2OptSkip, net: 0, why: [waterLine, fill(t.ir2OWhySkip, { n: whole.format(plus.days.length) })], rain: rainLine(), after: afterOf(a.run.rows, 0, null) });
+    choices.push({ id: "anyway", tone: "risky", tag: t.ir2TagNow, title: t.ir2OptAnyway, net: O.fullNet, why: [t.ir2OWhyAnyway], rain: rainLine(), after: { ...afterOf(nowO.rows, nowO.total, nowO.nextDay), extra: fill(t.ir2OExtra, { x: whole.format(gross(nowO.total)) }) } });
+  }
+  const bestChoice = choices.find((c) => c.tone === "best") || choices[0];
+  const heroNet = bestChoice && bestChoice.id !== "wait" && bestChoice.id !== "skip" ? bestChoice.net : first ? first.mm : 0;
   const hours = stamp ? new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(stamp) : "";
 
   return (
@@ -216,7 +255,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
           <div>
             <h3>{head}</h3>
             {first ? (
-              <p className="ir2-amount">{volume(first.mm / eff) ? fill(t.ir2HowMuch, { mm: whole.format(first.mm / eff), litres: volume(first.mm / eff) }) : fill(t.ir2HowMuchMm, { mm: whole.format(first.mm / eff) })}</p>
+              <p className="ir2-amount">{amt(heroNet)}</p>
             ) : <p className="muted">{t.ir2PlanNone}</p>}
           </div>
           <div className={`ir2-conf ${a.confidence}`}>
@@ -286,28 +325,51 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
           rows={a.run.rows}
           dry={a.noRain.rows}
           today={a.today}
-          limit={limit}
-          taw={p.taw}
           reading={reading}
-          smap={satNow != null ? { i: a.today, level: Math.max(0, Math.min(1, 1 - ((1 - satNow) * p.taw) / p.raw)) } : null}
         />
       </section>
 
+      <section className="ir2-card" aria-labelledby="ir2-choices">
+        <h3 id="ir2-choices">{t.ir2ChoicesTitle}</h3>
+        <p className="muted small">{t.ir2ChoicesHint}</p>
+        <div className="ir2-opts">
+          {[bestChoice, ...choices.filter((c) => c !== bestChoice)].map((c) => (
+            <article key={c.id} className={`ir2-opt ${c.tone}`}>
+              <header>
+                <span className="ir2-tag">{c.tag}</span>
+                <span className={`ir2-tone ${c.tone}`}>{t[`ir2Tone${c.tone === "best" ? "Best" : c.tone === "ok" ? "Ok" : "Risky"}`]}</span>
+              </header>
+              <h4>{c.title}</h4>
+              {c.net > 0 && c.id !== "wait" && <p className="ir2-amount">{amt(c.net)}</p>}
+              <dl>
+                <dt>{t.ir2OWhy}</dt>
+                <dd>{c.why.map((w, i) => <span key={i}>{w}</span>)}</dd>
+                <dt>{t.ir2ORain}</dt>
+                <dd><span>{c.rain}</span></dd>
+                <dt>{t.ir2OAfter}</dt>
+                <dd>
+                  <span>{c.after.line}</span>
+                  {c.after.next && <span>{c.after.next}</span>}
+                  {c.after.total && <span>{c.after.total}</span>}
+                  {c.after.extra && <span className="warnline">{c.after.extra}</span>}
+                </dd>
+              </dl>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="ir2-card" aria-labelledby="ir2-plan">
-        <h3 id="ir2-plan">{t.ir2PlanTitle}</h3>
+        <h3 id="ir2-plan">{t.ir2PlanDatesTitle}</h3>
         {events.length === 0 ? <p className="muted">{t.ir2PlanNone}</p> : (
-          <div className="ir2-scroll">
-            <table className="ir-table">
-              <thead><tr><th>{t.ir2PlanDate}</th><th>{t.ir2PlanNet}</th><th>{t.ir2PlanGross}</th><th>{t.ir2PlanVolume}</th></tr></thead>
-              <tbody>
-                {events.map((e) => (
-                  <tr key={e.date}><td>{dOf(e.date)}</td><td>{whole.format(e.mm)}</td><td>{whole.format(e.mm / eff)}</td><td>{volume(e.mm / eff) || "–"}</td></tr>
-                ))}
-                <tr><th>{t.ir2PlanTotal}</th><th>{whole.format(a.run.totalMm)}</th><th>{whole.format(a.run.totalMm / eff)}</th><th>{volume(a.run.totalMm / eff) || "–"}</th></tr>
-              </tbody>
-            </table>
-          </div>
+          <ul className="ir2-dates">
+            {events.map((e) => (
+              <li key={e.date}><b>{dOf(e.date)}</b><span>{volume(e.mm / eff) ? fill(t.ir2PlanLine, { date: "", mm: whole.format(e.mm / eff), vol: volume(e.mm / eff) }).replace(/^: /, "") : fill(t.ir2PlanLineNo, { date: "", mm: whole.format(e.mm / eff) }).replace(/^: /, "")}</span></li>
+            ))}
+            <li className="tot"><b>{volume(a.run.totalMm / eff) ? fill(t.ir2PlanTotalLine, { mm: whole.format(a.run.totalMm / eff), vol: volume(a.run.totalMm / eff) }) : fill(t.ir2PlanTotalNo, { mm: whole.format(a.run.totalMm / eff) })}</b></li>
+          </ul>
         )}
+        <p className="small muted">{t.ir2PlanNote}</p>
       </section>
 
       <section className="ir2-card" aria-labelledby="ir2-check">
