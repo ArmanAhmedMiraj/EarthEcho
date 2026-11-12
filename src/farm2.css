@@ -1,0 +1,73 @@
+/* My Farm, "From orbit to your field" layout: map + today card, plots row, three info cards, manage bar. */
+.app .fd2 { display: block; max-width: none; }
+.app .fd2-top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 18px; margin-bottom: 18px; align-items: stretch; }
+.app .fd2-map { position: relative; min-height: 400px; border-radius: 22px; overflow: hidden; border: 1px solid var(--border); }
+.app .fd2-map .fl-ovmap { position: absolute; inset: 0; height: 100%; margin: 0; border: 0; border-radius: 0; }
+.app .fd2-mapchips { position: absolute; left: 12px; bottom: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; z-index: 2; }
+.app .fd2-chip { pointer-events: auto; font: inherit; font-size: 0.78rem; padding: 6px 12px; border-radius: 10px; background: rgba(8, 14, 38, 0.82); color: #eaf2ff; border: 1px solid rgba(255, 255, 255, 0.14); backdrop-filter: blur(6px); }
+.app .fd2-chip .fd-link { color: var(--a2, #3ddbc0); }
+.app .fd2-rename { cursor: pointer; }
+.app .fd2-noland { position: absolute; top: 64px; left: 12px; margin: 0; padding: 6px 10px; border-radius: 10px; background: rgba(8, 14, 38, 0.82); color: #eaf2ff; z-index: 2; }
+.app .fd2 .fl-ovbar { top: 12px; left: 12px; }
+.app .fd2-today { border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.app .fd2-today h3 { margin: 0; font-size: 1.15rem; }
+.app .fd2-alerts { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.app .fd2-alerts .fm-alert { flex-direction: column; gap: 3px; margin: 0; padding: 11px 13px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.04); }
+.app .fd2-alerts .fm-alert b { background: none; padding: 0; color: var(--text); font-size: 0.92rem; display: flex; align-items: center; gap: 8px; }
+.app .fd2-alerts .fm-alert b::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--gold, #f6cf6a); flex: none; }
+.app .fd2-alerts .fm-alert.severe { border-color: rgba(255, 148, 120, 0.5); background: rgba(255, 148, 120, 0.1); }
+.app .fd2-alerts .fm-alert.severe b::before { background: #ff9478; }
+.app .fd2-alerts .fm-alert.warning, .app .fd2-alerts .fm-alert.watch { border-color: rgba(246, 207, 106, 0.5); background: rgba(246, 207, 106, 0.09); }
+.app .fd2-alerts .fm-alert span { font-size: 0.84rem; color: var(--muted); }
+.app .fd2-today-foot { display: flex; justify-content: flex-end; }
+.app .fd2 .fd-seg { display: inline-flex; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px; margin: 0 0 8px; }
+.app .fd2 .fd-seg button { flex: none; padding: 9px 16px; border-radius: 10px; font-size: 0.88rem; }
+.app .fd2 .fd-seg button.on { background: #eef3ff; color: #0b1235; box-shadow: none; }
+:root:not([data-theme="dark"]) .app .fd2 .fd-seg button.on { background: var(--accent); color: #fff; }
+.app .fd2-h { margin: 14px 0 12px; font-size: 1.15rem; }
+.app .fd2-plots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.app .fd2-plot { border: 1px solid var(--border); border-radius: 20px; background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; text-align: left; color: var(--text); font: inherit; }
+.app .fd2-plot.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+.app .fd2-plot-pick { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 10px; }
+.app .fd2-plot-pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+.app .fd2-plot-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.app .fd2-plot-head b { font-size: 1.08rem; display: flex; align-items: center; gap: 8px; }
+.app .fd2-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: rgba(255, 255, 255, 0.12); color: var(--text); white-space: nowrap; }
+.app .fd2-badge.on { background: var(--accent); color: #06231d; }
+.app .fd2 dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 0.86rem; }
+.app .fd2 dt { color: var(--muted); }
+.app .fd2 dd { margin: 0; font-weight: 700; }
+.app .fd2-plot-act { display: flex; gap: 8px; margin-top: auto; }
+.app .fd2 .tab.danger { color: var(--clay, #ff9478); border-color: color-mix(in srgb, var(--clay, #ff9478) 55%, transparent); }
+.app .fd2-add { border: 2px dashed var(--border-strong, var(--border)); background: transparent; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; min-height: 120px; }
+.app .fd2-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.app .fd2-card { border: 1px solid var(--border); border-radius: 20px; background: var(--panel); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.app .fd2-card h3 { margin: 0; font-size: 1.05rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.app .fd2-found { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
+.app .fd2-block { width: 100%; height: auto; }
+.app .fd2-found dl { grid-template-columns: 1fr; gap: 0; }
+.app .fd2-found dt { margin-top: 6px; font-size: 0.8rem; }
+.app .fd2-know { display: flex; flex-direction: column; gap: 6px; font-size: 0.86rem; font-weight: 700; margin-top: auto; }
+.app .fd2-know select { width: 100%; }
+.app .fd2-det-top svg { flex: none; width: 76px; height: 76px; }
+.app .fd2-det-top { display: flex; gap: 14px; align-items: center; }
+.app .fd2-det-top p { margin: 0; color: var(--muted); }
+.app .fd2-ring-n { fill: var(--text); font-weight: 800; font-size: 15px; }
+.app .fd2-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.app .fd2-dchip { font: inherit; font-size: 0.78rem; padding: 6px 11px; border-radius: 99px; border: 1px solid var(--border-strong, var(--border)); background: transparent; color: var(--text); cursor: pointer; }
+.app .fd2-dchip.on { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); font-weight: 700; }
+.app .fd2-seasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
+.app .fd2-seasons li { padding-left: 10px; border-left: 3px solid var(--accent); }
+.app .fd2-card .wide { margin-top: auto; width: 100%; }
+.app .fd2-manage { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; padding: 16px 20px; border: 1px solid var(--border); border-radius: 20px; background: var(--panel); }
+.app .fd2-manage-act { display: flex; flex-wrap: wrap; gap: 8px; }
+.app .fd2-install { flex-basis: 100%; margin: 0; }
+.app .fd2 .fl-manage { margin-top: 12px; }
+@media (max-width: 900px) {
+  .app .fd2-top { grid-template-columns: 1fr; }
+  .app .fd2-map { min-height: 320px; }
+  .app .fd2-plots, .app .fd2-trio { grid-template-columns: 1fr; }
+  .app .fd2 .fd-seg { display: flex; width: 100%; }
+  .app .fd2 .fd-seg button { flex: 1; padding: 9px 6px; font-size: 0.8rem; }
+}
+html[data-tab="farms"] .ctx-sub { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

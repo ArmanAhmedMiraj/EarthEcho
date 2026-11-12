@@ -1211,7 +1211,7 @@ export default function App() {
       {stage === "app" && tab === "farms" && (
         <main className="page" onInputCapture={farmTyping}>
           <div className="viewer">
-            <h2>{t.fdTitle}</h2>
+            <h2 className="sr-only">{t.fdTitle}</h2>
             <Farms
               t={t}
               lang={lang}

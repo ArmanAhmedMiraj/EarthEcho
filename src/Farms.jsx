@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SeasonRecord from "./SeasonRecord.jsx";
 import "./farms.css";
+import "./farm2.css";
 import FarmMap from "./FarmMap.jsx";
 import FarmlandEditor from "./FarmlandEditor.jsx";
 import { areaSqm, inUnits, totalSqm, plotLabel, nextPlotName, newParcelId } from "./geo.js";
@@ -36,6 +37,7 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
   const [renaming, setRenaming] = useState(null); // null | "farm" | "plot" | "newplot"
   const [nameDraft, setNameDraft] = useState("");
   const [focusId, setFocusId] = useState("");
+  const [showInstall, setShowInstall] = useState(false);
   const [crops, setCrops] = useState([]);
   const fileInput = useRef(null);
   const [installEvent, setInstallEvent] = useState(window.__efInstall || null);
@@ -190,104 +192,146 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
   const hasData = (id) => { const p = plots.find((x) => x.id === id); return !!(p && p.details && Object.keys(p.details).length); };
   const SECTIONS = [["overview", t.fdSecOverview], ["details", t.fdSecDetails], ["record", t.srSection]];
 
+  const monthsAbbr = t.rtMonthsAbbr.split(" ");
+  const sowWord = (pd) => (pd.currentSowMonth !== undefined && pd.currentSowMonth !== "" && monthsAbbr[Number(pd.currentSowMonth)] ? `, ${fill(t.orbSownIn, { m: monthsAbbr[Number(pd.currentSowMonth)] })}` : "");
+  const soilOf = (pd) => (pd.soil ? `${t.soilNames[pd.soil]} (${t.orbYouSet})` : sysSoil ? t.soilNames[sysSoil.key] : "—");
+  const sizeOf = (p) => {
+    const sq = areaSqm(p.points), pd = p.details || {};
+    if (sq > 0) return `${num1.format(inUnits(sq).decimal)} ${t.flDecimal}`;
+    return pd.area && String(pd.area.value || "").trim() ? fill(t.fdAreaLine, { v: pd.area.value, u: t[`fdUnit_${pd.area.unit}`] || pd.area.unit }) : t.plNoBoundary;
+  };
+  const CHIPS = [["currentCrop", t.orbD_currentCrop], ["currentSowMonth", t.orbD_currentSowMonth], ["irrigation", t.orbD_irrigation], ["soil", t.orbD_soil], ["area", t.orbD_area], ["irrigMethod", t.orbD_irrigMethod], ["plannedCrop", t.orbD_plannedCrop], ["ownership", t.orbD_ownership], ["previousCrops", t.orbD_previousCrops], ["notes", t.orbD_notes], ["previousSowMonth", t.orbD_previousSowMonth]];
+  const filled = (k) => (k === "area" ? !!(d.area && String(d.area.value || "").trim()) : !!String(d[k] || "").trim());
+  const got = detailCount(d), total = DETAIL_KEYS.length;
+  const pickPlotThen = (p, fn) => { onPlot(p.id); fn(); };
+  const openRenameOf = (p, i) => { setNameDraft(p.name || plotLabel(p, i, t)); setRenaming("plot"); };
+  const removePlotOf = (p) => {
+    if (plots.length < 2) return;
+    if (!window.confirm(fill(t.plDeleteConfirm, { name: plotLabel(p, plots.indexOf(p), t) }))) return;
+    const rest = plots.filter((x) => x.id !== p.id);
+    onUpdate(active.id, { parcels: rest });
+    onPlot(rest[0].id);
+  };
+  const pastRows = seasons.filter((r) => r.crop.trim());
+  const recs = Array.isArray(d.records) ? d.records : [];
+  const ringC = 2 * Math.PI * 30;
+
   return (
-    <div className="fd">
-      <p className="muted small fd-intro">{t.fdIntro}</p>
-      {fields.length > 0 && (
-        <div className="fl-picker">
-          <span id="fl-picker-l">{t.flMyFarms} ({num.format(fields.length)})</span>
-          <div className="fl-picker-row">
-            <select aria-labelledby="fl-picker-l" value={active ? active.id : ""} onChange={(e) => { const f = fields.find((x) => x.id === e.target.value); if (f && (!active || f.id !== active.id)) onOpen(f); }}>
-              {fields.map((f) => <option key={f.id} value={f.id}>{f.name}{areaLine(f) ? ` · ${areaLine(f)}` : ""}</option>)}
-            </select>
-            <button className="tab" onClick={onAdd}>＋ {t.fdAdd}</button>
-          </div>
-        </div>
-      )}
+    <div className="fd fd2">
       {fields.length === 0 && (
         <div className="fd-add"><p className="muted">{t.fdNoneYet}</p><button className="btn wide" onClick={onAdd}>＋ {t.fdAdd}</button><p className="small muted">{t.fdAddHelp}</p></div>
+      )}
+      {active && (
+        <div className="fd2-top">
+          <div className="fd2-map">
+            <FarmMap t={t} lang={lang} field={active} activeId={plot ? plot.id : ""} onSelect={onPlot} focusId={focusId} onEdit={() => setEditing(true)} />
+            <div className="fd2-mapchips">
+              <button className="fd2-chip fd2-rename" onClick={() => openRename("farm")} title={t.flRenameFarm}>✎ {active.name}</button>
+              <span className="fd2-chip">{fill(plots.length === 1 ? t.plCountOne : t.plCount, { n: num.format(plots.length) })}{totalMapped > 0 ? ` · ${num1.format(inUnits(totalMapped).decimal)} ${t.flDecimal} (${num2.format(inUnits(totalMapped).hectare)} ha)` : ""}</span>
+              <span className="fd2-chip">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)} · <button className="fd-link" onClick={onMove}>{t.fdMove}</button></span>
+            </div>
+            {totalMapped === 0 && <p className="small muted fd2-noland">{t.flNoLand}</p>}
+          </div>
+          <aside className="fd2-today panel" aria-label={t.orbToday}>
+            <h3>{t.orbToday}</h3>
+            <div className="fd2-alerts">{alertBlock(st0)}</div>
+            <div className="fd2-today-foot">
+              <button className="tab" onClick={() => check([active])}>{t.fmRefresh}</button>
+            </div>
+          </aside>
+        </div>
       )}
       <div className="fd-seg" role="tablist">
         {SECTIONS.map(([id, text]) => (
           <button key={id} role="tab" aria-selected={section === id} className={section === id ? "on" : ""} onClick={() => setSection(id)}>
-            {text}
-            {id === "details" && active && <Chip kind="you">{num.format(detailCount(d))}/{num.format(DETAIL_KEYS.length)}</Chip>}
+            {id === "details" && active ? `${text} · ${fill(t.orbOf, { a: num.format(got), b: num.format(total) })}` : text}
           </button>
         ))}
       </div>
 
       {active && section === "overview" && (
-        <section className="fd-card" aria-label={t.fdCurrent}>
-          <div className="fl-namerow">
-            <strong>{active.name}</strong>
-            <button className="fl-pencil" onClick={() => openRename("farm")} aria-label={t.flRenameFarm} title={t.flRenameFarm}>✎</button>
-            <span className="small muted">✓ {t.fdSaved}</span>
-          </div>
-          <p className="small muted fd-where">{active.path ? `${active.path} · ` : ""}{active.lat.toFixed(4)}, {active.lon.toFixed(4)} · <button className="fd-link" onClick={onMove}>{t.fdMove}</button></p>
-
-          <h3>{t.flFarmland} <span className="small muted">· {fill(plots.length === 1 ? t.plCountOne : t.plCount, { n: num.format(plots.length) })}{totalMapped > 0 ? ` · ${num1.format(inUnits(totalMapped).decimal)} ${t.flDecimal} (${num2.format(inUnits(totalMapped).hectare)} ha)` : ""}</span></h3>
-          <FarmMap t={t} lang={lang} field={active} activeId={plot ? plot.id : ""} onSelect={onPlot} focusId={focusId} onEdit={() => setEditing(true)} />
-          {totalMapped === 0 && <p className="small muted">{t.flNoLand}</p>}
-
-          <h3>{t.plPlotsTitle}</h3>
-          <div className="pl-grid">
+        <>
+          <h3 className="fd2-h">{t.plPlotsTitle}</h3>
+          <div className="fd2-plots">
             {plots.map((p, i) => {
               const pd = p.details || {};
-              const sq = areaSqm(p.points);
-              const typed = pd.area && String(pd.area.value || "").trim() ? fill(t.fdAreaLine, { v: pd.area.value, u: t[`fdUnit_${pd.area.unit}`] || pd.area.unit }) : "";
-              const recs = Array.isArray(pd.records) ? pd.records.length : 0;
+              const on = !!plot && p.id === plot.id;
               return (
-                <button key={p.id} className={`pl-card${plot && p.id === plot.id ? " on" : ""}`} aria-pressed={!!plot && p.id === plot.id} onClick={() => onPlot(p.id)}>
-                  <span className="pl-row"><span><i className="fl-dot" style={{ background: p.points.length ? PLOT_COLORS[i % PLOT_COLORS.length] : "#999" }} /><b>{plotLabel(p, i, t)}</b></span>{plot && p.id === plot.id && <Chip kind="you">{t.plSelected}</Chip>}</span>
-                  <span className="small">{sq > 0 ? `${num1.format(inUnits(sq).decimal)} ${t.flDecimal}` : typed || t.plNoBoundary}{sq > 0 && typed ? ` · ${typed}` : ""}</span>
-                  <span className="small">{t.plCrop}: {pd.currentCrop || t.plNoCrop}{pd.plannedCrop ? ` → ${pd.plannedCrop}` : ""}</span>
-                  <span className="small muted">{pd.soil ? `${t.fdSoil}: ${t.soilNames[pd.soil]} · ` : ""}{fill(t.plRecords, { n: num.format(recs) })}</span>
-                </button>
+                <div key={p.id} className={`fd2-plot${on ? " on" : ""}`}>
+                  <button className="fd2-plot-pick" aria-pressed={on} onClick={() => onPlot(p.id)}>
+                    <span className="fd2-plot-head"><b><i className="fl-dot" style={{ background: p.points.length ? PLOT_COLORS[i % PLOT_COLORS.length] : "#999" }} />{plotLabel(p, i, t)}</b><span className={`fd2-badge${on ? " on" : ""}`}>{on ? t.plSelected : t.orbTap}</span></span>
+                    <dl>
+                      <dt>{t.fdCurrentCrop}</dt><dd>{pd.currentCrop ? `${pd.currentCrop}${sowWord(pd)}` : t.plNoCrop}</dd>
+                      <dt>{t.orbPlotWater}</dt><dd>{pd.irrigation ? t[`fdIrr_${pd.irrigation}`] : "—"}</dd>
+                      <dt>{t.fdSoil}</dt><dd>{soilOf(pd)}</dd>
+                      <dt>{t.orbPlotSize}</dt><dd>{sizeOf(p)}</dd>
+                    </dl>
+                  </button>
+                  <div className="fd2-plot-act">
+                    <button className="tab" onClick={() => { onPlot(p.id); openRenameOf(p, i); }}>{t.orbRename}</button>
+                    <button className="tab danger" onClick={() => removePlotOf(p)} disabled={plots.length < 2} title={plots.length < 2 ? t.plOnlyOne : undefined}>{t.plDelete}</button>
+                  </div>
+                </div>
               );
             })}
-          </div>
-          <div className="pl-tools">
-            <button className="tab" onClick={() => openRename("newplot")} disabled={plots.length >= 12}>＋ {t.plAdd}</button>
-            <button className="tab" onClick={() => openRename("plot")}>✎ {t.plRename}</button>
-            <button className="tab" onClick={removePlot} disabled={plots.length < 2} title={plots.length < 2 ? t.plOnlyOne : undefined}>{t.plDelete}</button>
+            <button className="fd2-plot fd2-add" onClick={() => openRename("newplot")} disabled={plots.length >= 12}>＋ {t.plAdd}</button>
           </div>
 
-          <h3>{t.fdFoundTitle} <Chip kind="system">{t.fdSystem}</Chip></h3>
-          <div className="fd-rows">
-            <div className="fd-line">
-              <b>{t.fdSoil}{plots.length > 1 ? ` · ${plotName}` : ""}</b>
-              <span className="fd-v">
-                {d.soil ? (
-                  <>{t.soilNames[d.soil]} <Chip kind="you">{t.fdYou}</Chip>
-                    {sysSoil && <span className="small muted"> · {t.fdWasEstimate}: {t.soilNames[sysSoil.key]}{sysSoil.confidence != null ? ` (${num.format(sysSoil.confidence)}%)` : ""}</span>}</>
-                ) : sysSoil ? (
-                  <>{t.soilNames[sysSoil.key]} <Chip kind="system">{confWord ? `${confWord}${sysSoil.confidence != null ? ` ${num.format(sysSoil.confidence)}%` : ""}` : t.fdSystem}</Chip>
-                    <span className="small muted"> · {soilSource}</span></>
-                ) : <span className="muted">{t.fdWaiting}</span>}
-              </span>
-              <span className="fd-act">
+          <div className="fd2-trio">
+            <section className="fd2-card" aria-label={t.fdFoundTitle}>
+              <h3>{t.fdFoundTitle} <span className="fd2-badge">{t.orbEstimate}</span></h3>
+              <div className="fd2-found">
+                <svg className="fd2-block" viewBox="0 0 160 110" aria-hidden="true">
+                  <polygon points="80,8 152,44 80,80 8,44" fill="#58c26f" /><polygon points="8,44 80,80 80,100 8,64" fill="#7a5638" /><polygon points="80,80 152,44 152,64 80,100" fill="#5d3f28" />
+                </svg>
+                <dl>
+                  <dt>{t.fdSoil}</dt><dd>{sysSoil ? <>{t.soilNames[sysSoil.key]}{sysSoil.confidence != null ? ` · ${fill(t.orbSure, { n: num.format(sysSoil.confidence) })}` : ""}</> : t.fdWaiting}</dd>
+                  <dt>{t.orbHeight}</dt><dd>{sys && sys.elevationM != null ? `${num.format(sys.elevationM)} m` : "—"}</dd>
+                  <dt>{t.fdSlope}</dt><dd>{sys && sys.slopePct != null ? `${num1.format(sys.slopePct)} %` : "—"}</dd>
+                </dl>
+              </div>
+              <label className="fd2-know">
+                <span>{d.soil ? `${t.fdSoil}: ${t.soilNames[d.soil]} (${t.orbYouSet})` : t.orbKnowSoil}</span>
                 {d.soil
                   ? <button className="fd-link" onClick={() => setDetail("soil", "")}>{t.fdUseEstimate}</button>
                   : (
-                    <select className="fd-mini" value="" onChange={(e) => setDetail("soil", e.target.value)} aria-label={t.fdKnowSoil}>
-                      <option value="">{t.fdKnowSoil}</option>
+                    <select value="" onChange={(e) => setDetail("soil", e.target.value)} aria-label={t.fdKnowSoil}>
+                      <option value="">{sysSoil ? `${t.orbUseEst} (${t.soilNames[sysSoil.key]})` : t.fdKnowSoil}</option>
                       {SOIL_TYPES.map((k) => <option key={k} value={k}>{t.soilNames[k]}</option>)}
                     </select>
                   )}
-              </span>
-            </div>
-            <div className="fd-line"><b>{t.fdElevation}</b><span className="fd-v">{sys && sys.elevationM != null ? `${num.format(sys.elevationM)} m` : "—"}</span><span className="fd-act" /></div>
-            <div className="fd-line"><b>{t.fdSlope}</b><span className="fd-v">{sys && sys.slopePct != null ? `${num1.format(sys.slopePct)} %` : "—"}</span><span className="fd-act" /></div>
-          </div>
+              </label>
+            </section>
 
-          <h3>{t.fdFieldAlerts}</h3>
-          {alertBlock(st0)}
+            <section className="fd2-card" aria-label={t.fdSecDetails}>
+              <h3>{fill(t.orbMyDetails, { name: plotName })}</h3>
+              <div className="fd2-det-top">
+                <svg width="76" height="76" viewBox="0 0 76 76" role="img" aria-label={`${got}/${total}`}>
+                  <circle cx="38" cy="38" r="30" fill="none" stroke="var(--border)" strokeWidth="7" />
+                  <circle cx="38" cy="38" r="30" fill="none" stroke="var(--accent)" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${ringC * got / total} ${ringC}`} transform="rotate(-90 38 38)" />
+                  <text x="38" y="44" textAnchor="middle" className="fd2-ring-n">{num.format(got)}/{num.format(total)}</text>
+                </svg>
+                <p className="small">{t.orbMore}</p>
+              </div>
+              <div className="fd2-chips">
+                {CHIPS.map(([k, label]) => <button key={k} className={`fd2-dchip${filled(k) ? " on" : ""}`} onClick={() => setSection("details")}>{filled(k) ? "✓ " : "+ "}{label}</button>)}
+              </div>
+              <button className="btn wide" onClick={() => setSection("details")}>{t.orbFill}</button>
+            </section>
 
-          <div className="fd-nudge">
-            <span className="small">{plots.length > 1 ? fill(t.plPlotNote, { name: plotName }) : t.fdAboutHelp}</span>
-            <button className="btn" onClick={() => setSection("details")}>{t.fdSecDetails} → ({num.format(detailCount(d))}/{num.format(DETAIL_KEYS.length)})</button>
+            <section className="fd2-card" aria-label={t.srSection}>
+              <h3>{t.srSection}</h3>
+              <ul className="fd2-seasons">
+                {d.currentCrop && <li><b>{d.currentCrop}</b> · {t.orbGrowingNow}{sowWord(d).replace(/^,\s*/, " · ")}</li>}
+                {pastRows.slice(0, 3).map((r, i) => <li key={`h${i}`}><b>{r.crop}</b>{r.year || (r.sowMonth !== "" && monthsAbbr[Number(r.sowMonth)]) ? ` · ${[r.sowMonth !== "" ? monthsAbbr[Number(r.sowMonth)] : "", r.year].filter(Boolean).join(" ")}` : ""}</li>)}
+                {recs.slice(0, 2).map((r, i) => <li key={`r${i}`}><b>{r.crop}</b>{r.sowDate ? ` · ${r.sowDate.slice(0, 4)}` : ""}{r.yieldT ? ` · ${r.yieldT} t/ha` : ""}</li>)}
+                {!d.currentCrop && pastRows.length === 0 && recs.length === 0 && <li className="muted">{t.orbNoSeasons}</li>}
+              </ul>
+              <p className="small muted">{t.orbAddOlder}</p>
+              <button className="tab wide" onClick={() => setSection("record")}>{t.orbAddSeason}</button>
+            </section>
           </div>
-        </section>
+        </>
       )}
 
       {active && section === "details" && (
@@ -385,8 +429,20 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
         </>
       )}
 
+      {active && (
+        <div className="fd2-manage">
+          <strong>{t.flManage}</strong>
+          <div className="fd2-manage-act">
+            <button className="tab" onClick={download} disabled={fields.length === 0}>{t.fmExport}</button>
+            <button className="tab" onClick={() => fileInput.current && fileInput.current.click()}>{t.fmImport}</button>
+            <button className="tab" onClick={() => { if (installEvent) { installEvent.prompt(); window.__efInstall = null; setInstallEvent(null); } else setShowInstall((v) => !v); }}>{t.fmInstallTitle}</button>
+            <button className="tab danger" onClick={() => onRemove(active)}>{t.orbDeleteFarm}</button>
+          </div>
+          {showInstall && <p className="small muted fd2-install">{t.fmInstallHelp}</p>}
+        </div>
+      )}
       <details className="fl-manage">
-        <summary>{t.flManage}</summary>
+        <summary>{t.orbAllFarms}</summary>
       {fields.length === 0 && <p className="muted">{t.fdNoneYet}</p>}
       {fields.map((farm) => {
         const st = status[farm.id] || {};
