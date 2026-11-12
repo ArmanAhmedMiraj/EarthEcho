@@ -2,41 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import SeasonCheck from "./SeasonCheck.jsx";
 import SimilarYear from "./SimilarYear.jsx";
 import DrySpell from "./DrySpell.jsx";
+import WxHours from "./WxHours.jsx";
+import Info from "./Info.jsx";
+import "./weatherfarmer.css";
 import "./weather.css";
 import { fetchWeatherPlus, describeCode, compass, aqiClass, buildAlerts, sprayWindows } from "./weatherPlus.js";
 import { SERVICES, TWO_LETTER } from "./i18nWeather.js";
 
 const sum = (list, key) => list.reduce((s, d) => s + (d[key] || 0), 0);
 
-// 48 hours: temperature line over hourly rain bars
-function HourChart({ hours, t, locale }) {
-  const W = 960, H = 190, L = 28, R = 8, T = 10, B = 24;
-  const n = hours.length;
-  const temps = hours.map((h) => h.temp);
-  const lo = Math.floor(Math.min(...temps) - 1), hi = Math.ceil(Math.max(...temps) + 1);
-  const maxRain = Math.max(2, ...hours.map((h) => h.rain || 0));
-  const x = (i) => L + (i * (W - L - R)) / (n - 1);
-  const y = (v) => T + ((hi - v) * (H - T - B)) / (hi - lo);
-  const bw = (W - L - R) / n;
-  const line = hours.map((h, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(h.temp).toFixed(1)}`).join(" ");
-  const hr = new Intl.DateTimeFormat(locale, { hour: "numeric", hour12: false });
-  return (
-    <svg className="wx-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t.hoursTitle}>
-      {hours.map((h, i) => {
-        const ht = ((h.rain || 0) / maxRain) * (H - T - B) * 0.6;
-        return <rect key={i} x={x(i) - bw / 2 + 1} y={H - B - ht} width={bw - 2} height={ht} fill="var(--a2)" opacity="0.55" />;
-      })}
-      <path d={line} fill="none" stroke="var(--amber)" strokeWidth="2.2" />
-      <text x="2" y={y(hi) + 4}>{hi}°</text>
-      <text x="2" y={y(lo) + 4}>{lo}°</text>
-      {hours.map((h, i) =>
-        i % 6 === 0 ? <text key={i} x={x(i)} y={H - 8} textAnchor="middle">{hr.format(new Date(h.time))}</text> : null,
-      )}
-    </svg>
-  );
-}
-
-export default function Weather({ t, lang, lat, lon, country: appCountry, history }) {
+export default function Weather({ t, lang, lat, lon, country: appCountry, soil, onGo }) {
   const country = TWO_LETTER[appCountry] || "none";
   const [plus, setPlus] = useState(null);
   const [state, setState] = useState("loading"); // loading | ok | failed
@@ -104,7 +79,6 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
   const aqi = aqiClass(plus.air?.aqi);
   const service = SERVICES[country];
   const nowMonth = new Date().getMonth();
-  const maxRain = history ? Math.max(1, ...history.months.map((m) => m.rainMm || 0)) : 1;
   const alertText = (a) => {
     const v = a.value == null ? "" : num.format(a.value);
     const when = a.days.length ? ` (${a.days.slice(0, 3).map(dateOf).join(", ")})` : "";
@@ -137,16 +111,17 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
       {alerts.length === 0 ? <p className="muted">{t.alertsNone}</p> : alerts.map((a) => (
         <div key={a.id} className={`wx-alert ${a.level}`}><b>{t[`level_${a.level}`]}</b><span>{alertText(a)}</span></div>
       ))}
-      <p className="muted small">
-        {t.alertsNote}{" "}
-        {service && <a href={service.url} target="_blank" rel="noopener noreferrer">{service.name}</a>}
+      <p className="small muted wf-offi">
+        {t.wfAlertShort || ""}
+        <Info t={t} source="Open-Meteo">
+          <span>{t.alertsNote}</span>
+          {service && <a href={service.url} target="_blank" rel="noopener noreferrer">{service.name}</a>}
+        </Info>
       </p>
 
-      <h3>{t.hoursTitle}</h3>
-      <HourChart hours={plus.hours} t={t} locale={locale} />
-      <p className="muted small">{t.hoursNote}</p>
+      <WxHours t={t} locale={locale} hours={plus.hours} days={plus.days} />
 
-      <h3>{t.workTitle}</h3>
+      <h3 className="wf-h">{t.workTitle}<Info t={t} source="Open-Meteo"><span>{t.workNote}</span></Info></h3>
       <div className="wx-two">
         <div className="wx-box">
           <h4>{t.sprayTitle}</h4>
@@ -170,9 +145,12 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
           </p>
         </div>
       </div>
-      <p className="muted small">{t.workNote}</p>
 
-      <h3>{t.outlookTitle}</h3>
+      <DrySpell t={t} locale={locale} lat={lat} lon={lon} soilKey={soil} rain7={rain7} onGo={onGo} />
+      <SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} />
+      <SimilarYear t={t} locale={locale} lat={lat} lon={lon} />
+
+      <h3 className="wf-h">{t.wfOutlookTitle}<Info t={t} source="Open-Meteo"><span>{t.outlookNote}</span></Info></h3>
       <div className="wx-outlook">
         {plus.days.map((d) => {
           const w = describeCode(d.code);
@@ -187,9 +165,8 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
           );
         })}
       </div>
-      <p className="muted small">{t.outlookNote}</p>
 
-      <h3>{t.pastTitle}</h3>
+      <h3 className="wf-h">{t.wfPastTitle}<Info t={t} source="Open-Meteo"><span>{t.pastNote}</span></Info></h3>
       <div className="wx-outlook">
         {plus.past.map((d) => {
           const w = describeCode(d.code);
@@ -203,29 +180,8 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
           );
         })}
       </div>
-      <p className="muted small">{t.pastNote}</p>
 
-      <SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} />
-      <SimilarYear t={t} locale={locale} lat={lat} lon={lon} />
-      <DrySpell t={t} locale={locale} lat={lat} lon={lon} />
-
-      <h3>{t.normalsTitle}</h3>
-      {history ? (
-        <>
-          <div className="bars">
-            {history.months.map((m, i) => (
-              <div key={i} className={`bar${i === nowMonth ? " now" : ""}`}>
-                <span className="val">{m.rainMm == null ? "–" : num.format(m.rainMm)}</span>
-                <div className="col"><span className="fill" style={{ height: `${m.rainMm == null ? 0 : Math.round((m.rainMm / maxRain) * 100)}%` }} /></div>
-                <span className="lab">{monthLabel.format(new Date(2000, i, 1))}</span>
-              </div>
-            ))}
-          </div>
-          <p className="muted small">mm · {t.typicalSource.replace("{years}", history.years)} · {t.thisMonth}: {monthLabel.format(new Date(2000, nowMonth, 1))}</p>
-        </>
-      ) : <p className="muted small">{t.historyMissing}</p>}
-
-      <h3>{t.newsTitle}</h3>
+      <h3 className="wf-h">{t.newsTitle}<Info t={t} source={t.wfNewsSrc}><span>{t.newsNote}</span></Info></h3>
       {news.state === "loading" && <p className="muted">{t.newsLoading}{news.tries > 0 ? ` ${t.newsSlow}` : ""}</p>}
       {news.state === "busy" && (
         <p className="muted">{t.newsBusy} <button className="tab" onClick={askNews}>{t.wxRetry}</button></p>
@@ -241,10 +197,7 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, histor
           ))}
         </ul>
       ))}
-      <p className="muted small">{t.newsNote}</p>
-
-      <h3>{t.creditsTitle}</h3>
-      <p className="muted small">{t.credits}</p>
+      <h3 className="wf-h">{t.creditsTitle}<Info t={t} source={t.wfAllSources}><span>{t.credits}</span></Info></h3>
     </div>
   );
 }

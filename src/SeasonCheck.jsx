@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import Info from "./Info.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 const DAYS = [31, 28.25, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -52,22 +53,10 @@ export default function SeasonCheck({ t, lang, locale, lat, lon, plus }) {
   }, [trend, plus]);
 
   const now = new Date().getMonth();
-  const W = 12 * 26 + 8, H = 96, top = 6, bottom = 18;
-  const maxV = data ? Math.max(...data.months.map((m) => m.max), 1) : 1;
-  const y = (v) => top + (1 - v / maxV) * (H - top - bottom);
   const here = data ? data.months[now] : null;
   const spreadKey = here ? spread(here.cv) : null;
-
-  const row = (label, w) => {
-    if (!w) return <tr><th scope="row">{label}</th><td colSpan="3" className="muted">{t.scNoData}</td></tr>;
-    return (
-      <tr>
-        <th scope="row">{label}</th>
-        <td>{fill(t.scRainCell, { a: nf.format(w.rain), b: nf.format(w.normal) })}<br /><strong>{w.rainKey ? t[`scR_${w.rainKey}`] : "–"}</strong></td>
-        <td>{fill(t.scTempCell, { a: nf1.format(w.temp), b: nf1.format(w.tempNormal) })}<br /><strong>{t[`scT_${w.tempKey}`]}</strong></td>
-      </tr>
-    );
-  };
+  const maxMean = data ? Math.max(...data.months.map((m) => m.mean), 1) : 1;
+  const monthClass = (m) => (m.mean < 20 ? "dry" : m.mean / maxMean < 0.3 ? "light" : m.mean / maxMean < 0.65 ? "rainy" : "peak");
 
   const hint = () => {
     if (!data || !data.next || data.next.ratio == null) return null;
@@ -77,50 +66,72 @@ export default function SeasonCheck({ t, lang, locale, lat, lon, plus }) {
     return dry ? t.scHintDry : wet ? t.scHintWet : t.scHintOk;
   };
 
+  const period = (label, w) => {
+    if (!w) return <div className="wf-period"><h4>{label}</h4><p className="muted small">{t.scNoData}</p></div>;
+    const rainTone = { muchDrier: "dry", drier: "dry", dryTime: "same", normal: "same", wetter: "wet", muchWetter: "wet" }[w.rainKey] || "same";
+    const tempTone = { cooler: "cool", normal: "same", warmer: "warm", muchWarmer: "warm" }[w.tempKey] || "same";
+    const maxR = Math.max(w.rain, w.normal, 1);
+    const maxT = Math.max(w.temp, w.tempNormal, 1);
+    return (
+      <div className="wf-period">
+        <h4>{label}</h4>
+        <div className="wf-line-row">
+          <span>{t.wfRainLbl}</span><br />
+          <span className={`wf-verdict ${rainTone}`}>{w.rainKey ? t[`wfR_${w.rainKey}`] : "–"}</span>
+          <div className="wf-cmp">
+            <span>{t.wfThis}</span><div className="wf-track"><span className="wf-fillbar" style={{ width: `${(w.rain / maxR) * 100}%` }} /><em>{nf.format(w.rain)} mm</em></div>
+            <span>{t.wfUsual}</span><div className="wf-track"><span className="wf-fillbar usual" style={{ width: `${(w.normal / maxR) * 100}%` }} /><em>{nf.format(w.normal)} mm</em></div>
+          </div>
+        </div>
+        <div className="wf-line-row">
+          <span>{t.wfTempLbl}</span><br />
+          <span className={`wf-verdict ${tempTone}`}>{t[`wfT_${w.tempKey}`]}</span>
+          <div className="wf-cmp">
+            <span>{t.wfThis}</span><div className="wf-track"><span className="wf-fillbar" style={{ width: `${(w.temp / maxT) * 100}%` }} /><em>{nf1.format(w.temp)}°C</em></div>
+            <span>{t.wfUsual}</span><div className="wf-track"><span className="wf-fillbar usual" style={{ width: `${(w.tempNormal / maxT) * 100}%` }} /><em>{nf1.format(w.tempNormal)}°C</em></div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <section className="sc-season" aria-labelledby="sk-title">
-      <h3 id="sk-title">{t.skTitle}</h3>
-      <p className="muted small">{t.skIntro}</p>
+    <section className="wf-sec" aria-labelledby="sk-title">
+      <h3 id="sk-title">{t.wfSeasonTitle}
+        <Info t={t} source={t.wfSeasonSrc}>
+          <span>{t.wfSeasonInfo}</span>
+          <span>{t.skCaveat}</span>
+        </Info>
+      </h3>
       {state === "loading" && <p className="muted small">{t.skLoading}</p>}
       {state === "error" && <p className="warn small">{t.skFailed}</p>}
       {data && (
         <>
-          <div className="sk-scroll" tabIndex={0} role="region" aria-label={t.skTitle}>
-            <table className="sk-table">
-              <thead><tr><th></th><th>{t.skRain}</th><th>{t.skTemp}</th></tr></thead>
-              <tbody>
-                {row(fill(t.skPast, { n: nf.format(data.past ? data.past.n : 7) }), data.past)}
-                {row(fill(t.skNext, { n: nf.format(data.next ? data.next.n : 7) }), data.next)}
-              </tbody>
-            </table>
+          <div className="wf-two">
+            {period(t.wfPast, data.past)}
+            {period(t.wfNext, data.next)}
           </div>
-          {hint() && <p className="sk-hint">{hint()}</p>}
+          {hint() && <p className="wf-hint"><b>{t.wfMeans}</b>{hint()}</p>}
 
-          <h4>{t.skRangeTitle}</h4>
-          <svg className="sk-range" viewBox={`0 0 ${W} ${H}`} role="img"
-            aria-label={fill(t.skRangeAria, { m: monthName(now), a: nf.format(here.min), b: nf.format(here.max), c: nf.format(here.mean) })}>
+          <h4 className="wf-sub">{t.wfMonthsTitle}
+            <Info t={t} source={t.wfMonthsSrc}>
+              <span>{t.wfMonthsInfo}</span>
+              <span>{fill(t.skHere, { m: monthName(now), a: nf.format(here.min), b: nf.format(here.max), c: nf.format(here.mean) })}</span>
+              <span>{data.usingRecent ? fill(t.skRecent, { y: yr.format(trend.recentFrom), y2: yr.format(trend.to) }) : fill(t.skYears, { a: yr.format(trend.from), b: yr.format(trend.to) })}</span>
+            </Info>
+          </h4>
+          <div className="wf-months">
             {data.months.map((m, i) => {
-              const cx = 4 + i * 26 + 13;
+              const k = monthClass(m);
               return (
-                <g key={i} className={i === now ? "sk-now" : ""}>
-                  <rect x={cx - 8} y={y(m.mean)} width="16" height={Math.max(1, H - bottom - y(m.mean))} className="sk-bar" />
-                  <line x1={cx} x2={cx} y1={y(m.max)} y2={y(m.min)} className="sk-whisk" />
-                  <line x1={cx - 4} x2={cx + 4} y1={y(m.max)} y2={y(m.max)} className="sk-whisk" />
-                  <line x1={cx - 4} x2={cx + 4} y1={y(m.min)} y2={y(m.min)} className="sk-whisk" />
-                  <text x={cx} y={H - 5} textAnchor="middle" className="sk-lab">{monthName(i)}</text>
-                </g>
+                <div key={i} className={`wf-month ${k}${i === now ? " now" : ""}`} aria-label={`${monthName(i)}: ${t[`wfMonth${k[0].toUpperCase()}${k.slice(1)}`]}`}>
+                  <b>{monthName(i)}</b>{t[`wfMonth${k[0].toUpperCase()}${k.slice(1)}`]}
+                  {i === now && <span className="nowtag">{t.wfNowTag}</span>}
+                </div>
               );
             })}
-          </svg>
-          <p className="muted small">{t.skRangeNote}</p>
-          <ul className="sk-list small">
-            <li>{fill(t.skHere, { m: monthName(now), a: nf.format(here.min), b: nf.format(here.max), c: nf.format(here.mean) })}</li>
-            {spreadKey && <li>{t[`skSpread_${spreadKey}`]}</li>}
-            {data.usingRecent
-              ? <li>{fill(t.skRecent, { y: yr.format(trend.recentFrom), y2: yr.format(trend.to) })}</li>
-              : <li>{fill(t.skYears, { a: yr.format(trend.from), b: yr.format(trend.to) })}</li>}
-          </ul>
-          <p className="muted small">{t.skCaveat}</p>
+          </div>
+          {spreadKey === "veryUneven" && <p className="small">{fill(t.wfUneven, { m: monthName(now) })}</p>}
         </>
       )}
     </section>

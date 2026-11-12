@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { closeness, findAnalogues } from "./analogue.js";
+import Info from "./Info.jsx";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -30,83 +31,82 @@ export default function SimilarYear({ t, locale, lat, lon }) {
   if (state === "ok" && !data) return null; // too early in the year, or an older answer without the month-by-month data
   const label = (r) => `${monthName(r.m0)} ${yr.format(r.year)}`;
   const span = (rows) => `${label(rows[0])} – ${label(rows[rows.length - 1])}`;
-  const best = data && data.matches[0];
   const sel = data && data.matches[Math.min(pick, data.matches.length - 1)];
-  const word = (m) => t[`syClose_${closeness(m.d)}`];
+  const medal = ["🥇", "🥈", "🥉"];
+  const tone = (rain, mean) => (mean == null || mean < 1 ? "same" : rain < mean * 0.7 ? "dry" : rain > mean * 1.3 ? "wet" : "same");
+  const toneWord = { dry: t.wfDrier, wet: t.wfWetter, same: t.wfAbout };
+
+  // across all the close years: was each coming month drier or wetter than usual?
+  const pattern = !data ? [] : data.nextRange.map((g, k) => {
+    const marks = data.matches.map((m) => (m.next[k] ? tone(m.next[k].rain, g.rainMean) : null)).filter(Boolean);
+    const dry = marks.filter((x) => x === "dry").length, wet = marks.filter((x) => x === "wet").length;
+    const n = marks.length;
+    if (n >= 2 && dry > n / 2) return fill(t.wfPatDry, { m: monthName(g.m0), k: nf.format(dry), n: nf.format(n) });
+    if (n >= 2 && wet > n / 2) return fill(t.wfPatWet, { m: monthName(g.m0), k: nf.format(wet), n: nf.format(n) });
+    return fill(t.wfPatMixed, { m: monthName(g.m0) });
+  });
 
   return (
-    <section className="sc-season" aria-labelledby="sy-title">
-      <h3 id="sy-title">{t.syTitle}</h3>
-      <p className="muted small">{data ? fill(t.syIntro, { span: span(data.window) }) : t.syIntroShort}</p>
+    <section className="wf-sec" aria-labelledby="sy-title">
+      <h3 id="sy-title">{t.wfYearsTitle}
+        <Info t={t} source={t.wfYearsSrc}>
+          <span>{t.wfYearsInfo}</span>
+          {data && <span>{data.usedJump ? fill(t.syJump, { y: yr.format(data.jumpYear) }) : fill(t.syYears, { a: yr.format(data.from), b: yr.format(trend.to) })}</span>}
+          {sel && (
+            <>
+              <b>{t.wfCompare}: {span(sel.rows)}</b>
+              <table>
+                <thead><tr><th>{t.syMonth}</th><th>{t.syRainNow}</th><th>{yr.format(sel.endYear)}</th><th>{t.syTempNow}</th><th>{yr.format(sel.endYear)}</th></tr></thead>
+                <tbody>
+                  {data.window.map((now, i) => (
+                    <tr key={i}><th scope="row">{monthName(now.m0)}</th><td>{nf.format(now.rain)}</td><td>{nf.format(sel.rows[i].rain)}</td><td>{nf1.format(now.temp)}</td><td>{nf1.format(sel.rows[i].temp)}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              <span>{fill(t.syGap, { d: nf2.format(sel.d) })}</span>
+            </>
+          )}
+        </Info>
+      </h3>
       {state === "loading" && <p className="muted small">{t.skLoading}</p>}
       {state === "error" && <p className="warn small">{t.skFailed}</p>}
-      {data && best && (
+      {data && data.matches.length > 0 && (
         <>
-          <p className={`sk-hint sy-lead ${closeness(best.d)}`}>
-            {closeness(best.d) === "weak" ? t.syNoneClose : fill(t.syBest, { span: span(best.rows), word: word(best) })}
-          </p>
-          <div className="sy-chips" role="group" aria-label={t.syPickLabel}>
+          <p className="small">{fill(t.wfYearsLead, { span: span(data.window) })}</p>
+          <div className="wf-rank" role="group" aria-label={t.syPickLabel}>
             {data.matches.map((m, i) => (
-              <button key={m.shift} type="button" className={`sy-chip ${i === pick ? "on" : ""}`} aria-pressed={i === pick} onClick={() => setPick(i)}>
-                {fill(t.syChip, { y: yr.format(m.endYear), word: word(m) })}
+              <button key={m.shift} type="button" className={i === pick ? "on" : ""} aria-pressed={i === pick} onClick={() => setPick(i)}>
+                <span className="medal" aria-hidden="true">{medal[i] || ""}</span>
+                <small>{t[`wfRank_${i + 1}`] || ""}</small>
+                <strong>{yr.format(m.endYear)}</strong>
+                <small>{t[`wfMatch_${closeness(m.d)}`]}</small>
               </button>
             ))}
           </div>
-          <div className="sk-scroll" tabIndex={0} role="region" aria-label={t.syTitle}>
-            <table className="sk-table">
-              <thead>
-                <tr>
-                  <th>{t.syMonth}</th>
-                  <th>{t.syRainNow}</th>
-                  <th>{fill(t.syRainThen, { y: span(sel.rows) })}</th>
-                  <th>{t.syTempNow}</th>
-                  <th>{fill(t.syTempThen, { y: span(sel.rows) })}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.window.map((now, i) => (
-                  <tr key={i}>
-                    <th scope="row">{monthName(now.m0)}</th>
-                    <td>{nf.format(now.rain)}</td>
-                    <td>{nf.format(sel.rows[i].rain)}</td>
-                    <td>{nf1.format(now.temp)}</td>
-                    <td>{nf1.format(sel.rows[i].temp)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="muted small">{fill(t.syGap, { d: nf2.format(sel.d) })}</p>
-
           {sel.next.length > 0 && (
             <>
-              <h4>{fill(t.syNextTitle, { y: yr.format(sel.endYear) })}</h4>
-              <div className="sk-scroll" tabIndex={0} role="region" aria-label={fill(t.syNextTitle, { y: yr.format(sel.endYear) })}>
-                <table className="sk-table">
-                  <thead><tr><th>{t.syMonth}</th><th>{fill(t.syRainIn, { y: yr.format(sel.endYear) })}</th><th>{t.syRainRange}</th></tr></thead>
-                  <tbody>
-                    {sel.next.map((r, i) => {
-                      const g = data.nextRange[i];
-                      return (
-                        <tr key={i}>
-                          <th scope="row">{monthName(r.m0)}</th>
-                          <td>{nf.format(r.rain)}</td>
-                          <td>{fill(t.syRangeCell, { a: nf.format(g.rainMin), b: nf.format(g.rainMax), c: nf.format(g.rainMean) })}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <h4 className="wf-sub">{fill(t.wfAfter, { y: yr.format(sel.endYear) })}</h4>
+              <div className="wf-after">
+                {sel.next.map((r, i) => {
+                  const g = data.nextRange[i];
+                  const k = tone(r.rain, g.rainMean);
+                  return (
+                    <div className="wf-after-row" key={i}>
+                      <b>{monthName(r.m0)}</b>
+                      <span className="small">{fill(t.wfThen, { a: nf.format(r.rain), b: nf.format(g.rainMean) })}</span>
+                      <span className={`wf-tag ${k}`}>{toneWord[k]}</span>
+                    </div>
+                  );
+                })}
               </div>
+              <h4 className="wf-sub">{t.wfPattern}</h4>
+              <ul className="wf-pattern small">{pattern.map((p, i) => <li key={i}>{p}</li>)}</ul>
             </>
           )}
-          <ul className="sk-list small">
-            <li>{data.usedJump ? fill(t.syJump, { y: yr.format(data.jumpYear) }) : fill(t.syYears, { a: yr.format(data.from), b: yr.format(trend.to) })}</li>
-            <li>{t.syOne}</li>
-          </ul>
-          <p className="muted small">{t.syCaveat}</p>
+          <p className="muted small">{t.wfNotForecast}</p>
         </>
       )}
+      {state === "ok" && data && data.matches.length === 0 && <p className="muted small">{t.wfNoYears}</p>}
     </section>
   );
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { localSoilName, moistureClass } from "./soilNames.js";
 import SoilCrosscheck from "./SoilCrosscheck.jsx";
+import Info from "./Info.jsx";
 import { loadSecondMap, lookupSecond, compareSoil, GROUP } from "./soilcheck.js";
 import "./soilpage.css";
+import "./weatherfarmer.css";
 
 function Droplet({ level }) {
   // level 0 to 1: how full the drop is
@@ -23,7 +25,7 @@ function Droplet({ level }) {
 const LEVEL = { dry: 0.12, moist: 0.45, nearFull: 0.8, wet: 1 };
 
 // The Soil page: soil type with how sure the map is, local name, satellite wetness and fertility.
-export default function Soil({ t, lang, lat, lon, country, initial, satellite, chosen, suggested }) {
+export default function Soil({ t, lang, lat, lon, country, initial, satellite, onGo, chosen, suggested }) {
   const [state, setState] = useState(initial ? "ok" : "loading");
   const [data, setData] = useState(initial || null);
   const [attempt, setAttempt] = useState(0);
@@ -169,12 +171,12 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
                 </ul>
               </>
             )}
-            <p className="small muted">{t.sTexConfWhy}</p>
+            <p className="small muted"><Info t={t} source="SoilGrids"><span>{t.sTexConfWhy}</span></Info></p>
           </section>
         )}
 
         <section className="soil-card">
-          <h3>{t.sMoistTitle}</h3>
+          <h3>{t.sMoistTitle}<Info t={t} source="NASA SMAP"><span>{t.sMoistHow}</span></Info></h3>
           {surface || root ? (
             <div className="moist-row">
               {[[t.sMoistSurface, surface, satellite.soilSurface], [t.sMoistRoot, root, satellite.soilRoot]].map(([label, m, raw]) =>
@@ -193,7 +195,15 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, c
           ) : (
             <p className="muted">{t.sMoistNone}</p>
           )}
-          <p className="small muted">{t.sMoistHow}</p>
+          {root && (
+            <>
+              <p className="wf-hint"><b>{t.wfMeans}</b>{t[`wfSoilDo_${root.key}`]}</p>
+              <div className="wf-actions">
+                <button className="tab" onClick={() => onGo && onGo("weather")}>{t.wfSoilGoWeather} →</button>
+                <button className="tab" onClick={() => onGo && onGo("irrigation")}>{t.wfGoIrr} →</button>
+              </div>
+            </>
+          )}
         </section>
       </div>
 
