@@ -55,6 +55,8 @@ import { ROTATION_TEXT } from "./i18nRotation.js";
 import { STRATEGY_TEXT } from "./i18nStrategy.js";
 import { IRRIGATION_TEXT } from "./i18nIrrigation.js";
 import { IRR2_TEXT } from "./i18nIrr2.js";
+import { BOARD_TEXT } from "./i18nBoard.js";
+import { EVID_TEXT } from "./i18nEvidence.js";
 import { SOIL_TEXT } from "./i18nSoil.js";
 const Soil = lazy(() => import("./Soil.jsx"));
 import { SUIT_TEXT } from "./i18nSuit.js";
@@ -228,7 +230,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...BOARD_TEXT[lang], ...EVID_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);

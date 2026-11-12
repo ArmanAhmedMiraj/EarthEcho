@@ -132,12 +132,18 @@ export default async function handler(req, res) {
     }
     items.sort((a, b) => (b.crop ? 1 : 0) - (a.crop ? 1 : 0) || a.commodity.localeCompare(b.commodity));
     const nearest = [...new Map(items.map((i) => [i.market, i.km])).entries()].sort((a, b) => a[1] - b[1]).slice(0, 3).map(([name, km]) => ({ name, km }));
+    // local money per US dollar: the median of price / usdprice over the latest rows (used to change US dollar estimates into local money)
+    const ratios = rows.filter((r) => r.date >= recentFrom && r.usd > 0).map((r) => r.price / r.usd).sort((a, b) => a - b);
+    const rate = ratios.length ? Number(ratios[Math.floor(ratios.length / 2)].toFixed(2)) : null;
+    const currency = (rows.find((r) => r.currency) || {}).currency || null;
     cacheFor(res, 12 * 3600);
     res.status(200).json({
       ok: true,
       available: true,
       country,
       latest,
+      rate,
+      currency,
       nearest,
       items,
       provenance: {

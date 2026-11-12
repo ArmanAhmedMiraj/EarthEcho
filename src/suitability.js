@@ -164,16 +164,17 @@ export function bestMonths(scores) {
 }
 
 // the soil the engine uses, taken from the SoilGrids reading
-export function soilInput(soilData) {
-  if (!soilData || !soilData.available) return null;
+// soilKey: a soil the farmer chose for the plot (replaces the texture of the satellite reading)
+export function soilInput(soilData, soilKey) {
+  if (!soilData || !soilData.available) return soilKey ? { ph: null, phLow: null, phHigh: null, simple: soilKey, groups: null } : null;
   const iv = soilData.intervals || {};
   const tex = soilData.texture;
   return {
     ph: soilData.topsoil.phh2o,
     phLow: iv.phh2o ? iv.phh2o[0] : null,
     phHigh: iv.phh2o ? iv.phh2o[1] : null,
-    simple: tex ? tex.simple : null,
-    groups: tex && tex.groups ? tex.groups : null,
+    simple: soilKey || (tex ? tex.simple : null),
+    groups: soilKey ? null : tex && tex.groups ? tex.groups : null,
   };
 }
 
