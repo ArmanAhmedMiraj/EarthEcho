@@ -40,3 +40,5 @@
 @media (prefers-reduced-motion: reduce) {
   .globe-scan, .step.run .step-mark { animation: none; }
 }
+
+.prepare-skip { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 14px 0 0; text-align: center; }

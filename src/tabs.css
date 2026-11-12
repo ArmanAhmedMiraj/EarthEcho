@@ -92,4 +92,4 @@
 .page { margin-top: 14px; }
 .map-wrap.tall { height: max(420px, calc(100vh - 230px)); }
 
-@media (max-width: 480px) { .app.has-nav .brand h1 { display: none; } }
+@media (max-width: 480px) { .app .brand h1 { display: none; } }

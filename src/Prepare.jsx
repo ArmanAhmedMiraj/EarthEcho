@@ -78,6 +78,9 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
   live.current = ready;
   const results = useRef({ terrain: null, satellite: null, env: null, soil: null });
   const ran = useRef(false);
+  // on a slow connection the farmer must never be stuck here: after a few seconds they can go in, and each page loads its own data
+  const [canSkip, setCanSkip] = useState(false);
+  useEffect(() => { const id = setTimeout(() => setCanSkip(true), 8000); return () => clearTimeout(id); }, []);
 
   const set = (id, patch) => setSteps((list) => list.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
@@ -220,6 +223,12 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
             ))}
           </ol>
         </div>
+        {!finished && canSkip && (
+          <p className="prepare-skip">
+            <button className="tab" onClick={() => onDone(results.current)}>{t.prepSkip}</button>
+            <span className="small muted">{t.prepSkipNote}</span>
+          </p>
+        )}
         {finished && (
           <>
             <p className="prepare-end">{finished.partial ? t.prepPartial : t.prepDone}</p>
