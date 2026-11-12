@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Info from "./Info.jsx";
 import { rootWetness, irrigationAdvice } from "./waterAdvice.js";
+import { FIELD_CAPACITY } from "./soilNames.js";
 
 const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${k}}`).join(values[k]), text);
 
@@ -9,6 +10,7 @@ const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${
 export default function DrySpell({ t, locale, lat, lon, soilKey, rain7, onGo }) {
   const [data, setData] = useState(null);
   const [state, setState] = useState("loading");
+  const [why, setWhy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +42,8 @@ export default function DrySpell({ t, locale, lat, lon, soilKey, rain7, onGo }) 
   const wet = rootWetness(soil, soilKey);
   const advice = irrigationAdvice({ run, rain7, wet });
   const icon = { now: "💧", soon: "🗓️", wait: "🌧️", ok: "✅", drain: "⚠️" }[advice];
-  const why = advice === "ok" && !wet ? t.wfWhy_okNoSat : fill(t[`wfWhy_${advice}`], { n: nf.format(run), mm: nf.format(rain7 || 0) });
+  const whyText = advice === "ok" && !wet ? t.wfWhy_okNoSat : fill(t[`wfWhy_${advice}`], { n: nf.format(run), mm: nf.format(rain7 || 0) });
+  const fc = FIELD_CAPACITY[soilKey || "loam"] || null;
   const soilWord = wet ? { dry: t.sMoistDry, moist: t.sMoistMoist, nearFull: t.sMoistNearFull, wet: t.sMoistWet }[wet.key] : null;
   const arrow = { down: "↓", up: "↑", flat: "→" };
   const spark = soil.length > 1 ? soil.slice(-12) : [];
@@ -61,8 +64,22 @@ export default function DrySpell({ t, locale, lat, lon, soilKey, rain7, onGo }) 
       </h3>
       <div className={`wf-answer ${advice}`}>
         <span className="wf-ic" aria-hidden="true">{icon}</span>
-        <div><b>{t[`wfAdv_${advice}`]}</b><span className="small">{why}</span></div>
+        <div><b>{t[`wfAdv_${advice}`]}</b><span className="small">{whyText}</span></div>
+        <button type="button" className="tab wf-whybtn" aria-expanded={why} onClick={() => setWhy((v) => !v)}>{why ? t.wfWhyHide : t.wfWhyBtn}</button>
       </div>
+      {why && (
+        <div className="wf-whybox" role="region" aria-label={t.wfWhyTitle}>
+          <b>{t.wfWhyTitle}</b>
+          <ol>
+            <li><strong>{t.wfFactRun}:</strong> {run > 0 ? fill(t.wfBasisRun, { n: nf.format(run), date: dateF(dry.lastWetDate || dry.lastDate) }) : fill(t.wfFactRunNone, { date: dateF(dry.lastDate) })}</li>
+            <li><strong>{t.wfFactSoil}:</strong> {wet ? fill(t.wfBasisSoil, { pct: nf.format(wet.value * 100), word: soilWord, date: dateF(wet.date), trend: t[`wfTrend_${wet.trend || "flat"}`] }) : t.wfNoSmap}
+              {wet && fc && <span className="small muted"> {fill(t.wfBasisLimits, { soil: soilName, a: nf.format(fc * 40), b: nf.format(fc * 80), c: nf.format(fc * 105) })}</span>}</li>
+            <li><strong>{t.wfFactRain}:</strong> {fill(t.wfBasisRain, { mm: nf.format(rain7 || 0) })}</li>
+          </ol>
+          <p><strong>{t.wfRuleLabel}:</strong> {t[`wfRule_${advice === "ok" && !wet ? "okNoSat" : advice}`]}</p>
+          <p className="small muted">{t.wfCheckHand}</p>
+        </div>
+      )}
       <div className="wf-facts">
         <div className="wf-fact"><small>{t.wfFactRun}</small><strong>{run > 0 ? nf.format(run) : fill(t.wfFactRunNone, { date: dateF(dry.lastDate) })}</strong></div>
         <div className="wf-fact">

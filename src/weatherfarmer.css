@@ -86,3 +86,10 @@
 .wf-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 16px 0 6px; }
 .wf-h { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
 .wf-offi { margin: 4px 0 0; }
+.wf-answer { flex-wrap: wrap; }
+.wf-answer > div { flex: 1 1 200px; }
+.wf-whybtn { margin-left: auto; }
+.wf-whybox { border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; background: var(--panel); margin: 0 0 10px; }
+.wf-whybox ol { margin: 6px 0; padding-left: 20px; }
+.wf-whybox li { margin: 6px 0; }
+.wf-whybox p { margin: 6px 0 0; }
