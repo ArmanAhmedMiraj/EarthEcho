@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
-const Globe = lazy(() => import("./Globe.jsx"));
+import { useEffect, useRef, useState } from "react";
+import "./start.css";
 import { fetchTerrain } from "./terrain.js";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 
@@ -200,41 +200,68 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const doneCount = steps.filter((s) => s.state === "ok" || s.state === "slow").length;
+  const pct = Math.round((doneCount / Math.max(1, steps.length)) * 100);
   return (
-    <main className="prepare">
-      <div className="prepare-card panel">
-        <Suspense fallback={null}><Globe className="big" lat={lat} lon={lon} pin orbit scan flyKey={1} /></Suspense>
-        <h1 className="prepare-title">{t.prepTitle}</h1>
-        <p className="muted">
-          {t.prepRunning} <strong>{title}</strong>
-        </p>
-        <div className="steps" aria-live="polite">
-          <ol>
-            {steps.map((s) => (
-              <li key={s.id} className={`step ${s.state}`}>
-                <span className="step-mark" aria-hidden="true">
-                  {s.state === "ok" ? "✓" : s.state === "slow" ? "!" : s.state === "run" ? "" : "·"}
-                </span>
-                <span className="step-text">
-                  {s.label}
-                  {s.note ? <small>{s.note}</small> : null}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-        {!finished && canSkip && (
-          <p className="prepare-skip">
-            <button className="tab" onClick={() => onDone(results.current)}>{t.prepSkip}</button>
-            <span className="small muted">{t.prepSkipNote}</span>
+    <main className="orb-prep">
+      <div className="orb-prep-card panel">
+        <svg className="orb-scene" viewBox="0 0 260 560" role="img" aria-label={t.orbSceneAlt}>
+          <defs>
+            <linearGradient id="orbSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0b1235" /><stop offset="1" stopColor="#1d3e7a" /></linearGradient>
+            <linearGradient id="orbGw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2f6fb5" /><stop offset="1" stopColor="#0f2d5c" /></linearGradient>
+          </defs>
+          <rect x="70" y="0" width="190" height="300" rx="18" fill="url(#orbSky)" opacity="0.9" />
+          <g fill="#fff" opacity="0.8"><circle cx="100" cy="30" r="1.5" /><circle cx="210" cy="22" r="1.3" /><circle cx="236" cy="70" r="1.4" /><circle cx="92" cy="110" r="1.2" /></g>
+          <g>
+            <rect x="150" y="38" width="30" height="14" rx="3" fill="#f6cf6a" /><rect x="118" y="41" width="26" height="8" fill="#7fb2ff" /><rect x="186" y="41" width="26" height="8" fill="#7fb2ff" />
+          </g>
+          <line className="orb-beam" x1="165" y1="56" x2="165" y2="318" stroke="#3ddbc0" strokeWidth="2.5" strokeLinecap="round" />
+          <circle r="5" fill="#f6cf6a"><animateMotion dur="3s" repeatCount="indefinite" path="M165 56 L165 318" /></circle>
+          <g fill="#d9e4ff" opacity="0.92"><ellipse cx="130" cy="150" rx="40" ry="16" /><ellipse cx="200" cy="140" rx="36" ry="15" /><ellipse cx="165" cy="164" rx="46" ry="15" /></g>
+          <g stroke="#7fb2ff" strokeWidth="3" strokeLinecap="round"><line className="orb-drop" x1="140" y1="182" x2="136" y2="196" /><line className="orb-drop" style={{ animationDelay: "0.5s" }} x1="170" y1="184" x2="166" y2="198" /><line className="orb-drop" style={{ animationDelay: "1s" }} x1="198" y1="180" x2="194" y2="194" /></g>
+          <polygon points="165,300 235,330 165,360 95,330" fill="#5fcf7c" /><polygon points="95,330 165,360 165,380 95,350" fill="#6b4a2f" /><polygon points="165,360 235,330 235,350 165,380" fill="#553a25" />
+          <polygon points="95,350 165,380 165,420 95,390" fill="#8a6038" /><polygon points="165,380 235,350 235,390 165,420" fill="#6f4c2c" />
+          <polygon points="95,390 165,420 165,456 95,426" fill="#4d5f7a" /><polygon points="165,420 235,390 235,426 165,456" fill="#3c4c66" />
+          <polygon points="95,426 165,456 165,520 95,490" fill="url(#orbGw)" /><polygon points="165,456 235,426 235,490 165,520" fill="url(#orbGw)" opacity="0.85" />
+          <g fill="currentColor" fontSize="13" fontWeight="700" className="orb-scene-labels">
+            <text x="0" y="48">{t.orbScene1}</text><text x="0" y="160">{t.orbScene2}</text><text x="0" y="334">{t.orbScene3}</text><text x="0" y="410">{t.orbScene4}</text><text x="0" y="486">{t.orbScene5}</text>
+          </g>
+        </svg>
+        <div>
+          <h1 className="prepare-title">{t.prepTitle}</h1>
+          <p className="muted">
+            {t.prepRunning} <strong>{title}</strong>
           </p>
-        )}
-        {finished && (
-          <>
-            <p className="prepare-end">{finished.partial ? t.prepPartial : t.prepDone}</p>
-            <button className="btn" onClick={() => onDone(results.current)}>{t.prepOpen}</button>
-          </>
-        )}
+          <div className="orb-prep-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><i style={{ width: `${pct}%` }} /></div>
+          <p className="small muted">{doneCount} / {steps.length}</p>
+          <div className="steps" aria-live="polite">
+            <ol>
+              {steps.map((s) => (
+                <li key={s.id} className={`step ${s.state}`}>
+                  <span className="step-mark" aria-hidden="true">
+                    {s.state === "ok" ? "✓" : s.state === "slow" ? "!" : s.state === "run" ? "" : "·"}
+                  </span>
+                  <span className="step-text">
+                    {s.label}
+                    {s.note ? <small>{s.note}</small> : null}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          {!finished && canSkip && (
+            <p className="prepare-skip">
+              <button className="tab" onClick={() => onDone(results.current)}>{t.prepSkip}</button>
+              <span className="small muted">{t.prepSkipNote}</span>
+            </p>
+          )}
+          {finished && (
+            <>
+              <p className="prepare-end">{finished.partial ? t.prepPartial : t.prepDone}</p>
+              <button className="btn" onClick={() => onDone(results.current)}>{t.prepOpen}</button>
+            </>
+          )}
+        </div>
       </div>
     </main>
   );

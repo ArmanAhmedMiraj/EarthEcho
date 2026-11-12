@@ -192,35 +192,58 @@ export function AuthPanel({ t, initialTab = "login", onBack }) {
 // ---------------------------------------------------------------- the first page: guest or account
 export function Landing({ t, onGuest }) {
   const [auth, setAuth] = useState(false);
+  const arrow = <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+  const person = <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" /></svg>;
   return (
-    <main className="ac-landing">
-      <h2>{t.acWelcome}</h2>
-      <p className="ac-sub">{t.acWelcomeSub}</p>
-      {!auth && (
-        <div className="ac-options">
-          <section className="ac-card ac-opt">
-            <h3>{t.acGuestTitle}</h3>
-            <p>{t.acGuestBody}</p>
-            <ul>
-              <li>{t.acGuestP1}</li>
-              <li className="warn">{t.acGuestP2}</li>
-              <li>{t.acGuestP3}</li>
-            </ul>
-            <button className="ac-sec" onClick={onGuest}>{t.acGuestBtn}</button>
-          </section>
-          <section className="ac-card ac-opt main">
-            <h3>{t.acUserTitle}</h3>
-            <p>{t.acUserBody}</p>
-            <ul>
-              <li>{t.acUserP1}</li>
-              <li>{t.acUserP2}</li>
-              <li>{t.acUserP3}</li>
-            </ul>
-            <button className="btn wide" onClick={() => setAuth(true)}>{t.acUserBtn}</button>
-          </section>
+    <main className="orb-land">
+      {auth ? (
+        <div className="orb-auth ac-card"><AuthPanel t={t} initialTab="login" onBack={() => setAuth(false)} /></div>
+      ) : (
+        <div className="orb-hero">
+          <div className="orb-copy">
+            <p className="orb-badge"><i />{t.orbBadge}</p>
+            <h1>{t.orbH1a}<br />{t.orbH1b}</h1>
+            <p className="orb-lead">{t.orbLead}</p>
+            <div className="orb-cta">
+              <button type="button" className="orb-go gold" onClick={onGuest}><b>{t.orbGuest}{arrow}</b><span>{t.orbGuestSub}</span></button>
+              <button type="button" className="orb-go glass" onClick={() => setAuth(true)}><b>{t.orbUser}{person}</b><span>{t.orbUserSub}</span></button>
+            </div>
+            <p className="orb-note">{t.orbNote}</p>
+          </div>
+          <div className="orb-vis" aria-hidden="true">
+            <div className="orb-globe"><div className="orb-land-blobs" /></div>
+            <svg className="orb-orbit" viewBox="0 0 640 540">
+              <ellipse cx="440" cy="170" rx="240" ry="74" fill="none" stroke="rgba(246,207,106,0.55)" strokeWidth="1.4" strokeDasharray="3 7" transform="rotate(-18 440 170)" />
+              <g>
+                <animateMotion dur="14s" repeatCount="indefinite" path="M 208 243 A 240 74 -18 1 1 664 97 A 240 74 -18 1 1 208 243" />
+                <rect x="-11" y="-5" width="22" height="10" rx="2" fill="#f6cf6a" /><rect x="-26" y="-3" width="12" height="6" fill="#7fb2ff" /><rect x="14" y="-3" width="12" height="6" fill="#7fb2ff" />
+              </g>
+              <line x1="320" y1="290" x2="206" y2="384" stroke="#3ddbc0" strokeWidth="2" strokeDasharray="2 9" strokeLinecap="round" />
+            </svg>
+            <div className="orb-plot">
+              <svg viewBox="-170 -120 340 250" style={{ width: "100%", height: "auto", display: "block" }}>
+                <polygon points="-150,0 0,75 0,125 -150,50" fill="#6b4a2f" /><polygon points="-150,0 0,75 0,92 -150,17" fill="#3f7d4c" /><polygon points="-150,34 0,109 0,125 -150,50" fill="#4a3220" />
+                <polygon points="0,75 150,0 150,50 0,125" fill="#553a25" /><polygon points="0,75 150,0 150,17 0,92" fill="#2f6a3e" /><polygon points="0,109 150,34 150,50 0,125" fill="#3a2718" />
+                <polygon points="0,-75 150,0 0,75 -150,0" fill="#5fcf7c" />
+                <g stroke="#2f8f52" strokeWidth="5" strokeLinecap="round"><line x1="-112" y1="-6" x2="14" y2="57" /><line x1="-84" y1="-20" x2="42" y2="43" /><line x1="-56" y1="-34" x2="70" y2="29" /><line x1="-28" y1="-48" x2="98" y2="15" /><line x1="0" y1="-62" x2="126" y2="1" /></g>
+                <polygon points="-40,-25 20,5 60,-15 0,-45" fill="rgba(127,178,255,0.75)" />
+                <g className="orb-scan"><line x1="-75" y1="-37.5" x2="75" y2="37.5" stroke="#f6cf6a" strokeWidth="3" strokeLinecap="round" /></g>
+                <polygon points="0,-75 150,0 0,75 -150,0" fill="none" stroke="rgba(246,207,106,0.9)" strokeWidth="1.5" strokeDasharray="6 6" />
+              </svg>
+            </div>
+            <div className="orb-chip c1"><b>{t.orbChipSoil}</b>{t.orbChipSoilV}</div>
+            <div className="orb-chip c2"><b>{t.orbChipRain}</b>{t.orbChipRainV}</div>
+            <div className="orb-chip c3"><b>{t.orbChipWater}</b>{t.orbChipWaterV}</div>
+          </div>
         </div>
       )}
-      {auth && <AuthPanel t={t} initialTab="login" onBack={() => setAuth(false)} />}
+      <div className="orb-groups">
+        <div><strong>{t.orbGToday}</strong><span>{t.orbGTodayT}</span></div>
+        <div><strong>{t.orbGPlan}</strong><span>{t.orbGPlanT}</span></div>
+        <div><strong>{t.orbGLand}</strong><span>{t.orbGLandT}</span></div>
+        <div><strong>{t.orbGHelp}</strong><span>{t.orbGHelpT}</span></div>
+      </div>
+      <p className="orb-src">{t.orbSources}</p>
     </main>
   );
 }

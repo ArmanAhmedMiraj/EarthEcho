@@ -127,6 +127,19 @@ export default function Market({ t, lang, lat, lon, country }) {
         <p>{t.mk2InfoWarn}</p>
         <p><a href={data.provenance.url} target="_blank" rel="noopener noreferrer">{t.mk2InfoLink}</a></p>
       </Info></p>
+      {withMarket > 0 && (
+        <div className="mk-ticker" role="group" aria-label={t.tabMarket}>
+          <div className="mk-track">
+            {[0, 1].map((k) => (
+              <ul key={k} aria-hidden={k === 1 ? "true" : undefined}>
+                {rows.filter((r) => r.market).map(({ crop, market: mk }) => (
+                  <li key={crop.id}><b>{name(crop)}</b> {num.format(mk.perKg)} <small>{currency ? `${currency} / kg` : "/ kg"}</small></li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="mk2-meta">
         <span className="mk2-pill"><b>{t.mkLatest.split(":")[0]}:</b> {month(data.latest.slice(0, 7))}</span>
         {data.nearest.length > 0 && <span className="mk2-pill"><b>{t.mkNearest}:</b> {data.nearest.map((n) => `${n.name} (${num.format(n.km)} km)`).join(", ")}</span>}

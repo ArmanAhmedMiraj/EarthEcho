@@ -112,6 +112,20 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, o
     <div className="viewer soilpage">
       <h2>{t.soilPageTitle}</h2>
       <p className="muted">{t.soilPageIntro}</p>
+      {tex && (
+        <svg className="soil-block" viewBox="-130 -70 260 180" role="img" aria-label={t.soilNames[tex.simple]}>
+          {(() => {
+            const tone = { sandy: ["#d8b778", "#b89655", "#8f7440"], sandyLoam: ["#c4a068", "#a3834f", "#7d6440"], loam: ["#8a6038", "#6f4c2c", "#4d3a2a"], siltLoam: ["#9a8466", "#7a6850", "#564a3a"], clayLoam: ["#7f5238", "#623b2a", "#46291f"], clay: ["#7a4a35", "#5e3828", "#43291f"] }[tex.simple] || ["#8a6038", "#6f4c2c", "#4d3a2a"];
+            return (
+              <g>
+                <polygon points="-110,0 0,55 0,70 -110,15" fill={tone[0]} /><polygon points="-110,15 0,70 0,85 -110,30" fill={tone[1]} /><polygon points="-110,30 0,85 0,100 -110,45" fill={tone[2]} />
+                <polygon points="0,55 110,0 110,15 0,70" fill={tone[0]} opacity="0.8" /><polygon points="0,70 110,15 110,30 0,85" fill={tone[1]} opacity="0.8" /><polygon points="0,85 110,30 110,45 0,100" fill={tone[2]} opacity="0.8" />
+                <polygon points="0,-55 110,0 0,55 -110,0" fill="#5fcf7c" />
+              </g>
+            );
+          })()}
+        </svg>
+      )}
 
       <div className="soil-grid">
         {tex && (

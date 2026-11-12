@@ -68,6 +68,7 @@ const Weather = lazy(() => import("./Weather.jsx"));
 import Logo from "./Logo.jsx";
 import Icon from "./Icons.jsx";
 import { SHELL_TEXT } from "./i18nShell.js";
+import { ORBIT_TEXT } from "./i18nOrbit.js";
 const Sources = lazy(() => import("./Sources.jsx"));
 
 // The pages load when first opened. So that every tab also opens with no internet, they are all fetched once
@@ -248,7 +249,7 @@ export default function App() {
   const weatherKey = useRef(""); // the place the forecast on screen belongs to
   const lastFetch = useRef(0);
 
-  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...BOARD_TEXT[lang], ...EVID_TEXT[lang], ...SHELL_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
+  const t = { ...TEXT[lang], ...ADMIN_TEXT[lang], ...LEGEND_TEXT[lang], ...TABS_TEXT[lang], ...DATA_TEXT[lang], ...START_TEXT[lang], ...ENV_TEXT[lang], ...SOIL_TEXT[lang], ...SUIT_TEXT[lang], ...WEATHER_TEXT[lang], ...DISASTER_TEXT[lang], ...RIVER_TEXT[lang], ...IRRIGATION_TEXT[lang], ...IRR2_TEXT[lang], ...BOARD_TEXT[lang], ...EVID_TEXT[lang], ...SHELL_TEXT[lang], ...ORBIT_TEXT[lang], ...ROTATION_TEXT[lang], ...STRATEGY_TEXT[lang], ...TRUST_TEXT[lang], ...SHEET_TEXT[lang], ...MARKET_TEXT[lang], ...SUPPLIER_TEXT[lang], ...FARMS_TEXT[lang], ...FIELDS_TEXT[lang], ...ASSISTANT_TEXT[lang], ...ACCOUNT_TEXT[lang], ...FARMLAND_TEXT[lang], ...WF_TEXT[lang], ...(user ? ACCOUNT_USER_TEXT[lang] : {}) };
 
   // Soil: the satellite-based map first, the regional guess only if the map has nothing.
   const mapSoil = lookupSoil(soilMap, pos.lat, pos.lon);
@@ -868,6 +869,10 @@ export default function App() {
       setStage("explore");
     }
   }
+
+  useEffect(() => {
+    document.documentElement.dataset.tab = stage === "app" ? tab : stage;
+  }, [stage, tab]);
 
   if (stage === "prepare") {
     return (

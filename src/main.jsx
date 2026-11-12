@@ -1,17 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "@fontsource/plus-jakarta-sans/latin-400.css";
-import "@fontsource/plus-jakarta-sans/latin-500.css";
-import "@fontsource/plus-jakarta-sans/latin-600.css";
-import "@fontsource/plus-jakarta-sans/latin-700.css";
-import "@fontsource/plus-jakarta-sans/latin-800.css";
-import "@fontsource/hind-siliguri/bengali-400.css";
-import "@fontsource/hind-siliguri/bengali-600.css";
-import "@fontsource/hind-siliguri/bengali-700.css";
+import "@fontsource/anek-latin/latin-400.css";
+import "@fontsource/anek-latin/latin-600.css";
+import "@fontsource/anek-latin/latin-700.css";
+import "@fontsource/anek-latin/latin-800.css";
+import "@fontsource/anek-bangla/bengali-400.css";
+import "@fontsource/anek-bangla/bengali-600.css";
+import "@fontsource/anek-bangla/bengali-700.css";
+import "@fontsource/anek-bangla/bengali-800.css";
 import "./styles.css";
 import "./admin.css";
 import "./farms.css";
 import App from "./App.jsx";
+import "./orbit.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
