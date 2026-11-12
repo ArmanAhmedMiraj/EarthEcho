@@ -41,7 +41,7 @@
 /* A past year most like this one */
 .sy-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .sy-chip { font: inherit; font-size: 0.86rem; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
-.sy-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.sy-chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 700; }
 .sy-lead.weak { border-left-color: #c98a1a; }
 
 /* Dry spells */

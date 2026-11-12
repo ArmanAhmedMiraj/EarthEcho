@@ -2,7 +2,7 @@
 .sh-overlay { position: fixed; inset: 0; z-index: 2000; background: #0b1a14; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .sh-panel { max-width: 820px; margin: 0 auto; padding: 12px 14px 40px; outline: none; }
 .sh-bar .tab, .sh-short .tab { background: #f7fbf8; color: #10241c; border: 1px solid rgba(16,36,28,.25); backdrop-filter: none; }
-.sh-bar .sh-print { background: var(--accent); color: #fff; }
+.sh-bar .sh-print { background: var(--accent); color: var(--accent-text); }
 .sh-bar { display: flex; gap: 8px; justify-content: space-between; position: sticky; top: 0; z-index: 2; padding: 8px 0; }
 
 .sh-hint { color: #e8f5ee; font-size: 0.85rem; margin: 4px 0 10px; }

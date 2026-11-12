@@ -1,8 +1,8 @@
 /* ⓘ source and details */
 .inf { position: relative; display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; margin-left: 8px; font-weight: 400; }
 .inf-src { font-size: 0.72rem; color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
-.inf-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font: italic 700 0.8rem Georgia, serif; line-height: 1; padding: 0; cursor: pointer; }
-.inf-btn:hover, .inf-btn[aria-expanded="true"] { background: var(--accent); color: #fff; }
+.inf-btn { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); font: italic 700 0.8rem Georgia, serif; line-height: 1; padding: 0; cursor: pointer; }
+.inf-btn:hover, .inf-btn[aria-expanded="true"] { background: var(--accent); color: var(--accent-text); }
 .inf-pop { position: absolute; z-index: 60; top: calc(100% + 8px); left: 0; width: min(440px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; text-align: left; font-size: 0.86rem; line-height: 1.45; font-style: normal; color: var(--text); background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35); display: block; }
 .inf-pop > * { display: block; margin: 0 0 6px; }
 .inf-pop > *:last-child { margin-bottom: 0; }
@@ -10,3 +10,8 @@
 .inf-pop table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .inf-pop th, .inf-pop td { text-align: left; padding: 3px 6px; border-bottom: 1px solid var(--border); }
 .inf-pop ul { padding-left: 18px; }
+
+/* on the dark photo bar the green ⓘ disappears, so it turns white there */
+.placebar .inf-btn { color: #fff; border-color: rgba(255, 255, 255, 0.8); }
+.placebar .inf-btn:hover, .placebar .inf-btn[aria-expanded="true"] { background: #fff; color: #123524; }
+.placebar .inf-src { color: rgba(255, 255, 255, 0.9); border-color: rgba(255, 255, 255, 0.5); }

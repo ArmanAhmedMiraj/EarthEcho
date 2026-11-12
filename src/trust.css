@@ -8,9 +8,9 @@
 .tr-list { list-style: none; margin: 6px 0 8px; padding: 0; font-size: 14px; }
 .tr-list li { display: flex; gap: 8px; padding: 3px 0; align-items: flex-start; }
 .tr-mark { flex: none; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 1px solid var(--border); }
-.tr-list li.ok .tr-mark { color: #2e7d32; }
-.tr-list li.assumed .tr-mark { color: #b26a00; }
-.tr-list li.missing .tr-mark { color: #c62828; }
+.tr-list li.ok .tr-mark { color: var(--pos); }
+.tr-list li.assumed .tr-mark { color: var(--gold); }
+.tr-list li.missing .tr-mark { color: var(--warn); }
 
 .ln-wrap { margin: 0 0 22px; }
 .ln-wrap h3 { margin: 0 0 6px; }
@@ -32,4 +32,4 @@
 .ln-gloss dd { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
 
 .ex-box { margin-top: 12px; }
-.ex-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ex-btn { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }

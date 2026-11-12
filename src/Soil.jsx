@@ -129,14 +129,14 @@ export default function Soil({ t, lang, lat, lon, country, initial, satellite, o
             )}
             <p className="small muted">{t.sTexBars}</p>
             <div className="soil-bar" role="img" aria-label={`${t.sTexSand} ${tex.sand}%, ${t.sTexSilt} ${tex.silt}%, ${t.sTexClay} ${tex.clay}%`}>
-              <span style={{ width: `${tex.sand}%`, background: "#d9b36a" }}>{tex.sand >= 12 ? `${num(tex.sand)}%` : ""}</span>
-              <span style={{ width: `${tex.silt}%`, background: "#9bb3a1" }}>{tex.silt >= 12 ? `${num(tex.silt)}%` : ""}</span>
-              <span style={{ width: `${tex.clay}%`, background: "#b4684c" }}>{tex.clay >= 12 ? `${num(tex.clay)}%` : ""}</span>
+              <span style={{ width: `${tex.sand}%`, background: "#e0bf7e" }}>{tex.sand >= 12 ? `${num(tex.sand)}%` : ""}</span>
+              <span style={{ width: `${tex.silt}%`, background: "#a9c0b0" }}>{tex.silt >= 12 ? `${num(tex.silt)}%` : ""}</span>
+              <span style={{ width: `${tex.clay}%`, background: "#c9846a" }}>{tex.clay >= 12 ? `${num(tex.clay)}%` : ""}</span>
             </div>
             <p className="soil-legend small">
-              <span><i style={{ background: "#d9b36a" }} /> {t.sTexSand}</span>
-              <span><i style={{ background: "#9bb3a1" }} /> {t.sTexSilt}</span>
-              <span><i style={{ background: "#b4684c" }} /> {t.sTexClay}</span>
+              <span><i style={{ background: "#e0bf7e" }} /> {t.sTexSand}</span>
+              <span><i style={{ background: "#a9c0b0" }} /> {t.sTexSilt}</span>
+              <span><i style={{ background: "#c9846a" }} /> {t.sTexClay}</span>
             </p>
             {ranges.clay && ranges.sand && (
               <p className="small muted">

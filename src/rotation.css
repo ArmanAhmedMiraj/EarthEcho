@@ -7,7 +7,8 @@
 .rt-tl { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; margin: 10px 0 4px; }
 .rt-tl .m { font-size: 0.7rem; color: var(--muted); text-align: center; }
 .rt-seg { height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; padding: 0 4px; }
-.rt-seg.c0 { background: #2e9d6b; } .rt-seg.c1 { background: #2f8fd8; } .rt-seg.c2 { background: #c98a1b; }
+.rt-seg.c0 { background: var(--seq-1); } .rt-seg.c1 { background: var(--seq-2); } .rt-seg.c2 { background: var(--seq-3); }
+.rt-seg.c3 { background: var(--seq-4); } .rt-seg.c4 { background: var(--seq-5); } .rt-seg.c5 { background: var(--seq-6); }
 .rt-empty { height: 30px; border-radius: 8px; background: var(--border); opacity: 0.5; }
 .rt-steps { margin: 6px 0; padding-left: 18px; }
 .rt-profit { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 6px; }
@@ -22,4 +23,4 @@
   .rt-profit input { width: 64px; }
 }
 
-.rt-tag.mine { background: var(--accent); color: #fff; margin-left: 6px; }
+.rt-tag.mine { background: var(--accent); color: var(--accent-text); margin-left: 6px; }

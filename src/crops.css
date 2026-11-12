@@ -88,7 +88,7 @@
   content: "✓";
   position: absolute;
   left: 0;
-  color: #43a047;
+  color: var(--pos);
   font-weight: 700;
 }
 
@@ -96,7 +96,7 @@
   content: "!";
   position: absolute;
   left: 4px;
-  color: #ef8f00;
+  color: var(--gold);
   font-weight: 700;
 }
 
@@ -284,7 +284,7 @@
   margin: 2px 0 6px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--pos);
 }
 
 .flow-when {

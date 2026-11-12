@@ -92,8 +92,4 @@
 .page { margin-top: 14px; }
 .map-wrap.tall { height: max(420px, calc(100vh - 230px)); }
 
-/* Dark mode: older green text from the crop planner is too dark on a dark card */
-:root[data-theme="dark"] .flow-variety { color: #6ee7b7; }
-:root[data-theme="dark"] .rot-lists .fits li::before { color: #6ee7b7; }
-
 @media (max-width: 480px) { .app.has-nav .brand h1 { display: none; } }

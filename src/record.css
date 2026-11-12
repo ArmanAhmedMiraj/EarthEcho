@@ -1,7 +1,7 @@
 .sr-h { margin: 14px 0 6px; font-size: 1rem; }
 .sr-form { margin-bottom: 6px; }
 .sr-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-direction: row !important; margin-top: 8px; }
-.sr-save { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sr-save { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .sr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .sr-list li { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--panel); }
 .sr-list li.on { border-color: var(--accent); }

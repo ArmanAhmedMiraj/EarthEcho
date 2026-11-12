@@ -67,9 +67,9 @@
 .ev-fl { font-size: 11px; min-height: 14px; line-height: 14px; white-space: nowrap; }
 .ev-list { margin: 8px 0 0; padding-left: 18px; }
 .ev-risk { padding: 1px 8px; border-radius: 999px; font-size: 13px; border: 1px solid var(--border); }
-.ev-risk.low { color: #2e7d32; }
-.ev-risk.moderate { color: #b26a00; }
-.ev-risk.high { color: #c62828; }
+.ev-risk.low { color: var(--pos); }
+.ev-risk.moderate { color: var(--gold); }
+.ev-risk.high { color: var(--warn); }
 @media (max-width: 480px) { .ev-fl { font-size: 9px; } .ev-mn { font-size: 9px; } }
 
 /* Plan ahead: several years */
@@ -91,7 +91,7 @@
 .my-checks { list-style: none; padding-left: 0; }
 .my-checks li { padding: 3px 0; }
 .my-checks li span { display: inline-block; width: 1.4em; font-weight: 800; }
-.my-checks li.ok span { color: #1f8a5a; } .my-checks li.warn span { color: #c98a1a; }
+.my-checks li.ok span { color: var(--pos); } .my-checks li.warn span { color: var(--gold); }
 
 /* Bangladesh seasons above the calendar */
 .ev-seasons { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; margin-bottom: 3px; }

@@ -44,9 +44,10 @@
 .pb-nav { display: inline-flex; align-items: center; gap: 8px; }
 .pb-nav > button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 1.2rem; line-height: 1; cursor: pointer; }
 .pb-nav > button:hover { background: rgba(0, 0, 0, 0.5); }
-.pb-dots { display: inline-flex; gap: 5px; }
-.pb-dots button { width: 7px; height: 7px; padding: 0; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.45); cursor: pointer; }
-.pb-dots button.on { background: #fff; transform: scale(1.3); }
+.pb-dots { display: inline-flex; gap: 0; }
+/* the dot you see is small, but the area you can tap around it is 24px */
+.pb-dots button { width: 24px; height: 24px; padding: 8px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.45); background-clip: content-box; cursor: pointer; }
+.pb-dots button.on { background: #fff; background-clip: content-box; padding: 7px; }
 .placebar-place { background: none; border: 0; color: inherit; font: inherit; text-align: left; padding: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .placebar-place strong { font-size: clamp(1.25rem, 3vw, 1.7rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; overflow-wrap: anywhere; }
 .placebar-place .small { color: rgba(255, 255, 255, 0.88); }

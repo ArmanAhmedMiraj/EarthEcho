@@ -2,8 +2,8 @@
 .rb-root h3 { margin: 18px 0 6px; }
 .rb-chip { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; margin-left: 4px; vertical-align: middle; border: 1px solid var(--border); background: var(--panel); color: var(--muted); }
 .rb-chip.you { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text, inherit); border-color: var(--accent); }
-.rb-chip.nasa { background: color-mix(in srgb, #2b6cb0 16%, transparent); border-color: #2b6cb0; color: inherit; }
-.rb-chip.est { background: color-mix(in srgb, #b7791f 14%, transparent); border-color: #b7791f; color: inherit; }
+.rb-chip.nasa { background: var(--blue-soft); border-color: var(--a2); color: var(--text); }
+.rb-chip.est { background: var(--gold-soft); border-color: var(--gold); color: var(--text); }
 
 .rb-plot { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px; margin: 12px 0; }
 .rb-plot-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; }
@@ -17,7 +17,7 @@
 
 .rb-hero { border: 2px solid var(--accent); border-radius: 16px; padding: 16px; margin: 14px 0; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); }
 .rb-hero.keep { border-style: dashed; }
-.rb-hero-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; }
+.rb-hero-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: var(--accent-text); }
 .rb-hero h3 { margin: 8px 0 2px; font-size: 1.25rem; }
 .rb-hero h3 em { font-style: normal; color: var(--accent); }
 .rb-hero-lead { margin: 0 0 8px; color: var(--muted); }
@@ -49,8 +49,8 @@
 .rb-metrics i { font-style: normal; font-weight: 400; font-size: 0.72rem; color: var(--muted); }
 .rb-deltas { display: flex; flex-wrap: wrap; gap: 6px; }
 .rb-delta { font-size: 0.8rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); }
-.rb-delta.good { background: color-mix(in srgb, #2f855a 14%, transparent); border-color: #2f855a; }
-.rb-delta.bad { background: color-mix(in srgb, #c05621 12%, transparent); border-color: #c05621; }
+.rb-delta.good { background: var(--accent-soft); border-color: var(--pos); }
+.rb-delta.bad { background: var(--warn-soft); border-color: var(--neg); }
 .rb-more { margin-top: 10px; }
 .rb-more summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .rb-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -66,7 +66,7 @@
 .rb-money-cell .rb-src { line-height: 1; }
 .rb-money-cell .rb-chip { margin-left: 0; }
 .rb-from { font-size: 0.7rem; }
-.rb-profit b.neg { color: #c53030; }
+.rb-profit b.neg { color: var(--warn); }
 .rb-money-total { margin: 8px 0; }
 .rb-share { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .rb-share input { width: 70px; }

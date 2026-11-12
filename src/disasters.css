@@ -54,7 +54,7 @@
 .rv-tiles b { font-size: 1.3rem; }
 .rv-tiles b small { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
 .rv-l { font-size: 0.78rem; color: var(--muted); }
-.rv-u.low { color: #6fb7e6; }
+.rv-u.low { color: var(--a2); }
 .rv-u.high { color: var(--amber); }
 .rv-gauge { position: relative; margin: 18px 4px 8px; }
 .rv-marks { position: relative; height: 22px; }
@@ -80,7 +80,7 @@
 .rv-ax.strong { fill: var(--text); font-weight: 700; }
 .rv-area { fill: rgba(79, 195, 247, 0.22); stroke: none; }
 .rv-line { fill: none; stroke: #4fc3f7; stroke-width: 3; stroke-linejoin: round; }
-.rv-usual { fill: none; stroke: #9aa5bd; stroke-width: 2; stroke-dasharray: 6 5; }
+.rv-usual { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 6 5; }
 .rv-today { stroke: var(--text); stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0.7; }
 .rv-dot { fill: #4fc3f7; stroke: #fff; stroke-width: 2; }
 .rv-dot.peak { fill: var(--amber); }
@@ -121,9 +121,9 @@
 .up-why summary { cursor: pointer; font-size: 0.8rem; color: var(--accent); }
 .up-why p { margin: 4px 0 0; }
 .up-chip { display: inline-block; font-size: 0.74rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
-.up-chip.calm { color: #2e7d32; }
-.up-chip.watch { color: #b26a00; }
-.up-chip.alert { color: #c62828; }
+.up-chip.calm { color: var(--pos); }
+.up-chip.watch { color: var(--gold); }
+.up-chip.alert { color: var(--warn); }
 :root[data-theme="dark"] .up-chip.calm { color: #6fd38a; }
 :root[data-theme="dark"] .up-chip.watch { color: #e6b45a; }
 :root[data-theme="dark"] .up-chip.alert { color: #ff8a80; }

@@ -115,7 +115,7 @@ export const FARMLAND_TEXT = {
     flEditHint: "প্রতিটি পরিবর্তনের হিসাব সাথে সাথে হয়। সংরক্ষণ চাপার আগে কিছুই সেভ হয় না।",
     flAddBetween: "এখানে একটি বিন্দু যোগ করুন",
     flPointN: "বিন্দু {n}",
-    flSave: "জমি সংরক্ষণ",
+    flSave: "জমি সেভ করুন",
     flRemoveAll: "সীমানা সরান",
     flDiscard: "পরিবর্তন সেভ না করেই বের হবেন?",
     flMappedArea: "মানচিত্রের ক্ষেত্রফল: {v} শতাংশ।",

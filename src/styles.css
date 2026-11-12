@@ -23,12 +23,21 @@
   --accent-soft: #e4f1ea;
   --accent-text: #ffffff;
   --blue-soft: #e5eef5;
-  --gold: #9a6a12;
+  --gold: #7d5509;
   --gold-soft: #f8efd9;
-  --clay: #b5542d;
-  --amber: #a8700d;
+  --clay: #a8471f;
+  --amber: #8c5c08;
   --warn: #b3261e;
   --warn-soft: #fbe9e7;
+  --pos: #16684a;                      /* a change in the farmer's favour */
+  --neg: #a8471f;                      /* a change against it */
+  /* the colours of a crop sequence (timeline blocks). White text sits on them in both themes, so they stay dark. */
+  --seq-1: #1b6b4a;
+  --seq-2: #24597d;
+  --seq-3: #8a5a10;
+  --seq-4: #6b3f94;
+  --seq-5: #a03c28;
+  --seq-6: #3f6b1b;
   --mesh: none;
   --r-sm: 8px;
   --r-md: 12px;
@@ -62,6 +71,8 @@
   --amber: #f0b840;
   --warn: #ff9a8c;
   --warn-soft: #3a1c18;
+  --pos: #5fcf9b;
+  --neg: #f29a74;
   --mesh: none;
 }
 
@@ -155,6 +166,9 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.85; 
   border-radius: var(--r-sm);
 }
 .wide-select { width: 100%; }
+/* a word in a sentence that you can press: big enough to hit, still part of the line */
+.fd-link, .ac-link, .mk2-toggle, .ir2-link, .inf-more { min-height: 24px; }
+details > summary { min-height: 24px; }
 .search-row { display: flex; gap: 8px; }
 .search { flex: 1; min-width: 0; }
 .results {

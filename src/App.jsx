@@ -160,6 +160,12 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState(tabFromHash);
   const [navOpen, setNavOpen] = useState(false); // the phone's "all pages" sheet
+  useEffect(() => {
+    if (!navOpen) return undefined;
+    const onKey = (e) => { if (e.key === "Escape") setNavOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
   const [explainReq, setExplainReq] = useState(null); // a strategy the farmer asked the assistant to explain
   const explainStrategy = (req) => { setExplainReq({ ...req, id: Date.now() }); window.location.hash = "/assistant"; setTab("assistant"); };
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);

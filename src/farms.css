@@ -15,7 +15,7 @@
 /* My Farm hub */
 .fd-card { border: 1px solid var(--accent); border-radius: 16px; background: var(--panel); padding: 14px 16px; margin: 12px 0; }
 .fd-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
-.fd-badge { background: var(--accent); color: #fff; font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.fd-badge { background: var(--accent); color: var(--accent-text); font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
 .fd-card h3 { margin: 16px 0 4px; font-size: 1.02rem; }
 .fd-where { margin: 4px 0 0; }
 .fd-chip { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; vertical-align: middle; white-space: nowrap; }
