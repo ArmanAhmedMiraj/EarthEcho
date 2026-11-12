@@ -3,7 +3,7 @@ export const DATA_TEXT = {
     tabData: "Data",
     dataTitle: "Data and sources",
     dataIntro:
-      "Every number in EarthEcho comes from a source you can check. Below is a live NASA reading for your field, then the full list of sources with their licence, sharpness and limits.",
+      "Where every number in EarthEcho comes from. First a live NASA reading for your place, then the list of all sources and their limits.",
     liveTitle: "Live from NASA for your field",
     liveLoading: "Asking NASA for the latest reading…",
     liveError: "Could not reach NASA POWER right now. Try again in a minute.",
@@ -53,7 +53,7 @@ export const DATA_TEXT = {
     tabData: "তথ্য",
     dataTitle: "তথ্য ও উৎস",
     dataIntro:
-      "EarthEcho-র প্রতিটি সংখ্যা এমন উৎস থেকে আসে যা আপনি যাচাই করতে পারেন। নিচে আপনার মাঠের জন্য নাসার সরাসরি তথ্য, তারপর সব উৎসের তালিকা: লাইসেন্স, স্পষ্টতা ও সীমা সহ।",
+      "আর্থইকোর প্রতিটি সংখ্যা কোথা থেকে আসে। প্রথমে আপনার জায়গার নাসার সরাসরি তথ্য, তারপর সব উৎস ও তাদের সীমাবদ্ধতার তালিকা।",
     liveTitle: "আপনার মাঠের জন্য নাসার সরাসরি তথ্য",
     liveLoading: "নাসার কাছ থেকে সর্বশেষ তথ্য আনা হচ্ছে…",
     liveError: "এখন নাসা POWER-এর সাথে যোগাযোগ করা গেল না। এক মিনিট পরে আবার চেষ্টা করুন।",

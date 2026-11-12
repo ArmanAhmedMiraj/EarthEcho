@@ -110,7 +110,7 @@
 .up-journey > li.watch::before { background: var(--amber); }
 .up-journey > li.alert::before { background: #c0392b; }
 .up-journey > li.up-you::before { background: #4fc3f7; }
-.up-step { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.up-step { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; }
 .up-step:empty { display: none; }
 .up-journey header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .up-dot { display: none; }

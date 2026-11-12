@@ -40,7 +40,7 @@
 .src header strong { font-size: 0.98rem; }
 .src p { margin: 2px 0 6px; }
 .src dl { margin: 6px 0 8px; font-size: 0.84rem; }
-.src dt { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin-top: 6px; }
+.src dt { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700; margin-top: 6px; }
 .src dd { margin: 0; }
 .unchecked { color: var(--amber); font-style: normal; }
 .badge { white-space: nowrap; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; }

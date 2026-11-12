@@ -3,7 +3,7 @@ export const SUIT_TEXT = {
     tabSuit: "Suitability",
     suitTitle: "Which crops suit this place?",
     suitIntro:
-      "Each crop is scored from 0 to 100 using NASA climate averages for your place, the SoilGrids soil estimate and the growing limits in the FAO EcoCrop database. The score is set by whatever holds the crop back most. It tells you where to look first, not what to plant.",
+      "Every crop gets a score from 0 to 100 for this place, from its weather and soil. A high score means the crop should grow well here. Use it to see which crops to look at first.",
     suitLoading: "Working out crop suitability for this place…",
     suitNoClimate: "Climate averages for this place are not available right now, so crops cannot be scored. Try again in a minute.",
     suitRetry: "Try again",
@@ -57,7 +57,7 @@ export const SUIT_TEXT = {
     tabSuit: "উপযোগিতা",
     suitTitle: "এই জায়গায় কোন ফসল মানায়?",
     suitIntro:
-      "আপনার জায়গার নাসা জলবায়ুর গড়, SoilGrids-এর মাটির অনুমান এবং FAO EcoCrop ডেটাবেসের ফসলের সীমা ব্যবহার করে প্রতিটি ফসলকে ০ থেকে ১০০ নম্বর দেওয়া হয়েছে। যে বিষয়টি ফসলকে সবচেয়ে বেশি আটকে রাখে, সেটাই নম্বর ঠিক করে। এটি কোথা থেকে খোঁজ শুরু করবেন তা বলে, কী লাগাবেন তা নয়।",
+      "এই জায়গার আবহাওয়া ও মাটি দেখে প্রতিটি ফসলকে ০ থেকে ১০০ নম্বর দেওয়া হয়েছে। নম্বর বেশি মানে ফসলটি এখানে ভালো হওয়ার কথা। কোন ফসল আগে ভাববেন তা বুঝতে এটি দেখুন।",
     suitLoading: "এই জায়গার ফসলের উপযোগিতা হিসাব করা হচ্ছে…",
     suitNoClimate: "এই জায়গার জলবায়ুর গড় এখন পাওয়া যাচ্ছে না, তাই ফসলের নম্বর দেওয়া যায়নি। এক মিনিট পর আবার চেষ্টা করুন।",
     suitRetry: "আবার চেষ্টা করুন",

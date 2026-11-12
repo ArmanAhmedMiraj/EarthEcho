@@ -3,7 +3,7 @@ export const SOIL_TEXT = {
     tabSoil: "Soil",
     soilPageTitle: "Soil intelligence",
     soilPageIntro:
-      "What the soil under your chosen place is probably like, how sure the map is, and how wet it is from space. All numbers are estimates from public soil maps and NASA satellites, not a test of your field.",
+      "What kind of soil you probably have, how sure we are, and how wet it is now. These are estimates from soil maps and satellites, not a test of your own field.",
     soilLoading: "Reading the soil map for this place…",
     soilFailed: "The soil map did not answer just now. Try again in a minute.",
     soilRetry: "Try again",
@@ -104,7 +104,7 @@ export const SOIL_TEXT = {
     tabSoil: "মাটি",
     soilPageTitle: "মাটির বিশ্লেষণ",
     soilPageIntro:
-      "আপনার বাছাই করা জায়গার মাটি সম্ভবত কেমন, মানচিত্র কতটা নিশ্চিত, আর মহাকাশ থেকে মাটি কতটা ভেজা। সব সংখ্যা জনসাধারণের মাটির মানচিত্র ও নাসার উপগ্রহের অনুমান, আপনার মাঠের পরীক্ষা নয়।",
+      "আপনার মাটি সম্ভবত কোন ধরনের, আমরা কতটা নিশ্চিত, আর এখন কতটা ভেজা। এগুলো মাটির মানচিত্র ও স্যাটেলাইটের অনুমান, আপনার জমির পরীক্ষা নয়।",
     soilLoading: "এই জায়গার মাটির মানচিত্র পড়া হচ্ছে…",
     soilFailed: "মাটির মানচিত্র এখন সাড়া দেয়নি। এক মিনিট পর আবার চেষ্টা করুন।",
     soilRetry: "আবার চেষ্টা করুন",

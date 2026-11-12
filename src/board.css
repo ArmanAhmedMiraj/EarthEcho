@@ -17,7 +17,7 @@
 
 .rb-hero { border: 2px solid var(--accent); border-radius: 16px; padding: 16px; margin: 14px 0; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); }
 .rb-hero.keep { border-style: dashed; }
-.rb-hero-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; }
+.rb-hero-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; }
 .rb-hero h3 { margin: 8px 0 2px; font-size: 1.25rem; }
 .rb-hero h3 em { font-style: normal; color: var(--accent); }
 .rb-hero-lead { margin: 0 0 8px; color: var(--muted); }
@@ -41,7 +41,7 @@
 .rb-pick { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px; margin: 10px 0; }
 .rb-pick-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .rb-pick-head h4 { margin: 0; font-size: 1.05rem; flex: 1 1 200px; }
-.rb-pick-n { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.rb-pick-n { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
 .rb-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 8px 0; }
 .rb-metrics div { border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; display: flex; flex-direction: column; }
 .rb-metrics span { font-size: 0.72rem; color: var(--muted); }

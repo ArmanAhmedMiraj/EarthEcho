@@ -7,7 +7,7 @@
 .fm-head strong { font-size: 1.05rem; color: var(--text); }
 .fm-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .fm-alert { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; margin: 6px 0; }
-.fm-alert b { font-size: 0.7rem; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; white-space: nowrap; background: var(--border); color: var(--text); }
+.fm-alert b { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; white-space: nowrap; background: var(--border); color: var(--text); }
 .fm-alert.severe b { background: #c0392b; color: #fff; }
 .fm-alert.warning b { background: var(--amber); color: #1b1b1b; }
 .fm-offline { background: var(--amber); color: #1b1b1b; padding: 8px 14px; font-size: 0.88rem; text-align: center; }
@@ -21,7 +21,7 @@
 .fd-chip { display: inline-block; font-size: 0.66rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; vertical-align: middle; white-space: nowrap; }
 .fd-chip.you { background: rgba(46, 160, 110, 0.18); color: var(--text); border: 1px solid rgba(46, 160, 110, 0.5); }
 .fd-chip.system { background: rgba(70, 130, 220, 0.16); color: var(--text); border: 1px solid rgba(70, 130, 220, 0.5); }
-.fd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 8px; }
+.fd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 8px; align-items: end; }
 .fd-item { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .fd-item .wide-select { width: 100%; }
 .fd-value { margin: 0; font-size: 1.05rem; font-weight: 600; }
@@ -48,7 +48,7 @@
 .fd-seg button { flex: 1; font: inherit; font-size: 0.86rem; font-weight: 600; padding: 8px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
 .fd-seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); }
 .fd-card { border-color: var(--border); padding: 12px 14px; margin: 0 0 12px; }
-.fd-card h3 { margin: 14px 0 6px; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.fd-card h3 { margin: 16px 0 6px; font-size: 0.95rem; color: var(--text); }
 .fd-rows { border: 1px solid var(--border); border-radius: 12px; padding: 0 12px; }
 .fd-line { display: grid; grid-template-columns: 130px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
 .fd-line:last-child { border-bottom: 0; }

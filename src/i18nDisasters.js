@@ -2,7 +2,7 @@ export const DISASTER_TEXT = {
   en: {
     tabDisasters: "Disaster watch",
     dsTitle: "Disaster watch",
-    dsIntro: "Earthquakes, cyclones, floods, droughts, fires and river levels near the place you chose, from open public sources.",
+    dsIntro: "Floods, storms, earthquakes, drought, fires and river levels near your place, checked for you from public warning services.",
     dsLoading: "Checking earthquake, alert and river data for this place…",
     dsFailed: "None of the disaster sources answered just now. Try again in a minute.",
     dsRetry: "Try again",
@@ -70,7 +70,7 @@ export const DISASTER_TEXT = {
   bn: {
     tabDisasters: "দুর্যোগ পর্যবেক্ষণ",
     dsTitle: "দুর্যোগ পর্যবেক্ষণ",
-    dsIntro: "আপনার বেছে নেওয়া জায়গার কাছে ভূমিকম্প, ঘূর্ণিঝড়, বন্যা, খরা, আগুন ও নদীর পানির অবস্থা, উন্মুক্ত সরকারি উৎস থেকে।",
+    dsIntro: "আপনার জায়গার কাছে বন্যা, ঝড়, ভূমিকম্প, খরা, আগুন ও নদীর পানির অবস্থা, সরকারি সতর্কতা সেবা থেকে আপনার জন্য দেখে রাখা।",
     dsLoading: "এই জায়গার ভূমিকম্প, সতর্কবার্তা ও নদীর তথ্য দেখা হচ্ছে…",
     dsFailed: "দুর্যোগের কোনো উৎসই এখন সাড়া দেয়নি। এক মিনিট পর আবার চেষ্টা করুন।",
     dsRetry: "আবার চেষ্টা করুন",

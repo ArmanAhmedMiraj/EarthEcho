@@ -3,7 +3,7 @@ export const ENV_TEXT = {
     tabEnv: "Environment",
     envTitle: "Environment from NASA satellites",
     envIntro:
-      "Real NASA readings for the place you chose: how green the land is, how warm the ground is, how wet the soil is and how rain compares with evaporation through the year. Every card says where its numbers come from.",
+      "What NASA's satellites see at your place: how green the land is, how warm the ground is, how wet the soil is, and whether rain keeps up with the sun through the year.",
     envLoading: "Reading NASA data for this place…",
     envFailed: "NASA did not answer just now, so this page has no readings. Try again in a minute.",
     envRetry: "Try again",
@@ -85,7 +85,7 @@ export const ENV_TEXT = {
     tabEnv: "পরিবেশ",
     envTitle: "নাসা উপগ্রহ থেকে পরিবেশ",
     envIntro:
-      "আপনার বাছাই করা জায়গার জন্য নাসার প্রকৃত তথ্য: জমি কতটা সবুজ, মাটি কতটা গরম, মাটিতে কতটা ভেজা ভাব আছে এবং সারা বছর বৃষ্টি ও বাষ্পীভবনের তুলনা। প্রতিটি কার্ডে তথ্যের উৎস লেখা আছে।",
+      "আপনার জায়গায় নাসার স্যাটেলাইট যা দেখে: জমি কতটা সবুজ, মাটি কতটা গরম, মাটি কতটা ভেজা, আর সারা বছর বৃষ্টি রোদের সঙ্গে পাল্লা দিতে পারে কি না।",
     envLoading: "এই জায়গার নাসার তথ্য পড়া হচ্ছে…",
     envFailed: "নাসা এখন সাড়া দেয়নি, তাই এই পাতায় কোনো তথ্য নেই। এক মিনিট পর আবার চেষ্টা করুন।",
     envRetry: "আবার চেষ্টা করুন",

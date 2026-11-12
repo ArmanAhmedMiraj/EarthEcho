@@ -57,7 +57,7 @@
   /* phones: the photo stays behind and still changes by itself or with a swipe; its caption row is left out to save room */
   .pb-meta { display: none; }
   .placebar-place { width: 100%; }
-  .placebar-place > .small { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+  .placebar-place > span.small { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
   .placebar .fd-pills, .placebar .pl-bar { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; padding-bottom: 2px; scrollbar-width: none; }
   .placebar .fd-pill { flex: none; }
   .placebar .pl-label { min-width: 0; flex: none; }

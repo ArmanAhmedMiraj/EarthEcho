@@ -5,7 +5,7 @@
 .wx-fact span { display: block; font-size: 0.78rem; color: var(--muted); }
 .wx-fact strong { font-size: 0.98rem; color: var(--text); }
 .wx-alert { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); margin: 8px 0; background: var(--panel); }
-.wx-alert b { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.wx-alert b { font-size: 0.72rem; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
 .wx-alert.severe { border-color: #c0392b; } .wx-alert.severe b { background: #c0392b; color: #fff; }
 .wx-alert.warning { border-color: var(--amber); } .wx-alert.warning b { background: var(--amber); color: #1b1b1b; }
 .wx-alert.watch b { background: var(--border); color: var(--text); }

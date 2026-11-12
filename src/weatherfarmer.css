@@ -60,7 +60,7 @@
 .wf-cmp .wf-fillbar.usual { background: #7e8aa8; }
 .wf-cmp em { font-style: normal; font-size: 0.78rem; color: var(--text); white-space: nowrap; }
 .wf-hint { margin: 10px 0 0; padding: 10px 12px; border-left: 4px solid var(--accent); background: var(--panel); border-radius: 6px; }
-.wf-hint b { display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.wf-hint b { display: block; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--muted); }
 .wf-months { display: grid; grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); gap: 6px; margin: 8px 0; }
 .wf-month { text-align: center; border-radius: 10px; padding: 6px 4px; font-size: 0.8rem; border: 1px solid var(--border); }
 .wf-month b { display: block; }

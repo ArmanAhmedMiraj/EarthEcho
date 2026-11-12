@@ -58,3 +58,10 @@
 .pl-switch { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
 .pl-switch select { font: inherit; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--accent); background: var(--panel); color: var(--text); }
 .pl-note { border-left: 4px solid var(--accent); padding: 4px 10px; margin: 6px 0 10px; }
+
+/* the next step, written on the map */
+.fl-mapwrap { position: relative; }
+.fl-guide { position: absolute; z-index: 2; left: 10px; top: 10px; max-width: calc(100% - 76px); margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; line-height: 1.35;
+  background: rgba(255, 255, 255, 0.95); color: #16211b; border-left: 4px solid #24597d; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); pointer-events: none; }
+.fl-guide.ok { border-left-color: #1b6b4a; }
+.fl-guide.bad { border-left-color: #b3261e; }

@@ -15,6 +15,9 @@
 }
 .tab:hover { background: var(--panel-2); border-color: var(--accent); }
 .tab[aria-current="page"], .tab[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--text); font-weight: 700; }
+/* an action that removes something */
+.tab.danger { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.tab.danger:hover { background: var(--warn-soft); border-color: var(--warn); }
 .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); padding: 0; }
 .ico { flex: none; display: block; }
 

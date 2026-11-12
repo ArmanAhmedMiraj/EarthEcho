@@ -19,7 +19,7 @@
 .st-role { font-weight: 700; color: var(--text); padding-right: 24px; }
 .st-chain { font-size: 0.88rem; color: var(--muted); padding-right: 24px; }
 .st-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; padding: 0 14px 14px; }
-.st-sec h4 { margin: 0 0 4px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+.st-sec h4 { margin: 0 0 4px; font-size: 0.82rem; letter-spacing: 0.03em; color: var(--muted); }
 .st-sec ul { margin: 0; padding-left: 18px; font-size: 0.9rem; }
 .st-sec li { margin: 4px 0; }
 .st-sec.risks h4 { color: var(--warn, #b45309); }
@@ -32,7 +32,7 @@
 /* scenario sliders */
 .sc-wrap { border: 1px solid var(--border); border-radius: 14px; background: var(--panel); padding: 14px 16px; margin: 14px 0; }
 .sc-wrap h3 { margin: 0 0 6px; }
-.sc-wrap h4 { margin: 10px 0 4px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+.sc-wrap h4 { margin: 10px 0 4px; font-size: 0.82rem; letter-spacing: 0.03em; color: var(--muted); }
 .sc-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .sc-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 8px 0; }
 .sc-sliders label { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }

@@ -4,7 +4,7 @@
 .as-msg { border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px; background: var(--panel); max-width: 100%; overflow-wrap: anywhere; }
 .as-msg.user { background: var(--bg); align-self: flex-end; max-width: 90%; }
 .as-msg.err { border-color: var(--amber); }
-.as-msg b { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }
+.as-msg b { font-size: 0.75rem; color: var(--muted); }
 .as-msg p { margin: 4px 0; line-height: 1.5; }
 .as-cite { font-size: 0.7rem; color: var(--accent); font-weight: 700; margin: 0 1px; }
 .as-src { margin-top: 6px; font-size: 0.85rem; }

@@ -2,7 +2,7 @@ export const SUPPLIER_TEXT = {
   en: {
     tabSuppliers: "Suppliers",
     spTitle: "Suppliers and markets near you",
-    spIntro: "Seed and fertiliser shops, nurseries, markets, vets, storage and agriculture offices around the place you chose, from OpenStreetMap.",
+    spIntro: "Shops for seed and fertiliser, nurseries, markets, vets, storage and agriculture offices near your place.",
     spLoading: "Looking for suppliers on OpenStreetMap… this can take up to 30 seconds.",
     spFailed: "OpenStreetMap's search service did not answer. Try again in a minute.",
     spRetry: "Try again",
@@ -32,7 +32,7 @@ export const SUPPLIER_TEXT = {
   bn: {
     tabSuppliers: "সরবরাহকারী",
     spTitle: "আপনার কাছের সরবরাহকারী ও বাজার",
-    spIntro: "আপনার বেছে নেওয়া জায়গার চারপাশে বীজ ও সারের দোকান, নার্সারি, বাজার, পশু চিকিৎসক, গুদাম ও কৃষি অফিস, OpenStreetMap থেকে।",
+    spIntro: "আপনার জায়গার কাছে বীজ ও সারের দোকান, নার্সারি, বাজার, পশু চিকিৎসক, গুদাম ও কৃষি অফিস।",
     spLoading: "OpenStreetMap-এ সরবরাহকারী খোঁজা হচ্ছে… ৩০ সেকেন্ড পর্যন্ত লাগতে পারে।",
     spFailed: "OpenStreetMap-এর অনুসন্ধান সেবা সাড়া দেয়নি। এক মিনিট পর আবার চেষ্টা করুন।",
     spRetry: "আবার চেষ্টা করুন",

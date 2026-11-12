@@ -233,11 +233,17 @@ export default function FarmlandEditor({ t, lang, field, initialId, hasData, onS
               <button className="tab" onClick={removePoint} disabled={selected < 0}>− {t.flRemovePoint}</button>
               <button className="tab" onClick={clearPlot} disabled={!active.points.length}>{t.flClear}</button>
               <button className="tab" onClick={zoomPlot} disabled={active.points.length < 1}>⌖ {t.flZoomPlot}</button>
-              <button className="tab" onClick={removePlot}>{t.flDeletePlot}</button>
+              <button className="tab danger" onClick={removePlot}>{t.flDeletePlot}</button>
             </div>
             <p className="small muted">{t.flEditHint}</p>
           </div>
-          <div className="fl-mapwrap"><div ref={box} className="fl-map" /></div>
+          <div className="fl-mapwrap">
+            <div ref={box} className="fl-map" />
+            {/* always says what to do next, on the map itself */}
+            <p className={`fl-guide${crossed ? " bad" : active.points.length >= 3 ? " ok" : ""}`} role="status">
+              {crossed ? t.flGuideCross : active.points.length === 0 ? t.flGuide0 : active.points.length < 3 ? fill(t.flGuideFew, { n: n0.format(active.points.length) }) : fill(t.flGuideDone, { n: n0.format(active.points.length) })}
+            </p>
+          </div>
         </div>
         <footer className="fl-foot">
           <button className="tab" onClick={close}>{t.flCancel}</button>

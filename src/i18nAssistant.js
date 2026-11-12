@@ -2,7 +2,7 @@ export const ASSISTANT_TEXT = {
   en: {
     tabAssistant: "Ask EarthEcho",
     asTitle: "Ask EarthEcho (AI farming assistant)",
-    asIntro: "Ask a farming question. The answer uses your farm's live data (weather, soil, best crops) and the EarthEcho knowledge notes, and shows which sources it used.",
+    asIntro: "Ask any farming question in your own words. The answer uses your farm's weather, soil and crops, and shows where it came from.",
     asWarn: "AI can make mistakes. Check important decisions with your local agriculture officer. It does not give pesticide or fertiliser doses. Your question, your place and your field notes are sent to an AI provider (Groq or Google), so do not write personal details.",
     asPlaceholder: "Type your question…",
     asAsk: "Ask",
@@ -31,7 +31,7 @@ export const ASSISTANT_TEXT = {
   bn: {
     tabAssistant: "এআর্থইকো-কে জিজ্ঞাসা",
     asTitle: "এআর্থইকো-কে জিজ্ঞাসা করুন (এআই কৃষি সহকারী)",
-    asIntro: "কৃষি নিয়ে প্রশ্ন করুন। উত্তরে আপনার খামারের সরাসরি তথ্য (আবহাওয়া, মাটি, উপযুক্ত ফসল) ও এআর্থইকো-র জ্ঞান-নোট ব্যবহার হয়, আর কোন উৎস ব্যবহার হয়েছে তা দেখানো হয়।",
+    asIntro: "নিজের ভাষায় কৃষি নিয়ে যেকোনো প্রশ্ন করুন। উত্তরে আপনার খামারের আবহাওয়া, মাটি ও ফসল ব্যবহার হয়, আর উত্তর কোথা থেকে এল তা দেখানো হয়।",
     asWarn: "এআই ভুল করতে পারে। গুরুত্বপূর্ণ সিদ্ধান্তে স্থানীয় কৃষি কর্মকর্তার সঙ্গে মিলিয়ে নিন। এখানে কীটনাশক বা সারের মাত্রা বলা হয় না। আপনার প্রশ্ন, জায়গা ও মাঠের নোট একটি এআই প্রদানকারীর (Groq বা Google) কাছে যায়, তাই ব্যক্তিগত তথ্য লিখবেন না।",
     asPlaceholder: "আপনার প্রশ্ন লিখুন…",
     asAsk: "জিজ্ঞাসা",

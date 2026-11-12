@@ -1,0 +1,81 @@
+/* The printable plan: hidden on screen, the only thing shown when printing or saving as PDF. */
+.print-plan {
+  display: none;
+}
+
+@media print {
+  #root {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .print-plan {
+    display: block !important;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0;
+    font-family: system-ui, "Segoe UI", "Noto Sans Bengali", sans-serif;
+    font-size: 11pt;
+    line-height: 1.4;
+    color: #000;
+  }
+
+  .print-plan h1 {
+    margin: 0 0 4px;
+    font-size: 20pt;
+  }
+
+  .print-plan h2 {
+    margin: 14px 0 4px;
+    font-size: 13pt;
+    border-bottom: 1px solid #999;
+    padding-bottom: 2px;
+  }
+
+  .print-plan table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-plan th,
+  .print-plan td {
+    border: 1px solid #888;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .print-plan th {
+    background: #e8efe6;
+  }
+
+  .print-plan ul {
+    margin: 2px 0;
+    padding-left: 18px;
+  }
+
+  .print-plan .pp-small {
+    font-size: 9pt;
+    color: #333;
+  }
+
+  .print-plan .pp-water {
+    padding: 6px 8px;
+    border: 2px solid #2e7d32;
+    border-radius: 6px;
+  }
+
+  .print-plan tr,
+  .print-plan li {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
