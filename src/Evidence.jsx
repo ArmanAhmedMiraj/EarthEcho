@@ -160,6 +160,7 @@ export default function Evidence({ t, lang, locale, lat, lon, climate, rotations
     <section className="ev2-wrap" aria-labelledby="ev-title">
       <h3 id="ev-title">{t.ev2Title}</h3>
       <p className="muted small">{t.ev2Intro}</p>
+      <div className="ev2-cards">
 
       {/* 1. Is the weather changing here? */}
       <Card t={t} n="1" q={t.ev2C1Q} what={t.ev2C1What} source="NASA POWER" getText={nasaGet} limitText={t.ev2LimitTrend}>
@@ -282,6 +283,7 @@ export default function Evidence({ t, lang, locale, lat, lon, climate, rotations
           <Block title={t.ev2Do} tone="do"><p>{risk.level === "low" ? t.ev2EroDo_low : t.ev2EroDo_high}</p></Block>
         </div>
       </Card>
+      </div>
     </section>
   );
 }

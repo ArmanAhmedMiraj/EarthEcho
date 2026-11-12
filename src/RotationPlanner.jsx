@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./rotation.css";
 import "./strategy.css";
 import "./trust.css";
+import "./rotation2.css";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 import { ANNUAL, planRotations } from "./rotation.js";
 import MultiYear from "./MultiYear.jsx";
@@ -155,37 +156,47 @@ export default function RotationPlanner({ t, lang, lat, lon, country, env, soilD
   })();
   const ctx = { scenarioOn: scn.rain !== 0 || scn.temp !== 0, scenario: scn };
 
-  return (
-    <div className="rb-root">
-      <p className="muted">{t.rbIntro}</p>
-      <PlotCard t={t} lang={lang} locale={locale} field={field} results={results} mode={mode} climate={climate} soilKey={effectiveSoil} onFieldChange={onFieldChange} monthNames={monthNames} assumedWater={assumedWater} />
-
-      <div className="rt-controls">
-        <label>{t.rtKind}
-          <select value={kind} onChange={(e) => setKind(e.target.value)}>
-            <option value="all">{t.rtKindAll}</option>
-            <option value="field">{t.rtKindField}</option>
-            <option value="vegetable">{t.rtKindVeg}</option>
+  const plotCard = <PlotCard t={t} lang={lang} locale={locale} field={field} results={results} mode={mode} climate={climate} soilKey={effectiveSoil} onFieldChange={onFieldChange} monthNames={monthNames} assumedWater={assumedWater} />;
+  const controls = (
+    <div className="rt-controls">
+      <label>{t.rtKind}
+        <select value={kind} onChange={(e) => setKind(e.target.value)}>
+          <option value="all">{t.rtKindAll}</option>
+          <option value="field">{t.rtKindField}</option>
+          <option value="vegetable">{t.rtKindVeg}</option>
+        </select>
+      </label>
+      {onFieldChange && (
+        <label>{t.rtKeep}
+          <select value={keepId || ""} onChange={(e) => onFieldChange({ keepCrop: e.target.value })}>
+            <option value="">{t.rtKeepNone}</option>
+            {results.filter((r) => ANNUAL.includes(r.crop.group) && r.cycle <= 8).sort((a, b) => name(a.crop).localeCompare(name(b.crop), locale)).map((r) => <option key={r.crop.id} value={r.crop.id}>{name(r.crop)}</option>)}
           </select>
         </label>
-        {onFieldChange && (
-          <label>{t.rtKeep}
-            <select value={keepId || ""} onChange={(e) => onFieldChange({ keepCrop: e.target.value })}>
-              <option value="">{t.rtKeepNone}</option>
-              {results.filter((r) => ANNUAL.includes(r.crop.group) && r.cycle <= 8).sort((a, b) => name(a.crop).localeCompare(name(b.crop), locale)).map((r) => <option key={r.crop.id} value={r.crop.id}>{name(r.crop)}</option>)}
-            </select>
-          </label>
-        )}
-      </div>
+      )}
+    </div>
+  );
+  const notes = (
+    <>
+      <p className="muted small">{t.rbIntro}</p>
       <p className="muted small">{t.rtKeepHelp}</p>
       {keepRaw && keepEntry && keepFailed && <p className="warn small">{fill(t.rtKeepFail, { crop: name(keepEntry.crop) })}</p>}
-
       {waitMarkets && <p className="muted">{t.rbLoading}</p>}
       {ready && !shown && <p className="warn">{t.rbNoRotations}</p>}
-      {shown && <RotationBoard t={t} lang={lang} locale={locale} board={shown} results={results} field={field} mode={mode} monthNames={monthNames} ctx={ctx} onExplain={onExplain} country={country} moneyProps={moneyProps} soilLine={soilLine} />}
+    </>
+  );
 
-      {shown && <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />}
-      {shown && <MultiYear t={t} lang={lang} locale={locale} results={results} pool={pool} field={field} mode={mode} monthNames={monthNames} keep={keepEntry && !keepFailed ? keepEntry.crop : null} />}
+  return (
+    <div className="rb-root">
+      {shown ? (
+        <RotationBoard t={t} lang={lang} locale={locale} board={shown} results={results} field={field} mode={mode} monthNames={monthNames} ctx={ctx} onExplain={onExplain} country={country} moneyProps={moneyProps} soilLine={soilLine} plotSlot={plotCard} controlsSlot={controls} notes={notes}
+          tools={(
+            <>
+              <Scenario t={t} lang={lang} locale={locale} scn={scn} setScn={setScn} results={results} baseResults={baseResults} rotations={rotations} baseRotations={baseRotations} mode={mode} field={field} climate={climate} />
+              <MultiYear t={t} lang={lang} locale={locale} results={results} pool={pool} field={field} mode={mode} monthNames={monthNames} keep={keepEntry && !keepFailed ? keepEntry.crop : null} />
+            </>
+          )} />
+      ) : (<>{plotCard}{controls}{notes}</>)}
       {shown && <Evidence t={t} lang={lang} locale={locale} lat={lat} lon={lon} climate={scenarioClimate} rotations={rotations} field={field} soilData={soilData} mode={mode} monthNames={monthNames} results={results} country={country} />}
     </div>
   );

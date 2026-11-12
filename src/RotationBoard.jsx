@@ -170,22 +170,17 @@ function MoneyEditor({ t, locale, parts, inputs, setInput, resetCrop, name, cur,
   );
 }
 
-// ---------- one rotation ----------
-function PickCard({ t, lang, locale, x, idx, goal, board, ctx, onExplain, field, country, mode, monthNames, name, sameAs, moneyProps, soilLine }) {
-  const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-  const month = (i) => monthNames[((i % 12) + 12) % 12];
-  const [open, setOpen] = useState(false);
+// ---------- numbers and sentences of one rotation (shared by the card and its detail panel) ----------
+function pickInfo({ t, x, goal, board, nf, name, monthNames }) {
   const cur = board.current;
   const m = x.m;
-
+  const month = (i) => monthNames[((i % 12) + 12) % 12];
   const top = [...x.money.parts].sort((a, b) => b.profit - a.profit)[0];
   const rough = x.money.rough > 0.5 ? ` (${t.rbRough})` : "";
-
-  // why this rotation for THIS goal: every goal says something different
   const why = [];
   if (goal === "water") {
-    const d = cur && cur.m.gap - m.gap >= 30 ? fill(t.rbR_water_vs, { d: nf.format(Math.round(cur.m.gap - m.gap)) }) : "";
-    why.push(fill(t.rbR_water_gap, { gap: nf.format(Math.round(m.gap)), vs: d }));
+    const dv = cur && cur.m.gap - m.gap >= 30 ? fill(t.rbR_water_vs, { d: nf.format(Math.round(cur.m.gap - m.gap)) }) : "";
+    why.push(fill(t.rbR_water_gap, { gap: nf.format(Math.round(m.gap)), vs: dv }));
     why.push(fill(t.rbR_water_crops, { crops: x.steps.map((o) => name(o.crop)).join(", ") }));
   } else if (goal === "income") {
     why.push(fill(t.rbR_income, { n: nf.format(Math.round(x.money.total)), rough }));
@@ -199,8 +194,6 @@ function PickCard({ t, lang, locale, x, idx, goal, board, ctx, onExplain, field,
     why.push(fill(t.rbR_risk, { h: nf.format(m.hot.length + m.cold.length), w: nf.format(m.bareWet.length), g: nf.format(Math.round(m.gap)) }));
   }
   why.push(fill(t.rbR_fit, { list: x.steps.map((o) => `${name(o.crop)} ${nf.format(Math.round(o.score * 100))}%`).join(", ") }));
-
-  // what changes against the current rotation
   const deltas = [];
   if (cur) {
     const dw = Math.round(cur.m.gap - m.gap);
@@ -211,21 +204,29 @@ function PickCard({ t, lang, locale, x, idx, goal, board, ctx, onExplain, field,
     deltas.push({ k: "s", good: b >= a, text: Math.abs(b - a) < 4 ? fill(t.rbSoilSame, { a: nf.format(a) }) : b > a ? fill(t.rbSoilUp, { a: nf.format(a), b: nf.format(b) }) : fill(t.rbSoilDown, { a: nf.format(a), b: nf.format(b) }) });
     if (Math.abs(x.risk - cur.risk) >= 0.08) deltas.push({ k: "r", good: x.risk > cur.risk, text: x.risk > cur.risk ? t.rbRiskUp : t.rbRiskDown });
   }
-
   const first = [...x.steps].sort((a, b) => ((a.at % 12) - new Date().getMonth() + 12) % 12 - ((b.at % 12) - new Date().getMonth() + 12) % 12)[0];
+  return { why, deltas, first, rough, month, cur };
+}
+
+// the long text, tables and trust box of one rotation (built only when asked for)
+function buildC({ t, x, goal, board, ctx, field, soilLine, name, nf, monthNames, mode }) {
+  const m = x.m, cur = board.current;
+  const month = (i) => monthNames[((i % 12) + 12) % 12];
+  const num = (n) => nf.format(Math.round(n));
+  const pct = (s) => `${nf.format(Math.round(s * 100))}%`;
   const profitObj = { complete: x.money.parts.every((p) => p.price.src !== "est"), total: x.money.total, parts: x.money.parts };
+  const text = explain({ ...m, assumedTiming: false }, { t, name, month, num, pct, soilLine: soilLine.text, soilLevel: soilLine.level, profit: profitObj, isCurrent: false, fam: x.fam }, cur ? cur.m : null);
+  const trust = uncertainty(m, { field, profit: profitObj, isCurrent: false, timingKnown: false, scenarioOn: ctx.scenarioOn, mode });
+  return { role: goal, steps: x.steps, m, profit: profitObj, text, fam: x.fam, trust };
+}
 
-  // the long text, only built when the card is opened
-  const detail = useMemo(() => {
-    if (!open) return null;
-    const num = (n) => nf.format(Math.round(n));
-    const pct = (s) => `${nf.format(Math.round(s * 100))}%`;
-    const sys = field && field.system && field.system.soil;
-    const text = explain({ ...m, assumedTiming: false }, { t, name, month, num, pct, soilLine: soilLine.text, soilLevel: soilLine.level, profit: profitObj, isCurrent: false, fam: x.fam }, cur ? cur.m : null);
-    const trust = uncertainty(m, { field, profit: profitObj, isCurrent: false, timingKnown: false, scenarioOn: ctx.scenarioOn, mode });
-    return { c: { role: goal, steps: x.steps, m, profit: profitObj, text, fam: x.fam, trust }, sys };
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-
+// ---------- one choice: a compact card (the long text opens in the panel under the cards) ----------
+function PickCard({ t, lang, locale, x, idx, goal, board, ctx, onExplain, field, country, mode, monthNames, name, sameAs, soilLine, onPanel, onMoney, panelOpen }) {
+  const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+  const m = x.m;
+  const { why, deltas, first, rough, month, cur } = pickInfo({ t, x, goal, board, nf, name, monthNames });
+  const cells = Array.from({ length: 12 }, () => null);
+  x.steps.forEach((o, i) => { for (let k = 0; k < o.months; k += 1) cells[(o.at + k) % 12] = i; });
   const sections = [["why", t.stSecWhy], ["evidence", t.stSecEvidence], ["benefits", t.stSecBenefits], ["gaps", t.stSecGaps], ["risks", t.stSecRisks]];
   const tableRows = [
     [t.stRowCrops, (c) => c.steps.map((o) => name(o.crop)).join(" → "), ["est"]],
@@ -235,83 +236,86 @@ function PickCard({ t, lang, locale, x, idx, goal, board, ctx, onExplain, field,
     [t.stRowProfit, (c) => nf.format(Math.round(c.profit.total)), ["you", "est"]],
   ];
   const roleLabel = () => t[`rbS_${goal}`];
-
+  const mk = () => buildC({ t, x, goal, board, ctx, field, soilLine, name, nf, monthNames, mode });
   return (
-    <article className="rb-pick">
+    <article className={`rb-pick${panelOpen ? " open" : ""}`}>
       <header className="rb-pick-head">
-        <span className="rb-pick-n">{fill(t.rbPick, { n: idx + 1 })}</span>
+        <span className="rb-pick-n">{fill(t.rbPick, { n: idx + 1 })} · {fill(t.rbMFit + " {p}%", { p: nf.format(Math.round(x.fit * 100)) })}</span>
         <h4>{x.steps.map((o) => name(o.crop)).join(" → ")}</h4>
-        <span className="rt-tag">{fill(t.rbMFit + ": {p}%", { p: nf.format(Math.round(x.fit * 100)) })}</span>
       </header>
+      <div className="rb-bar" role="img" aria-label={x.steps.map((o) => `${name(o.crop)}: ${monthNames[o.at % 12]} · ${o.months}`).join("; ")}>
+        {cells.map((c, i) => <span key={i} className={c == null ? "empty" : ""} style={c == null ? undefined : { background: WHEEL_COLORS[c % WHEEL_COLORS.length] }} title={`${monthNames[i]}${c == null ? "" : ` · ${name(x.steps[c].crop)}`}`} />)}
+      </div>
       {sameAs && <p className="small muted">{fill(t.rbSameAs, { s: t[`rbS_${sameAs}`] })}</p>}
-      <Timeline steps={x.steps} monthNames={monthNames} name={name} />
-      <div className="rb-metrics">
-        <div><span>{t.rbMWater}</span><b>{fill(t.rbMMm, { n: nf.format(Math.round(m.gap)) })}</b></div>
-        <div><span>{t.rbMProfit}</span><b>{nf.format(Math.round(x.money.total))}{rough ? <i> {t.rbRough}</i> : null}</b></div>
-        <div><span>{t.rbMSoil}</span><b>{fill(t.rbMOutOf, { n: nf.format(pts(x.soil)) })}</b></div>
-        <div><span>{t.rbMUse}</span><b>{fill(t.rbMMonths, { n: nf.format(Math.min(12, m.usedCount)) })}</b></div>
-      </div>
-      <div className="rb-why">
-        <h5>{fill(t.rbReasonTitle, { s: t[`rbS_${goal}`] })}</h5>
-        <ul>{why.map((w, i) => <li key={i}>{w}</li>)}</ul>
-      </div>
-      <div className="rb-vs">
-        <h5>{t.rbVsNow}</h5>
-        {cur ? <div className="rb-deltas">{deltas.map((dl) => <span key={dl.k} className={`rb-delta ${dl.good ? "good" : "bad"}`}>{dl.good ? "▲" : "▼"} {dl.text}</span>)}</div> : <p className="small muted">{t.rbNoNow}</p>}
-      </div>
-      <p className="small rb-next">{fill(t.rbNextStep, { crop: name(first.crop), month: month(first.at) })}</p>
-      <details className="rb-more" onToggle={(e) => setOpen(e.currentTarget.open)}>
-        <summary>{t.rbDetails}</summary>
-        <MoneyEditor t={t} locale={locale} parts={x.money.parts} name={name} monthNames={monthNames} {...moneyProps} />
-        {detail && (
-          <>
-            <div className="st-grid">
-              {sections.map(([key, title]) => (
-                <div className={`st-sec ${key}`} key={key}>
-                  <h4>{title}</h4>
-                  <ul>{detail.c.text[key].map((line, n) => <li key={n}>{line}</li>)}</ul>
-                </div>
-              ))}
-            </div>
-            <div className={`tr-box ${detail.c.trust.level}`}>
-              <h4>{t.trTitle}: <span className="tr-pill">{t[`trLevel_${detail.c.trust.level}`]}</span></h4>
-              <p className="small">{t[`trLead_${detail.c.trust.level}`]}</p>
-              <ul className="tr-list">
-                {detail.c.trust.factors.map((f) => (
-                  <li key={f.key} className={f.state}><span className="tr-mark" aria-hidden="true">{{ ok: "✓", assumed: "~", missing: "✗" }[f.state]}</span><b>{t[`trState_${f.state}`]}:</b> {t[`trF_${f.key}_${f.state}`]}</li>
-                ))}
-                {detail.c.trust.sensitive.map((k) => <li key={k} className="assumed"><span className="tr-mark" aria-hidden="true">!</span>{t[`trS_${k}`]}</li>)}
-              </ul>
-            </div>
-            <div className="rb-actions">
-              <SheetButton t={t} lang={lang} build={() => strategySheet({ c: detail.c, t, field, locale, nf: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), name, month, tableRows, sections, roleLabel, mode, country })} />
-              {onExplain && (
-                <button type="button" className="tab ex-btn" onClick={() => onExplain({
-                  question: fill(t.exQuestion, { crops: detail.c.text.crops }),
-                  strategy: strategyPayload(detail.c, { mode, scenario: ctx.scenario, prio: [goal], baseline: cur ? { m: cur.m, steps: cur.steps, profit: { complete: false, total: cur.money.total } } : null, name, monthNames }),
-                })}>{t.exButton}</button>
-              )}
-            </div>
-          </>
+      <dl className="rb-metrics">
+        <div><dt>{t.rbMWater}</dt><dd>{fill(t.rbMMm, { n: nf.format(Math.round(m.gap)) })}</dd></div>
+        <div><dt>{t.rbMProfit}</dt><dd>{nf.format(Math.round(x.money.total))}{rough ? <i> {t.rbRough}</i> : null}</dd></div>
+        <div><dt>{t.rbMSoil}</dt><dd>{fill(t.rbMOutOf, { n: nf.format(pts(x.soil)) })}</dd></div>
+        <div><dt>{t.rbMUse}</dt><dd>{fill(t.rbMMonths, { n: nf.format(Math.min(12, m.usedCount)) })}</dd></div>
+      </dl>
+      <p className="rb-why1">{why[0]}</p>
+      {cur ? <p className="rb-deltas">{deltas.map((dl) => <span key={dl.k} className={`rb-delta ${dl.good ? "good" : "bad"}`}>{dl.good ? "▲" : "▼"} {dl.text}</span>)}</p> : <p className="small muted">{t.rbNoNow}</p>}
+      <p className="small muted rb-next">{fill(t.rbNextStep, { crop: name(first.crop), month: month(first.at) })}</p>
+      <div className="rb-acts">
+        <button type="button" className="tab" onClick={() => onMoney(idx)}>{t.orbMoneyBtn}</button>
+        <button type="button" className="tab" aria-expanded={panelOpen} onClick={() => onPanel(idx)}>{t.orbEvidenceBtn}</button>
+        <SheetButton t={t} lang={lang} build={() => { const c = mk(); return strategySheet({ c, t, field, locale, nf: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), name, month, tableRows, sections, roleLabel, mode, country }); }} />
+        {onExplain && (
+          <button type="button" className="btn ex-btn" onClick={() => { const c = mk(); onExplain({
+            question: fill(t.exQuestion, { crops: c.text.crops }),
+            strategy: strategyPayload(c, { mode, scenario: ctx.scenario, prio: [goal], baseline: cur ? { m: cur.m, steps: cur.steps, profit: { complete: false, total: cur.money.total } } : null, name, monthNames }),
+          }); }}>{t.exButton}</button>
         )}
-      </details>
+      </div>
     </article>
   );
 }
 
+// the full reasons, evidence, gaps and trust box of the opened rotation
+function PickPanel({ t, x, goal, board, ctx, field, soilLine, name, nf, monthNames, mode, onClose }) {
+  const c = useMemo(() => buildC({ t, x, goal, board, ctx, field, soilLine, name, nf, monthNames, mode }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { why } = pickInfo({ t, x, goal, board, nf, name, monthNames });
+  const sections = [["why", t.stSecWhy], ["evidence", t.stSecEvidence], ["benefits", t.stSecBenefits], ["gaps", t.stSecGaps], ["risks", t.stSecRisks]];
+  return (
+    <section className="rb-panel" aria-label={t.orbEvidenceBtn}>
+      <div className="rb-panel-head"><h4>{fill(t.rbReasonTitle, { s: t[`rbS_${goal}`] })}: {x.steps.map((o) => name(o.crop)).join(" → ")}</h4><button type="button" className="tab" onClick={onClose}>{t.navClose}</button></div>
+      <ul className="rb-panel-why">{why.map((w, i) => <li key={i}>{w}</li>)}</ul>
+      <div className="st-grid">
+        {sections.map(([key, title]) => (
+          <div className={`st-sec ${key}`} key={key}>
+            <h4>{title}</h4>
+            <ul>{c.text[key].map((line, n) => <li key={n}>{line}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+      <div className={`tr-box ${c.trust.level}`}>
+        <h4>{t.trTitle}: <span className="tr-pill">{t[`trLevel_${c.trust.level}`]}</span></h4>
+        <p className="small">{t[`trLead_${c.trust.level}`]}</p>
+        <ul className="tr-list">
+          {c.trust.factors.map((f) => (
+            <li key={f.key} className={f.state}><span className="tr-mark" aria-hidden="true">{{ ok: "✓", assumed: "~", missing: "✗" }[f.state]}</span><b>{t[`trState_${f.state}`]}:</b> {t[`trF_${f.key}_${f.state}`]}</li>
+          ))}
+          {c.trust.sensitive.map((k) => <li key={k} className="assumed"><span className="tr-mark" aria-hidden="true">!</span>{t[`trS_${k}`]}</li>)}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 // ---------- the whole board ----------
-export default function RotationBoard({ t, lang, locale, board, results, field, mode, monthNames, ctx, onExplain, country, moneyProps, soilLine, onToast }) {
+export default function RotationBoard({ t, lang, locale, board, results, field, mode, monthNames, ctx, onExplain, country, moneyProps, soilLine, plotSlot, controlsSlot, notes, tools }) {
   const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const name = (c) => (lang === "bn" ? c.bn : c.en);
   const best = board.best;
   const [goal, setGoal] = useState(null);
+  const [panel, setPanel] = useState(null); // index of the choice whose long text is open
+  const [moneyIdx, setMoneyIdx] = useState(0);
   const active = goal || best.id;
+  const pickGoal = (s) => { setGoal(s); setPanel(null); setMoneyIdx(0); };
   const picks = board.strategies[active] || [];
   const cur = board.current;
   const bestTop = board.strategies[best.id] && board.strategies[best.id][0];
-  const rankOf = Object.fromEntries(best.rank.map((r) => [r.id, r]));
 
-  // what the best strategy gives against the current rotation
   const benefit = [];
   if (cur && bestTop) {
     if (best.id === "water") benefit.push(fill(t.rbBenefitWater, { n: nf.format(Math.max(0, Math.round(cur.m.gap - bestTop.m.gap))) }));
@@ -320,7 +324,6 @@ export default function RotationBoard({ t, lang, locale, board, results, field, 
     if (best.id === "risk") benefit.push(t.rbBenefitRisk);
     if (best.keep) benefit.length = 0;
   }
-  // why this strategy: what the plot lacks now
   const whyBest = [];
   if (cur) {
     if (best.id === "water") whyBest.push(fill(t.rbCurWhy_water, { gap: nf.format(Math.round(cur.m.gap)) }));
@@ -335,98 +338,80 @@ export default function RotationBoard({ t, lang, locale, board, results, field, 
     if (best.id === "risk") whyBest.push(fill(t.rbCurWhy_risk, { k: nf.format(cur.m.hot.length + cur.m.cold.length), w: nf.format(cur.m.bareWet.length) }));
   }
   const needsMax = Math.max(0.01, ...STRATEGIES.map((s) => (best.needs && best.needs[s]) || 0));
+  const chain = bestTop ? bestTop.steps.map((o) => name(o.crop)).join(", ") : "";
+  const moneyPick = picks[moneyIdx] || picks[0];
+  const goTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   return (
     <>
       <section className={`rb-hero ${best.keep ? "keep" : ""}`} aria-labelledby="rb-best-h">
-        <span className="rb-hero-tag">{t.rbSBest}</span>
-        <h3 id="rb-best-h">{t.rbBestTitle}: <em>{t[`rbS_${best.id}`]}</em></h3>
-        <p className="rb-hero-lead">{t[`rbD_${best.id}`]}</p>
-        {best.noCurrent && <p className="small warn">{t.rbBestNoCur}</p>}
-        {best.keep && bestTop && <p className="small">{fill(t.rbBestKeep, { name: bestTop.steps.map((o) => name(o.crop)).join(" → ") })}</p>}
-        {(whyBest.length > 0 || benefit.length > 0) && (
-          <div className="rb-hero-cols">
-            {whyBest.length > 0 && <div><h5>{t.rbBestWhy}</h5><ul>{whyBest.map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
-            {benefit.length > 0 && <div><h5>{t.rbBestBenefit}</h5><ul>{benefit.map((w, i) => <li key={i}>{w}</li>)}</ul></div>}
-          </div>
-        )}
         {bestTop && (
           <div className="rb-wheel">
             <YearWheel steps={bestTop.steps.map((o) => ({ start: o.at, len: o.months }))} months={monthNames.map((m) => Array.from(m)[0])} centre={t[`rbS_${best.id}`]} label={bestTop.steps.map((o) => name(o.crop)).join(" → ")} />
             <ul>{bestTop.steps.map((o, i) => <li key={i}><i style={{ background: WHEEL_COLORS[i % WHEEL_COLORS.length] }} />{name(o.crop)} <span className="small muted">{monthNames[o.at % 12]} · {o.months}</span></li>)}</ul>
           </div>
         )}
-        {bestTop && <p className="rb-hero-chain"><b>{bestTop.steps.map((o) => name(o.crop)).join(" → ")}</b></p>}
-        <button type="button" className="tab" onClick={() => { setGoal(best.id); const el = document.getElementById("rb-goals"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }}>{t.rbShow}</button>
-        {!best.noCurrent && (
-          <div className="rb-needs">
-            <h5>{t.rbNeedsTitle} <Info t={t}><p>{t.rbNeedsHelp}</p><p>{t.rbLogicAll}</p></Info></h5>
-            {STRATEGIES.map((s) => (
-              <div className="rb-need" key={s}>
-                <span>{t[`rbNeed_${s}`]}</span>
-                <i><b style={{ width: `${Math.round((((best.needs && best.needs[s]) || 0) / needsMax) * 100)}%` }} /></i>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="rb-hero-body">
+          <span className="rb-hero-tag">{t.rbSBest}</span>
+          <h3 id="rb-best-h">{t[`rbS_${best.id}`]}{chain ? `: ${chain}` : ""}</h3>
+          <p className="rb-hero-lead">{t[`rbD_${best.id}`]}</p>
+          {best.noCurrent && <p className="small warn">{t.rbBestNoCur}</p>}
+          {best.keep && bestTop && <p className="small">{fill(t.rbBestKeep, { name: bestTop.steps.map((o) => name(o.crop)).join(" → ") })}</p>}
+          {whyBest.map((w, i) => <p key={`w${i}`}><b>{t.rbBestWhy}:</b> {w}</p>)}
+          {benefit.map((w, i) => <p key={`b${i}`}><b>{t.rbBestBenefit}:</b> {w}</p>)}
+          {!best.noCurrent && (
+            <div className="rb-needs">
+              <h5>{t.rbNeedsTitle} <Info t={t}><p>{t.rbNeedsHelp}</p><p>{t.rbLogicAll}</p></Info></h5>
+              {STRATEGIES.map((s) => (
+                <div className="rb-need" key={s}>
+                  <span>{t[`rbNeed_${s}`]}</span>
+                  <i><b style={{ width: `${Math.round((((best.needs && best.needs[s]) || 0) / needsMax) * 100)}%` }} /></i>
+                </div>
+              ))}
+            </div>
+          )}
+          <button type="button" className="tab" onClick={() => { pickGoal(best.id); goTo("rb-goals"); }}>{t.rbShow}</button>
+        </div>
       </section>
 
-      <section id="rb-goals" aria-labelledby="rb-goals-h">
-        <h3 id="rb-goals-h">{t.rbGoalTitle} <Info t={t}><p>{t.rbLogicWater}</p><p>{t.rbLogicIncome}</p><p>{t.rbLogicSoil}</p><p>{t.rbLogicRisk}</p><p>{t.rbLogicAll}</p></Info></h3>
+      {plotSlot}
+
+      <section id="rb-goals" className="rb-goals" aria-labelledby="rb-goals-h">
+        <div className="rb-goals-head">
+          <h3 id="rb-goals-h">{t.rbGoalTitle} <Info t={t}><p>{t.rbLogicWater}</p><p>{t.rbLogicIncome}</p><p>{t.rbLogicSoil}</p><p>{t.rbLogicRisk}</p><p>{t.rbLogicAll}</p></Info></h3>
+          {controlsSlot}
+        </div>
         <p className="muted small">{t.rbGoalHint}</p>
+        {notes}
         <div className="rb-tabs" role="tablist">
           {STRATEGIES.map((s) => (
-            <button key={s} role="tab" type="button" aria-selected={active === s} className={`rb-tab ${active === s ? "on" : ""}`} onClick={() => setGoal(s)}>
-              <b>{t[`rbS_${s}`]}</b>
+            <button key={s} role="tab" type="button" aria-selected={active === s} className={`rb-tab ${active === s ? "on" : ""}`} onClick={() => pickGoal(s)}>
+              <b>{t[`rbS_${s}`]}{best.id === s ? ` · ${t.rbSBest}` : ""}</b>
               <span>{t[`rbD_${s}`]}</span>
-              {best.id === s && <em>{t.rbSBest}</em>}
             </button>
           ))}
         </div>
-        <h4 className="rb-picks-h">{fill(t.rbPicksTitle, { s: t[`rbS_${active}`] })}</h4>
         {picks.length === 0 && <p className="warn">{t.rbNoRotations}</p>}
-        {picks.map((x, i) => {
-          const key = x.steps.map((o) => o.crop.id).join(">");
-          const same = i === 0 ? STRATEGIES.find((s) => s !== active && board.strategies[s][0] && board.strategies[s][0].steps.map((o) => o.crop.id).join(">") === key) : null;
-          return <PickCard key={`${active}-${key}`} t={t} lang={lang} locale={locale} x={x} idx={i} goal={active} board={board} ctx={ctx} onExplain={onExplain} field={field} country={country} mode={mode} monthNames={monthNames} name={name} sameAs={same} moneyProps={moneyProps} soilLine={soilLine} />;
-        })}
-      </section>
-
-      <section className="rb-glance" aria-labelledby="rb-glance-h">
-        <h3 id="rb-glance-h">{t.rbGlance}</h3>
-        <div className="rb-glance-grid">
-          {cur && (
-            <div className="rb-g cur">
-              <b>{t.rbCurTitle}</b>
-              <span className="rb-g-chain">{cur.steps.map((o) => name(o.crop)).join(" → ")}</span>
-              <GlanceStats t={t} nf={nf} x={cur} />
-              {cur.assumedTiming && <span className="small muted">{t.rbCurAssumed}</span>}
-            </div>
-          )}
-          {STRATEGIES.map((s) => {
-            const x = board.strategies[s][0];
-            if (!x) return null;
-            return (
-              <button type="button" key={s} className={`rb-g ${active === s ? "on" : ""}`} onClick={() => { setGoal(s); const el = document.getElementById("rb-goals"); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
-                <b>{t[`rbS_${s}`]}{best.id === s ? ` ★` : ""}</b>
-                <span className="rb-g-chain">{x.steps.map((o) => name(o.crop)).join(" → ")}</span>
-                <GlanceStats t={t} nf={nf} x={x} />
-              </button>
-            );
+        <div className="rb-picks">
+          {picks.map((x, i) => {
+            const key = x.steps.map((o) => o.crop.id).join(">");
+            const same = i === 0 ? STRATEGIES.find((s) => s !== active && board.strategies[s][0] && board.strategies[s][0].steps.map((o) => o.crop.id).join(">") === key) : null;
+            return <PickCard key={`${active}-${key}`} t={t} lang={lang} locale={locale} x={x} idx={i} goal={active} board={board} ctx={ctx} onExplain={onExplain} field={field} country={country} mode={mode} monthNames={monthNames} name={name} sameAs={same} soilLine={soilLine} panelOpen={panel === i} onPanel={(n) => setPanel(panel === n ? null : n)} onMoney={(n) => { setMoneyIdx(n); goTo("rb-money"); }} />;
           })}
         </div>
+        {panel != null && picks[panel] && <PickPanel key={`${active}-${panel}`} t={t} x={picks[panel]} goal={active} board={board} ctx={ctx} field={field} soilLine={soilLine} name={name} nf={nf} monthNames={monthNames} mode={mode} onClose={() => setPanel(null)} />}
       </section>
-    </>
-  );
-}
 
-function GlanceStats({ t, nf, x }) {
-  return (
-    <span className="rb-g-stats">
-      <span>{t.rbMWater}: {fill(t.rbMMm, { n: nf.format(Math.round(x.m.gap)) })}</span>
-      <span>{t.rbMProfit}: {nf.format(Math.round(x.money.total))}</span>
-      <span>{t.rbMSoil}: {nf.format(pts(x.soil))}</span>
-    </span>
+      <div className="rb-tools">
+        {moneyPick && (
+          <section id="rb-money" className="rb-tool rb-tool-money">
+            <p className="small muted">{fill(t.orbMoneyFor, { crops: moneyPick.steps.map((o) => name(o.crop)).join(" → ") })}</p>
+            <MoneyEditor t={t} locale={locale} parts={moneyPick.money.parts} name={name} monthNames={monthNames} {...moneyProps} />
+          </section>
+        )}
+        {tools}
+      </div>
+    </>
   );
 }
 

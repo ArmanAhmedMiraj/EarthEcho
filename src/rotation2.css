@@ -1,0 +1,94 @@
+/* Rotation planner, "From orbit to your field" layout */
+.app .rb-root { display: block; }
+.app .rb-root h3 { margin: 0; }
+.app .rb-hero { display: grid; grid-template-columns: minmax(280px, 5fr) minmax(0, 6fr); gap: 28px; align-items: center; padding: 28px; margin: 0 0 18px; border: 1px solid color-mix(in srgb, var(--gold, #f6cf6a) 45%, var(--border)); border-radius: 26px; background: var(--panel); }
+.app .rb-hero.keep { border-style: dashed; }
+.app .rb-wheel { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 0; }
+.app .rb-wheel .vz-wheel { width: min(100%, 380px); height: auto; }
+.app .rb-wheel ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; font-size: 0.84rem; }
+.app .rb-wheel li { display: flex; align-items: center; gap: 6px; }
+.app .rb-wheel li i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.app .rb-hero-body { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; min-width: 0; }
+.app .rb-hero-tag { background: none; color: var(--gold, #f6cf6a); padding: 0; font-size: 0.85rem; letter-spacing: 0; }
+.app .rb-hero h3 { font-size: clamp(1.8rem, 3.4vw, 2.9rem); line-height: 1.08; margin: 0; }
+.app .rb-hero-lead { display: none; }
+.app .rb-hero-body p { margin: 0; font-size: 0.95rem; }
+.app .rb-needs { width: 100%; max-width: 420px; }
+.app .rb-needs h5 { margin: 4px 0 6px; font-size: 0.85rem; }
+.app .rb-need i { height: 8px; }
+.app .rb-need:nth-of-type(1) i b { background: #5aa7ff; } .app .rb-need:nth-of-type(2) i b { background: #3ddbc0; }
+.app .rb-need:nth-of-type(3) i b { background: #f6cf6a; } .app .rb-need:nth-of-type(4) i b { background: #ff9478; }
+
+.app .rb-plot { border-radius: 22px; margin: 0 0 22px; padding: 20px 22px; background: var(--panel); }
+.app .rb-plot-head h3 { font-size: 1.05rem; }
+.app .rb-plot-name { display: none; }
+.app .rb-plot-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.app .rb-plot-grid label { padding: 7px 10px; border: 1px solid var(--border-strong, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--panel) 60%, transparent); gap: 2px; font-size: 0.72rem; }
+.app .rb-plot-grid label > span:first-child { font-size: 0.7rem; color: var(--muted); }
+.app .rb-plot-grid select { border: 0; background: transparent; padding: 0; font-weight: 700; font-size: 0.92rem; color: var(--text); }
+.app .rb-plot-grid .rb-chip { display: none; }
+.app .rb-facts { margin-top: 10px; }
+
+.app .rb-goals-head { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.app .rb-goals-head h3 { font-size: 1.15rem; }
+.app .rt-controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 0; }
+.app .rt-controls label { display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 0.8rem; }
+.app .rb-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 12px 0 16px; }
+.app .rb-tab { border-radius: 16px; padding: 12px 14px; }
+.app .rb-tab b { font-size: 0.95rem; }
+.app .rb-tab.on { background: color-mix(in srgb, var(--gold, #f6cf6a) 14%, var(--panel)); border-color: var(--gold, #f6cf6a); box-shadow: none; }
+.app .rb-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.app .rb-pick { margin: 0; border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.app .rb-pick:first-child { border-color: var(--gold, #f6cf6a); }
+.app .rb-pick-head { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.app .rb-pick-n { font-size: 0.74rem; color: var(--muted); }
+.app .rb-pick-head h4 { font-size: 1.05rem; flex: none; }
+.app .rb-bar { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; }
+.app .rb-bar span { height: 14px; border-radius: 4px; }
+.app .rb-bar span.empty { background: color-mix(in srgb, var(--muted) 25%, transparent); }
+.app .rb-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 0; }
+.app .rb-metrics div { border: 0; padding: 0; border-radius: 0; }
+.app .rb-metrics dt { font-size: 0.72rem; color: var(--muted); }
+.app .rb-metrics dd { margin: 0; font-size: 1.02rem; font-weight: 800; }
+.app .rb-why1 { margin: 0; font-size: 0.86rem; }
+.app .rb-deltas { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.78rem; }
+.app .rb-delta { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 700; }
+.app .rb-delta.bad { color: var(--clay, #ff9478); }
+.app .rb-next { margin: 0; }
+.app .rb-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.app .rb-acts .tab, .app .rb-acts .btn { padding: 7px 12px; font-size: 0.8rem; }
+.app .rb-panel { margin-top: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--panel); padding: 18px 20px; }
+.app .rb-panel-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+.app .rb-panel-head h4 { margin: 0; }
+.app .rb-panel-why { margin: 8px 0; padding-left: 18px; }
+
+.app .rb-tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 22px 0; align-items: start; }
+.app .rb-tools > section { margin: 0; border: 1px solid var(--border); border-radius: 20px; background: var(--panel); padding: 18px; min-width: 0; }
+.app .rb-tools h3, .app .rb-tools h4 { font-size: 1.05rem; margin: 0 0 6px; }
+.app .rb-money-rows { overflow-x: auto; }
+.app .rb-money-row { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 6px; }
+.app .rb-money input { width: 100%; min-width: 0; }
+
+.app .ev2-wrap { margin-top: 10px; }
+.app .ev2-wrap > h3 { font-size: 1.15rem; margin: 0 0 4px; }
+.app .ev2-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; align-items: start; }
+.app .ev2-cards > .ev2-card { margin: 0; border-radius: 20px; min-width: 0; }
+.app .ev2-cards .ev-cal { overflow-x: auto; }
+
+@media (max-width: 1100px) {
+  .app .rb-picks, .app .rb-tools, .app .ev2-cards { grid-template-columns: 1fr 1fr; }
+  .app .rb-tabs { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 760px) {
+  .app .rb-hero { grid-template-columns: 1fr; padding: 18px; gap: 16px; }
+  .app .rb-picks, .app .rb-tools, .app .ev2-cards, .app .rb-tabs { grid-template-columns: 1fr; }
+  .app .rb-money-row { grid-template-columns: 1fr 1fr; }
+}
+.app .rb-plot-grid { align-items: start; }
+.app .rb-money-row { grid-template-columns: 1fr 1fr; gap: 8px 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.app .rb-money-crop { grid-column: 1 / -1; }
+.app .rb-money-cell input { height: 34px; padding: 4px 8px; }
+.app .rb-share input { width: 80px; display: inline-block; }
+.app .rb-tool-money > .small { margin: 0 0 6px; }
+.app .rb-tools .my-grid { overflow-x: auto; }
+.app .rb-tools .my-row { min-width: 420px; }
