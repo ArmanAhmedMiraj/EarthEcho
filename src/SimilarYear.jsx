@@ -34,17 +34,25 @@ export default function SimilarYear({ t, locale, lat, lon }) {
   const sel = data && data.matches[Math.min(pick, data.matches.length - 1)];
   const medal = ["🥇", "🥈", "🥉"];
   const tone = (rain, mean) => (mean == null || mean < 1 ? "same" : rain < mean * 0.7 ? "dry" : rain > mean * 1.3 ? "wet" : "same");
-  const toneWord = { dry: t.wfDrier, wet: t.wfWetter, same: t.wfAbout };
 
-  // across all the close years: was each coming month drier or wetter than usual?
-  const pattern = !data ? [] : data.nextRange.map((g, k) => {
-    const marks = data.matches.map((m) => (m.next[k] ? tone(m.next[k].rain, g.rainMean) : null)).filter(Boolean);
-    const dry = marks.filter((x) => x === "dry").length, wet = marks.filter((x) => x === "wet").length;
-    const n = marks.length;
-    if (n >= 2 && dry > n / 2) return fill(t.wfPatDry, { m: monthName(g.m0), k: nf.format(dry), n: nf.format(n) });
-    if (n >= 2 && wet > n / 2) return fill(t.wfPatWet, { m: monthName(g.m0), k: nf.format(wet), n: nf.format(n) });
-    return fill(t.wfPatMixed, { m: monthName(g.m0) });
-  });
+  // one card per coming month: what the close years did, and what that means for farm work
+  const nowM = new Date().getMonth();
+  const endM = data ? data.window[data.window.length - 1].m0 : 0;
+  const allMonths = trend ? (trend.rainStep ? trend.monthsRecent : trend.months) : null;
+  const maxMean = allMonths ? Math.max(...allMonths.map((m) => m.mean), 1) : 1;
+  const plan = !data || !data.matches.length ? [] : (() => {
+    let list = data.nextRange.map((g, k) => ({ g, k })).filter(({ g }) => !(g.m0 > endM && g.m0 < nowM));
+    if (!list.length) list = data.nextRange.map((g, k) => ({ g, k }));
+    return list.map(({ g, k }) => {
+      const rows = data.matches.filter((m) => m.next[k]).map((m) => ({ year: m.endYear, rain: m.next[k].rain, tone: tone(m.next[k].rain, g.rainMean), sel: m === sel }));
+      const dry = rows.filter((r) => r.tone === "dry").length, wet = rows.filter((r) => r.tone === "wet").length, n = rows.length;
+      const sig = n >= 2 && dry > n / 2 ? "dry" : n >= 2 && wet > n / 2 ? "wet" : "mixed";
+      const mean = allMonths ? allMonths[g.m0].mean : g.rainMean;
+      const high = mean >= 20 && mean / maxMean >= 0.3;
+      const key = sig === "mixed" ? "wfDo_mixed" : `wfDo_${sig}_${high ? "high" : "low"}`;
+      return { m0: g.m0, sig, k: sig === "dry" ? dry : wet, n, usual: g.rainMean, rows, max: Math.max(g.rainMean, ...rows.map((r) => r.rain), 1), todo: String(t[key] || "").split("|") };
+    });
+  })();
 
   return (
     <section className="wf-sec" aria-labelledby="sy-title">
@@ -83,24 +91,32 @@ export default function SimilarYear({ t, locale, lat, lon }) {
               </button>
             ))}
           </div>
-          {sel.next.length > 0 && (
+          {plan.length > 0 && (
             <>
-              <h4 className="wf-sub">{fill(t.wfAfter, { y: yr.format(sel.endYear) })}</h4>
-              <div className="wf-after">
-                {sel.next.map((r, i) => {
-                  const g = data.nextRange[i];
-                  const k = tone(r.rain, g.rainMean);
-                  return (
-                    <div className="wf-after-row" key={i}>
-                      <b>{monthName(r.m0)}</b>
-                      <span className="small">{fill(t.wfThen, { a: nf.format(r.rain), b: nf.format(g.rainMean) })}</span>
-                      <span className={`wf-tag ${k}`}>{toneWord[k]}</span>
+              <h4 className="wf-sub">{t.wfPlanTitle}</h4>
+              <div className="wf-plan">
+                {plan.map((c) => (
+                  <article className={`wf-plancard ${c.sig}`} key={c.m0}>
+                    <header>
+                      <b>{monthName(c.m0)}</b>
+                      <span className={`wf-tag ${c.sig === "mixed" ? "same" : c.sig}`}>{t[`wfSig_${c.sig}`]}</span>
+                    </header>
+                    <p className="small muted">{c.sig === "mixed" ? t.wfSigMixedHint : fill(t[`wfSigHint_${c.sig}`], { k: nf.format(c.k), n: nf.format(c.n) })}</p>
+                    <div className="wf-cmp" aria-hidden="true">
+                      <span>{t.wfUsual}</span>
+                      <span className="wf-track"><i className="wf-fillbar usual" style={{ width: `${(c.usual / c.max) * 70}%` }} /><em>{nf.format(c.usual)} mm</em></span>
+                      {c.rows.map((r) => (
+                        <span key={r.year} style={{ display: "contents" }}>
+                          <span className={r.sel ? "wf-selyr" : ""}>{yr.format(r.year)}</span>
+                          <span className="wf-track"><i className={`wf-fillbar ${r.tone}`} style={{ width: `${(r.rain / c.max) * 70}%` }} /><em>{nf.format(r.rain)} mm</em></span>
+                        </span>
+                      ))}
                     </div>
-                  );
-                })}
+                    <b className="wf-dohead">{t.wfDoTitle}</b>
+                    <ul className="wf-do">{c.todo.map((x, i) => <li key={i}>{x}</li>)}</ul>
+                  </article>
+                ))}
               </div>
-              <h4 className="wf-sub">{t.wfPattern}</h4>
-              <ul className="wf-pattern small">{pattern.map((p, i) => <li key={i}>{p}</li>)}</ul>
             </>
           )}
           <p className="muted small">{t.wfNotForecast}</p>

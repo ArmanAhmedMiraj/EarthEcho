@@ -93,3 +93,16 @@
 .wf-whybox ol { margin: 6px 0; padding-left: 20px; }
 .wf-whybox li { margin: 6px 0; }
 .wf-whybox p { margin: 6px 0 0; }
+.wf-plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin: 8px 0; }
+.wf-plancard { border: 1px solid var(--border); border-left: 5px solid #7e8aa8; border-radius: 12px; padding: 10px 14px; background: var(--panel); }
+.wf-plancard.dry { border-left-color: #e07b54; }
+.wf-plancard.wet { border-left-color: #4fc3f7; }
+.wf-plancard header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 1.05rem; }
+.wf-plancard p { margin: 4px 0 8px; }
+.wf-fillbar.dry { background: #e07b54; }
+.wf-fillbar.wet { background: #4fc3f7; }
+.wf-fillbar.same { background: var(--accent); }
+.wf-selyr { font-weight: 700; }
+.wf-dohead { display: block; margin: 10px 0 4px; }
+.wf-do { margin: 0; padding-left: 20px; }
+.wf-do li { margin: 4px 0; }
