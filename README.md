@@ -6,9 +6,11 @@
 
 Built by team **Frontier Zero** for the NASA Space Apps Challenge 2026, challenge **Field Shift: Adapting Farms with NASA Data**. Now in the final round.
 
-**Live app: https://earth-echo-nine.vercel.app/** (no login, works on a phone, installs like an app, opens offline with the last data it saw)
+**Live app: https://earth-echo-nine.vercel.app/** (works on a phone, installs like an app, opens offline with the last data it saw; an account is optional)
 
-Demo script for judges: [docs/DEMO.md](docs/DEMO.md)
+Demo script for judges: [docs/DEMO.md](docs/DEMO.md) · Submission answers: [docs/SUBMISSION.md](docs/SUBMISSION.md) · Licence: [Apache 2.0](LICENSE)
+
+**Try it in one minute:** open the live link, tap the globe on the map to drop a pin on a field (the demo uses Mokamtala, Shibganj, Bogura, Bangladesh), press **Save**, then open **Rotation planner**. Switch to Bengali with the language button.
 
 ## Contents
 
@@ -23,10 +25,14 @@ Demo script for judges: [docs/DEMO.md](docs/DEMO.md)
 9. [Build and deploy](#build-and-deploy)
 10. [Project layout](#project-layout)
 11. [Privacy](#privacy)
+12. [Team](#team)
+13. [Licence](#licence)
+14. [Credits and citations](#credits-and-citations)
+15. [How this meets the Space Apps terms](#how-this-meets-the-space-apps-terms)
 
 ## See it
 
-All pictures below are from the app, using a sample rice field near Mymensingh, Bangladesh. The Bengali versions of every picture are in [docs/screenshots](docs/screenshots) (files ending in `_bn`).
+All pictures below are from the app, using a sample rice field near Mymensingh, Bangladesh. The app's look has since been refreshed ("From orbit to your field" design); the content and features shown are the same. The Bengali versions of every picture are in [docs/screenshots](docs/screenshots) (files ending in `_bn`).
 
 ### 1. My Farm: save a field once
 
@@ -90,16 +96,17 @@ It is decision support. It never tells a farmer to switch crops, gives no yield 
 
 ## Status
 
-All twelve tabs are built and live. Farmers keep many fields; every tab follows the open field. The app is bilingual, works in light and dark mode, passes Lighthouse accessibility, best-practices and SEO checks at 100 on desktop, and works offline after the first visit.
+All twelve tabs are built and live. A farmer keeps many **locations** (a place such as a village), and each location can hold up to 12 **plots** (parcels of land with their own details); every tab follows the open plot. The app is bilingual, works in light and dark mode, passes Lighthouse accessibility, best-practices and SEO checks at 100 on desktop, and works offline after the first visit.
 
 ## How a farmer uses it
 
-1. **Open the app.** It opens on **My Farm**. The first time, the farmer picks where their field is (country, division, district, upazila, union, or by tapping the globe or using their location), names it and saves it.
-2. **My Farm is the hub.** Every saved field is kept on the phone. There is no login and no account. A field has:
+1. **Open the app.** It opens on **My Farm**. The first time, the farmer picks the area (country, division, district, upazila, union), then taps the map to drop a pin on **their land (jomi)** or uses their location. The Save button stays off until the pin is placed. The farmer names the location and saves it.
+2. **My Farm is the hub.** By default everything is kept on the phone (guest mode). A farmer can also create an account with a phone number, name and password to keep locations on any device. There is no text-message code. A location holds plots, and each plot has:
    - **EarthEcho estimates** (soil, height above sea level, slope), always labelled as estimates, with a confidence when the soil data gives one;
+   - **Land size filled in from the drawn boundary** (the farmer can overwrite it);
    - **The farmer's own details** (land size in bigha, acre, decimal, katha, hectare or square metre; crop now and the month it was sown; crop next; irrigation; who farms it; past crops and when they were sown; notes), all optional, saved as they type.
    - If the farmer knows their soil better than the satellite, they set it. Their value is used everywhere and the original estimate is kept.
-3. **Every other tab follows the open field.** A field switcher in the banner changes the field on every tab. Nothing needs to be selected twice.
+3. **Every other tab follows the open plot.** Two switchers in the header (Location and Plot) change the data on every tab. Nothing needs to be selected twice.
 
 ### Where the farmer's own answers are used
 
@@ -173,6 +180,8 @@ GROQ_API_KEY=your-key
 
 `GEMINI_API_KEY` can be added as a backup. On Vercel, add the same names under Project Settings, Environment Variables.
 
+Accounts are optional. To turn them on, add a free Upstash Redis database (`KV_REST_API_URL` and `KV_REST_API_TOKEN`). Without it the app runs in guest mode and the sign-in button says accounts are not available. Details: [docs/ACCOUNTS.md](docs/ACCOUNTS.md).
+
 ## Build and deploy
 
 ```
@@ -190,4 +199,71 @@ Vercel builds and publishes on every push to `main`. `vercel.json` sets the time
 
 ## Privacy
 
-No account, no tracking and no advertising. Fields and details stay on the device. The place's coordinates are sent to the data services (NASA, Open-Meteo, SoilGrids and others) to fetch its data, and the browser loads NASA map pictures for the area directly from NASA. Questions to the assistant, and the strategy sent by "Explain this strategy", go to an AI provider (Groq, or Google Gemini as a backup) together with the place, the crops and the field notes needed to answer. Google may use text sent through its free Gemini tier to improve its products, so the app tells farmers not to write personal details in notes.
+Guests: no account, no tracking and no advertising. Locations and details stay on the device. With an account: the phone number, name, a scrypt password hash and the saved locations are stored in an Upstash Redis database, and the login cookie is HttpOnly. Phone numbers are not verified by text message. The place's coordinates are sent to the data services (NASA, Open-Meteo, SoilGrids and others) to fetch its data, and the browser loads NASA map pictures for the area directly from NASA. Questions to the assistant, and the strategy sent by "Explain this strategy", go to an AI provider (Groq, or Google Gemini as a backup) together with the place, the crops and the field notes needed to answer. Google may use text sent through its free Gemini tier to improve its products, so the app tells farmers not to write personal details in notes.
+
+The repository contains no real phone numbers, addresses or keys. All secrets are environment variables.
+
+## Team
+
+**Frontier Zero**, NASA Space Apps Challenge 2026, Rangpur local event, Bangladesh.
+
+| Name | Role |
+|---|---|
+| Arman Ahmed Miraj | Lead developer (CSE student, Dhaka) |
+| _add teammate_ | _role_ |
+| _add teammate_ | _role_ |
+
+## Licence
+
+The original code and content in this repository are released under the **Apache License 2.0** (see [LICENSE](LICENSE)). This matches the licence NASA uses to distribute Space Apps solutions. Third-party data keeps its own licence (listed below and on the app's Data tab). NASA data is open; no export-controlled information (ITAR or EAR) is included.
+
+## Credits and citations
+
+Everything we used that we did not write ourselves.
+
+**NASA data and services**
+
+- NASA POWER (climate normals and daily history): https://power.larc.nasa.gov/
+- NASA GIBS (map layers and readings): MODIS vegetation index (NDVI) and land surface temperature (LP DAAC), SMAP Level 4 soil moisture, GPM IMERG rain rate. https://earthdata.nasa.gov/gibs
+- NASA Earthdata (SMAP, GPM, MODIS products): https://www.earthdata.nasa.gov/
+- NASA EONET natural events: https://eonet.gsfc.nasa.gov/
+- Listed on the Data tab as **planned, not used yet**: GRACE-FO groundwater, ECOSTRESS plant heat stress, NISAR radar.
+
+**Other data**
+
+| Source | Used for | Licence |
+|---|---|---|
+| ISRIC SoilGrids | Soil properties | CC BY 4.0 |
+| FAO EcoCrop | Crop climate and soil limits | FAO data terms (CC BY 4.0 unless stated); the EcoCrop page's own agreement is not fully read, flagged on the Data tab |
+| FAO / IIASA HWSD | Bangladesh soil estimate | FAO and IIASA credit; exact terms flagged on the Data tab |
+| Open-Meteo | Forecast | CC BY 4.0, non-commercial use |
+| USGS, GDACS | Earthquakes and alerts | Free with credit |
+| WFP food prices (Humanitarian Data Exchange) | Market prices | CC BY-IGO |
+| GDELT Project | News on hazards | Free with credit and link |
+| geoBoundaries, Bangladesh Bureau of Statistics | Boundaries | CC BY 3.0 IGO and open licences |
+| OpenStreetMap contributors | Suppliers | ODbL |
+| Wikimedia Commons | Place photos (free licences only, credit shown) | CC BY, CC BY-SA |
+| Esri World Imagery | Satellite basemap | Esri terms; used for a non-commercial competition demo |
+| Groq, Google Gemini | AI assistant | Provider terms; see Privacy |
+
+**Open-source software**
+
+React 19 (MIT), Vite 8 (MIT), @vitejs/plugin-react (MIT), MapLibre GL JS (BSD-3-Clause), geotiff (MIT), pngjs (MIT). Fonts: Plus Jakarta Sans, Anek Latin, Anek Bangla, Hind Siliguri through Fontsource (SIL OFL 1.1).
+
+The same list, with each source's resolution and update rate, is on the in-app **Data** tab.
+
+## How this meets the Space Apps terms
+
+Checked against https://www.spaceappschallenge.org/legal/ :
+
+| Term | How EarthEcho meets it |
+|---|---|
+| Original content freely available or OSI licensed | Apache 2.0 ([LICENSE](LICENSE)) |
+| Third-party material public or open source; licences listed | Table above and the Data tab |
+| Licences listed in the submission documentation | This README and [docs/SUBMISSION.md](docs/SUBMISSION.md) |
+| Cite every source used | Credits and citations above |
+| Addresses a published challenge | Field Shift: Adapting Farms with NASA Data |
+| No personal data (home addresses, phone numbers) | None in the repository, screenshots or demo data; the demo place is a public village |
+| No people under 18 recognisable | None in screenshots or video |
+| No commercial promotion | Free, non-commercial; supplier map is neutral OpenStreetMap data |
+| No export-controlled information | Only public NASA and open data |
