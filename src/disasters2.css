@@ -16,12 +16,14 @@
 .app .ds2-overall .ds-sum { margin: 0; padding-left: 18px; font-size: 0.92rem; }
 .app .ds2 .ds-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
 .app .ds2 .ds-tile { border-radius: 18px; padding: 12px 14px; border-top-width: 3px; }
-.app .ds2-pair { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; align-items: start; }
+.app .ds2-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; align-items: stretch; }
 .app .ds2-pair.one { grid-template-columns: 1fr; }
 .app .ds2-card { border: 1px solid var(--border); border-radius: 22px; background: var(--panel); padding: 20px; min-width: 0; }
 .app .ds2-card > h3, .app .ds2-card .rv-card > h3, .app .ds2-card .up-wrap2 > h3 { margin: 0 0 8px; font-size: 1.15rem; }
 .app .ds2-card .rv-card, .app .ds2-card .up-wrap2 { border: 0; background: none; box-shadow: none; padding: 0; margin: 0; }
-.app .ds2-map { margin-bottom: 18px; padding: 14px; }
+.app .ds2-map { padding: 16px; display: flex; flex-direction: column; }
+.app .ds2-map .um-wrap { margin: 0; flex: 1; display: flex; flex-direction: column; }
+.app .ds2-map .um-map { flex: 1; min-height: 420px; height: auto; }
 .app .ds2-map .up-wrap2 { padding: 0; }
 .app .ds2-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; align-items: start; }
 .app .ds2-three .ds-list li { flex-wrap: wrap; }
@@ -34,3 +36,20 @@
 .app .ds2-card .up-journey li { padding-block: 8px; }
 .app .ds2-card .up-journey .up-facts span { font-size: 0.7rem; }
 .app .ds2-card .up-why summary { font-size: 0.78rem; }
+
+/* the river journey as a row: far upstream on the left, you on the right */
+.app .ds2-journey { margin-bottom: 18px; }
+.app .ds2-journey .up-journey { border-left: 0; padding: 22px 0 0; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; position: relative; }
+.app .ds2-journey .up-journey::before { content: ""; position: absolute; left: 6%; right: 6%; top: 7px; border-top: 3px dashed var(--border); }
+.app .ds2-journey .up-journey > li::before { left: 50%; top: -22px; transform: translateX(-50%); width: 14px; height: 14px; }
+.app .ds2-journey .up-journey .up-step { display: none; }
+.app .ds2-journey .up-journey .up-facts { grid-template-columns: 1fr; gap: 4px; }
+.app .ds2-journey .up-journey .up-dot { display: none; }
+.app .ds2-three { align-items: stretch; }
+.app .ds2-todo { max-width: none; }
+.app .ds2-card .sx { margin-bottom: 8px; }
+@media (max-width: 1000px) { .app .ds2-journey .up-journey { grid-template-columns: 1fr; padding-top: 0; border-left: 3px dashed var(--border); padding-left: 18px; } .app .ds2-journey .up-journey::before { display: none; } .app .ds2-journey .up-journey > li::before { left: -26px; top: 18px; transform: none; width: 12px; height: 12px; } }
+.app .ds2-map .up-wrap2 { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.app .ds2-map .up-wrap2 > h3, .app .ds2-map .up-wrap2 > h4 { flex: none; }
+.app .ds2-map .um-wrap { flex: 1; }
+.app .ds2-radar { justify-content: center; }

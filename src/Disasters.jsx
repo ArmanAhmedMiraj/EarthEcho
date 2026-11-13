@@ -4,6 +4,7 @@ import "./disasters2.css";
 import { DISASTER_OFFICES } from "./i18nDisasters.js";
 import { TWO_LETTER } from "./i18nWeather.js";
 import Info from "./Info.jsx";
+import { SectionHead } from "./Icons.jsx";
 import RiverNow, { riverState } from "./RiverNow.jsx";
 import Upstream from "./Upstream.jsx";
 import { Radar } from "./Visuals.jsx";
@@ -179,16 +180,14 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
       {rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
       {rwState === "failed" && <p className="warn small">{t.urFailed} <button className="tab" onClick={loadRiver}>{t.urRetry}</button></p>}
       <div className={`ds2-pair${inBd && rw && rw.stations.length > 0 ? "" : " one"}`}>
-        {rw && <div className="ds2-card"><RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} /></div>}
-        {inBd && rw && rw.stations.length > 0 && <div className="ds2-card"><Upstream t={t} locale={locale} rw={rw} part="journey" /></div>}
+        {rw && <div className="ds2-card sxc sx-river"><RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} /></div>}
+        {inBd && rw && rw.stations.length > 0 && <div className="ds2-card ds2-map sxc sx-map"><Upstream t={t} locale={locale} rw={rw} part="map" /></div>}
       </div>
-      {inBd && rw && rw.stations.length > 0 && <div className="ds2-card ds2-map"><Upstream t={t} locale={locale} rw={rw} part="map" /></div>}
+      {inBd && rw && rw.stations.length > 0 && <div className="ds2-card ds2-journey sxc sx-river"><Upstream t={t} locale={locale} rw={rw} part="journey" /></div>}
 
       <div className="ds2-three">
-        <section className="ds2-card">
-          <h3 id="ds-alerts">{t.alertsTitle}
-            <Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info>
-          </h3>
+        <section className="ds2-card sxc sx-danger">
+          <SectionHead icon="danger" kind="danger" title={<span id="ds-alerts">{t.alertsTitle}</span>}><Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info></SectionHead>
           {nearby.length === 0 ? <p className="muted">{t.alertsNone}</p> : (
             <ul className="ds-list">
               {nearby.map((e, i) => (
@@ -202,10 +201,8 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
             </ul>
           )}
         </section>
-        <section className="ds2-card">
-          <h3 id="ds-quakes">{t.quakeTitle}
-            <Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info>
-          </h3>
+        <section className="ds2-card sxc sx-soil">
+          <SectionHead icon="soil" kind="soil" title={<span id="ds-quakes">{t.quakeTitle}</span>}><Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info></SectionHead>
           {base.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
             <ul className="ds-quakes">
               {base.earthquakes.map((q, i) => {
@@ -225,12 +222,12 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
           )}
           <p className="muted small">{t.qNoteShort}</p>
         </section>
-        {inBd && rw && rw.stations.length > 0 && <section className="ds2-card"><Upstream t={t} locale={locale} rw={rw} part="events" /></section>}
+        {inBd && rw && rw.stations.length > 0 && <section className="ds2-card sxc sx-map"><Upstream t={t} locale={locale} rw={rw} part="events" /></section>}
       </div>
 
       {tips.length > 0 && (
-        <section className="ds2-card ds2-todo">
-          <h3>{t.tipsTitle}</h3>
+        <section className="ds2-card ds2-todo sxc sx-sun">
+          <SectionHead icon="check" kind="sun" title={t.tipsTitle} />
           <ul>{tips.map((x, i) => <li key={i}>{x}</li>)}</ul>
           <p className="muted small">{t.tipsNote}</p>
         </section>
