@@ -231,6 +231,7 @@ export default function App() {
     } catch { /* storage blocked: the notice may show again, which is harmless */ }
     setReminder("farm");
   };
+  const [landPinned, setLandPinned] = useState(false); // true only once the farmer has tapped the exact land on the map (an area choice alone is not a field)
   const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
   const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
   const [soilData, setSoilData] = useState(null); // SoilGrids reading of the confirmed place
@@ -542,6 +543,7 @@ export default function App() {
     const chain = await buildChain(adm, index, props);
     if (token !== pickToken.current) return;
     setUserPicked(true);
+    setLandPinned(false);
     setPlace(chain);
     setSelected({ level: SLOTS[index], id: props.id });
     setCountry(adm.iso);
@@ -566,6 +568,7 @@ export default function App() {
     }
     if (token !== pickToken.current) return;
     setUserPicked(true);
+    setLandPinned(false);
     const info = loaded.info;
     setPlace(EMPTY_CHAIN);
     setSelected(null);
@@ -598,7 +601,7 @@ export default function App() {
     if (token !== pickToken.current) return; // a newer tap replaced this one
 
     const found = deepestOf(chain);
-    if (!options.initial) setUserPicked(true);
+    if (!options.initial) { setUserPicked(true); setLandPinned(true); }
     setPlace(chain);
     setSelected(found ? { level: found.level, id: found.item.id } : null);
     setCountry(iso && loaded && loaded.iso === iso ? iso : "other");
@@ -758,7 +761,7 @@ export default function App() {
 
   // the dashboard's "change location": remember the confirmed place so the farmer can go back to it
   function changeLocation() {
-    snapshot.current = { pos, place, selected, country, soilChoice, userPicked };
+    snapshot.current = { pos, place, selected, country, soilChoice, userPicked, landPinned };
     window.location.hash = "";
     setStage("explore");
   }
@@ -781,6 +784,7 @@ export default function App() {
       setCountry(saved.country);
       setSoilChoice(saved.soilChoice);
       setUserPicked(saved.userPicked);
+      setLandPinned(Boolean(saved.landPinned));
     }
     setMessage("");
     window.location.hash = `/${tab}`;
@@ -806,7 +810,7 @@ export default function App() {
 
   // saving the chosen place as a field (or opening the field that is already saved there)
   function confirmLocation() {
-    if (!userPicked) return;
+    if (!userPicked || !landPinned) return;
     const here = { lat: pos.lat, lon: pos.lon };
     if (movingId) {
       const moved = fields.find((f) => f.id === movingId);
@@ -864,6 +868,7 @@ export default function App() {
     } else {
       setActiveId("");
       setUserPicked(false);
+      setLandPinned(false);
       snapshot.current = null;
       window.location.hash = "";
       setStage("explore");
@@ -1048,7 +1053,10 @@ export default function App() {
           <h2>{t.step1}</h2>
           {picker}
           <p className="muted small">{t.tapMap}</p>
-          {userPicked && (
+          {userPicked && !landPinned && (
+            <p className="small land-hint"><strong>{t.orbLandArea}:</strong> {label.title}<br />{t.orbLandTapNow}</p>
+          )}
+          {userPicked && landPinned && (
             <p className="small">
               <strong>{t.selected}:</strong> {label.title}
               <br />
@@ -1071,15 +1079,15 @@ export default function App() {
           )}
 
           <div className="confirm-box">
-            {!userPicked && <p className="muted small">{t.confirmFirst}</p>}
-            {userPicked && !movingId && !fields.some((f) => sameSpot(f, pos)) && (
+            {!landPinned && <p className="muted small">{t.confirmFirst}</p>}
+            {landPinned && !movingId && !fields.some((f) => sameSpot(f, pos)) && (
               <label className="fd-field">
                 <span>{t.fdNameLabel}</span>
                 <input value={newName} maxLength={80} placeholder={label.title} onChange={(e) => setNewName(e.target.value)} />
                 <span className="small muted">{t.fdNameHint}</span>
               </label>
             )}
-            <button className="btn wide" disabled={!userPicked} onClick={confirmLocation}>{movingId ? t.fdMoveSave : t.fdSaveOpen}</button>
+            <button className="btn wide" disabled={!landPinned} onClick={confirmLocation}>{movingId ? t.fdMoveSave : t.fdSaveOpen}</button>
             {snapshot.current && <button className="btn" onClick={keepLocation}>{t.keepLocation}</button>}
           </div>
         </section>
@@ -1094,6 +1102,7 @@ export default function App() {
                 selected={selectedFeature}
                 focus={focus}
                 chosen={userPicked}
+                pinned={landPinned}
                 onPick={(lat, lon) => pickPoint(lat, lon, { fly: !view || view.zoom < 5 })}
                 onView={setView}
               />

@@ -160,7 +160,7 @@ const LAYER_DEFS = [
 
 const count = (d) => (!d ? 0 : d.features ? d.features.length : 1);
 
-export default function MapPicker({ pos, label, layers, selected, focus, chosen, onPick, onView }) {
+export default function MapPicker({ pos, label, layers, selected, focus, chosen, pinned = true, onPick, onView }) {
   const box = useRef(null);
   const map = useRef(null);
   const marker = useRef(null);
@@ -379,8 +379,8 @@ export default function MapPicker({ pos, label, layers, selected, focus, chosen,
     if (!map.current || !marker.current || !popup.current) return;
     marker.current.setLngLat([pos.lon, pos.lat]);
     // no pin and no name label until a place has been chosen
-    marker.current.getElement().style.display = chosen ? "" : "none";
-    if (!chosen) {
+    marker.current.getElement().style.display = chosen && pinned ? "" : "none";
+    if (!chosen || !pinned) {
       popup.current.remove();
       return;
     }
@@ -408,7 +408,7 @@ export default function MapPicker({ pos, label, layers, selected, focus, chosen,
 
     popup.current.setLngLat([pos.lon, pos.lat]).setDOMContent(el);
     if (!popup.current.isOpen()) popup.current.addTo(map.current);
-  }, [pos.lat, pos.lon, label.title, label.path, chosen]);
+  }, [pos.lat, pos.lon, label.title, label.path, chosen, pinned]);
 
   // fly to a chosen area or place
   useEffect(() => {

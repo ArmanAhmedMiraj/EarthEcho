@@ -344,3 +344,6 @@ html[data-tab="data"] .page > .viewer:first-child::after { display: none; }
 .app .sp-item { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 12px 14px; margin: 0 0 10px; list-style: none; }
 .sp-list { padding: 0; max-height: 640px; overflow: auto; }
 @media (max-width: 900px) { .sp-split { grid-template-columns: 1fr; } }
+
+/* picking land: the hint shown after an area is chosen but before the exact land is tapped */
+.land-hint { padding: 10px 14px; border-radius: 14px; border: 1px dashed var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
