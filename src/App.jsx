@@ -231,6 +231,7 @@ export default function App() {
     } catch { /* storage blocked: the notice may show again, which is harmless */ }
     setReminder("farm");
   };
+  const [addPlotSignal, setAddPlotSignal] = useState(0); // the header's "Add plot" button asks My Farm to open its new-plot dialog
   const [landPinned, setLandPinned] = useState(false); // true only once the farmer has tapped the exact land on the map (an area choice alone is not a field)
   const [userPicked, setUserPicked] = useState(false); // true once the farmer has chosen a place
   const [terrain, setTerrain] = useState(null); // { elevationM, slopePct } of the confirmed place
@@ -1001,18 +1002,24 @@ export default function App() {
 
           <header className="ctx">
             <div className="ctx-l">
-              <label className="ctx-pill ctx-farm">
-                <Icon name="pin" size={18} />
-                <span className="sr-only">{t.navPlace}</span>
-                <select value={activeId || ""} onChange={(e) => { const f = fields.find((x) => x.id === e.target.value); if (f && f.id !== activeId) openField(f, { tab }); }} aria-label={t.fdSwitch}>
-                  {fields.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                </select>
-              </label>
-              {activeField && (plots.length > 1 || !PLOT_TABS.includes(tab)) && !(tab === "data") && <span className="ctx-sep" aria-hidden="true">›</span>}
-              {activeField && (
-                <PlotBar t={t} plots={plots} activeId={activePlotId} onSelect={selectPlot} whole={!PLOT_TABS.includes(tab)} hidden={tab === "data"} />
+              <div className="ctx-group" role="group" aria-label={t.orbHdrLocation}>
+                <span className="ctx-glabel">{t.orbHdrLocation}</span>
+                <label className="ctx-pill ctx-farm">
+                  <Icon name="pin" size={18} />
+                  <span className="sr-only">{t.navPlace}</span>
+                  <select value={activeId || ""} onChange={(e) => { const f = fields.find((x) => x.id === e.target.value); if (f && f.id !== activeId) openField(f, { tab }); }} aria-label={t.fdSwitch}>
+                    {fields.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                  </select>
+                </label>
+                <button type="button" className="ctx-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
+              </div>
+              {activeField && tab !== "data" && (
+                <div className="ctx-group ctx-plots" role="group" aria-label={t.orbHdrPlot}>
+                  <span className="ctx-glabel">{t.orbHdrPlot}</span>
+                  <PlotBar t={t} plots={plots} activeId={activePlotId} onSelect={selectPlot} whole={!PLOT_TABS.includes(tab)} hidden={false} />
+                  <button type="button" className="ctx-pill add" title={t.orbHdrPlotTip} disabled={plots.length >= 12} onClick={() => { setAddPlotSignal((n) => n + 1); if (tab !== "farms") window.location.hash = "/farms"; }}>＋ {t.orbHdrAddPlot}</button>
+                </div>
               )}
-              <button type="button" className="ctx-pill add" onClick={changeLocation}>＋ {t.fdAdd}</button>
             </div>
             <div className="ctx-r">
               <label className="ctx-pill ctx-lang">
@@ -1234,6 +1241,8 @@ export default function App() {
               onOpen={(f) => openField(f, { tab: "farms" })}
               onAdd={changeLocation}
               onMove={startMove}
+              addPlotSignal={addPlotSignal}
+              onSignalHandled={() => setAddPlotSignal(0)}
               onImport={(list) => setFields((cur) => [...cur, ...list])}
             />
           </div>

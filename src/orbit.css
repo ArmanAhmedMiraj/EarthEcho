@@ -347,3 +347,10 @@ html[data-tab="data"] .page > .viewer:first-child::after { display: none; }
 
 /* picking land: the hint shown after an area is chosen but before the exact land is tapped */
 .land-hint { padding: 10px 14px; border-radius: 14px; border: 1px dashed var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* header: the location controls and the plot controls are two separate groups */
+.ctx-group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: color-mix(in srgb, var(--panel) 60%, transparent); min-width: 0; }
+.ctx-glabel { font-size: 0.78rem; font-weight: 700; color: var(--muted); padding-inline-start: 6px; }
+.ctx-plots { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.ctx-pill.add:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 760px) { .ctx-group { border-radius: 20px; width: 100%; } }

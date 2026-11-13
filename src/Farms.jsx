@@ -29,7 +29,7 @@ function checkFarm(farm, onPart) {
 // a small label that says where a value comes from
 const Chip = ({ kind, children }) => <span className={`fd-chip ${kind}`}>{children}</span>;
 
-export default function Farms({ t, lang, fields, active, system, plotId, onPlot, onUpdate, onRemove, onOpen, onAdd, onMove, onImport }) {
+export default function Farms({ t, lang, fields, active, system, plotId, onPlot, onUpdate, onRemove, onOpen, onAdd, onMove, onImport, addPlotSignal = 0, onSignalHandled }) {
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
   const [note, setNote] = useState("");
   const [section, setSection] = useState("overview");
@@ -112,6 +112,9 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
     setNameDraft(mode === "farm" ? active.name : mode === "plot" ? (plot && plot.name) || plotName : nextPlotName(plots, t));
     setRenaming(mode);
   };
+  useEffect(() => {
+    if (addPlotSignal > 0 && active) { openRename("newplot"); if (onSignalHandled) onSignalHandled(); }
+  }, [addPlotSignal, active]); // eslint-disable-line react-hooks/exhaustive-deps
   const saveName = () => {
     const v = nameDraft.trim();
     if (!v || !active) return;
