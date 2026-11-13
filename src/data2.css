@@ -1,0 +1,78 @@
+/* Data and sources, "From orbit to your field" layout */
+.app .da { display: grid; gap: 16px; }
+.app .da-h { margin: 8px 0 -4px; font-size: 1.25rem; }
+.app .da-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--muted); }
+.app .da-hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(220px, 1fr); gap: 12px; align-items: center; padding: clamp(18px, 3vw, 36px); border-radius: 28px; border: 1px solid var(--border); background: radial-gradient(120% 140% at 80% 40%, color-mix(in srgb, #2f7de0 22%, transparent), transparent 60%), var(--panel); }
+.app .da-hero h3 { margin: 0 0 10px; font-size: clamp(2rem, 4.6vw, 3.6rem); line-height: 1.02; letter-spacing: -0.025em; max-width: 14ch; }
+.app .da-hero-text > p:first-of-type + p, .app .da-hero-text > p:nth-of-type(1) { color: var(--muted); max-width: 52ch; margin: 0 0 16px; }
+.app .da-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.app .da-tiles2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.app .da-tiles div { padding: 10px 14px; border-radius: 16px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg, #000) 40%, transparent); display: grid; gap: 2px; }
+.app .da-tiles span { font-size: 0.78rem; color: var(--muted); }
+.app .da-tiles strong { font-size: 1.25rem; }
+.app .da-orbit svg { width: 100%; height: auto; max-height: 340px; display: block; }
+.app .da-sats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.app .da-sat { border-radius: 22px; border: 1px solid var(--border); border-top: 3px solid var(--c, var(--accent)); background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.app .da-sat.smap { --c: #f6cf6a; } .app .da-sat.gpm { --c: #7fb2ff; } .app .da-sat.modis { --c: #5fcf7c; } .app .da-sat.power { --c: #3ddbc0; }
+.app .da-sat h4 { margin: 0; font-size: 1.15rem; }
+.app .da-sat p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.app .da-sat .da-cover { color: var(--text); font-size: 0.82rem; }
+.app .da-sat .da-reading { color: var(--c); font-weight: 700; }
+.app .da-sat .da-used { margin-top: auto; padding-top: 6px; font-weight: 700; font-size: 0.82rem; color: var(--accent); }
+.app .da-sat .da-used a { color: var(--accent); }
+.app .da-learn { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr); gap: 16px; align-items: start; }
+.app .da-card { border-radius: 24px; border: 1px solid var(--border); background: var(--panel); padding: 22px; min-width: 0; }
+.app .da-card h3 { margin: 0 0 14px; font-size: 1.25rem; }
+.app .da-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.app .da-three > div { padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--c) 16%, var(--panel)); }
+.app .da-three .good { --c: #3ddbc0; } .app .da-three .miss { --c: #e0707a; } .app .da-three .gnd { --c: #9aa4b5; }
+.app .da-three h4 { margin: 0 0 6px; font-size: 0.95rem; }
+.app .da-three ul { margin: 0; padding-inline-start: 18px; font-size: 0.85rem; display: grid; gap: 4px; }
+.app .da-rule { margin: 14px 0; padding: 8px 12px; border-inline-start: 3px solid var(--accent); font-weight: 600; }
+.app .da-sub { margin: 4px 0 10px; }
+.app .da-scale { display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+.app .da-scale figure { margin: 0; display: grid; justify-items: center; gap: 6px; font-size: 0.78rem; text-align: center; }
+.app .da-scale i { display: block; border: 2px solid; background: color-mix(in srgb, var(--muted) 14%, transparent); }
+.app .da-scale .s1 { width: 100px; height: 100px; border-color: #f6cf6a; }
+.app .da-scale .s2 { width: 42px; height: 42px; border-color: #5fcf7c; }
+.app .da-scale .s3 { width: 8px; height: 8px; border-color: #3ddbc0; background: #3ddbc0; }
+.app .da-scale p { flex: 1 1 200px; margin: 0; font-size: 0.82rem; color: var(--muted); }
+.app .da-words input { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 14px; margin-bottom: 8px; }
+.app .da-words dl { margin: 0; max-height: 360px; overflow-y: auto; }
+.app .da-words dl div { padding: 10px 0; border-top: 1px solid var(--border); }
+.app .da-words dt { font-weight: 800; font-size: 0.92rem; }
+.app .da-words dd { margin: 2px 0 0; font-size: 0.85rem; color: var(--muted); }
+.app .da-table-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.app .da-table-head h3 { margin: 0; }
+.app .da-tabs, .app .da-filter > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.app .da-tabs button, .app .da-filter button { padding: 7px 16px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 0.85rem; cursor: pointer; }
+.app .da-tabs button[aria-selected="true"], .app .da-filter button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); font-weight: 700; }
+.app .da-filter { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.82rem; color: var(--muted); }
+.app .da-filter button { padding: 4px 12px; font-size: 0.8rem; }
+.app .da-tr { display: grid; grid-template-columns: 1.1fr 2.6fr 0.9fr 1fr; gap: 14px; align-items: start; padding: 12px 6px; text-align: start; width: 100%; background: none; border: 0; border-top: 1px solid var(--border); color: var(--text); font: inherit; }
+.app .da-th { font-size: 0.8rem; color: var(--muted); border-top: 0; padding-block: 6px; }
+.app button.da-tr { cursor: pointer; font-size: 0.9rem; }
+.app button.da-tr:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.app .da-use { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.app .da-tr .ok { color: var(--accent); } .app .da-tr .gold { color: var(--gold, #d9a441); }
+.app .da-detail { padding: 6px 12px 16px; background: color-mix(in srgb, var(--muted) 7%, transparent); border-radius: 0 0 14px 14px; }
+.app .da-detail dl { display: grid; grid-template-columns: 130px 1fr; gap: 4px 14px; margin: 8px 0; font-size: 0.88rem; }
+.app .da-detail dt { color: var(--muted); } .app .da-detail dd { margin: 0; }
+.app .da-pub { margin: 8px 0 0; font-size: 0.85rem; color: var(--muted); }
+.app .da-badge { padding: 1px 10px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.75rem; }
+.app .da-badge.live { color: var(--accent); border-color: var(--accent); }
+@media (max-width: 1000px) {
+  .app .da-sats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app .da-learn { grid-template-columns: minmax(0, 1fr); }
+  .app .da-hero { grid-template-columns: minmax(0, 1fr); }
+  .app .da-orbit { order: -1; max-width: 300px; margin: 0 auto; }
+}
+@media (max-width: 700px) {
+  .app .da-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app .da-three { grid-template-columns: minmax(0, 1fr); }
+  .app .da-sats { grid-template-columns: minmax(0, 1fr); }
+  .app .da-th { display: none; }
+  .app .da-tr { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .app .da-card { padding: 16px; }
+  .app .da-detail dl { grid-template-columns: minmax(0, 1fr); }
+}

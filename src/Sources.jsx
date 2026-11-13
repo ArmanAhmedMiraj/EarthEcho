@@ -1,28 +1,24 @@
-import { useEffect, useState } from "react";
-import Learn from "./Learn.jsx";
-import "./trust.css";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { GROUPS, SOURCES } from "./dataCatalogue.js";
+import "./data2.css";
 
-// The Data page: one live NASA reading for the chosen field, then the catalogue of every source.
+// The Data page: where every number comes from. Live NASA readings, the satellites, how to read them, then every source.
 export default function Sources({ t, lang, lat, lon }) {
   const [live, setLive] = useState({ state: "loading", data: null });
-  const [filter, setFilter] = useState("all");
   const [sat, setSat] = useState({ state: "loading", data: null });
+  const [group, setGroup] = useState("nasa");
+  const [status, setStatus] = useState("all");
+  const [open, setOpen] = useState(null);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     setLive({ state: "loading", data: null });
     fetch(`/api/power-daily?lat=${lat}&lon=${lon}&days=14`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((data) => {
-        if (!cancelled) setLive({ state: data.ok ? "ok" : "error", data });
-      })
-      .catch(() => {
-        if (!cancelled) setLive({ state: "error", data: null });
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((data) => { if (!cancelled) setLive({ state: data.ok ? "ok" : "error", data }); })
+      .catch(() => { if (!cancelled) setLive({ state: "error", data: null }); });
+    return () => { cancelled = true; };
   }, [lat, lon]);
 
   useEffect(() => {
@@ -30,176 +26,198 @@ export default function Sources({ t, lang, lat, lon }) {
     setSat({ state: "loading", data: null });
     fetch(`/api/satellite?lat=${lat}&lon=${lon}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((data) => {
-        if (!cancelled) setSat({ state: data.ok ? "ok" : "error", data });
-      })
-      .catch(() => {
-        if (!cancelled) setSat({ state: "error", data: null });
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((data) => { if (!cancelled) setSat({ state: data.ok ? "ok" : "error", data }); })
+      .catch(() => { if (!cancelled) setSat({ state: "error", data: null }); });
+    return () => { cancelled = true; };
   }, [lat, lon]);
 
   const locale = lang === "bn" ? "bn-BD" : "en-GB";
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+  const one = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   const day = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" });
   const clock = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const pct = (v) => (v == null ? t.liveNoData : `${whole.format(v)}%`);
-
-  const liveCount = SOURCES.filter((s) => s.status === "live").length;
-  const shown = SOURCES.filter((s) => filter === "all" || s.status === filter);
-  const data = live.data;
-  const satData = sat.data;
   const daysOld = (iso) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86400000));
   const waterPct = (v) => whole.format(v * 100);
 
+  const data = live.data;
+  const satData = sat.data;
+  const latest = useMemo(() => {
+    const rows = (data && data.days) || [];
+    for (let i = rows.length - 1; i >= 0; i -= 1) if (rows[i].tmax != null) return rows[i];
+    return null;
+  }, [data]);
+
+  const words = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return t.glossary.filter((g) => !needle || g.term.toLowerCase().includes(needle) || g.def.toLowerCase().includes(needle));
+  }, [q, t.glossary]);
+
+  const liveCount = SOURCES.filter((s) => s.status === "live").length;
+  const rows = SOURCES.filter((s) => s.group === group && (status === "all" || s.status === status));
+  const list = (items) => <ul>{items.map((x) => <li key={x}>{x}</li>)}</ul>;
+  const go = (tab) => { window.location.hash = `/${tab}`; };
+
+  const readings = {
+    smap: satData && satData.soilSurface
+      ? `${t.orbDaSmapNow(waterPct(satData.soilSurface.volumetric))} · ${day.format(new Date(satData.soilSurface.date))} (${t.satDaysOld(daysOld(satData.soilSurface.date))})`
+      : sat.state === "ok" ? t.satNoSoil : null,
+    gpm: satData && satData.rainNow
+      ? `${t.satRain}: ${satData.rainNow.rateMmHr === 0 ? t.satRainNone : `${satData.rainNow.rateMmHr} mm/hr`}`
+      : null,
+    power: data && data.summary && data.summary.latestSoilDate
+      ? `${t.liveAsOf}: ${day.format(new Date(data.summary.latestSoilDate))}`
+      : null,
+  };
+
   return (
-    <div className="viewer">
-      <h2>{t.dataTitle}</h2>
-      <div className="dt-orbit" aria-hidden="true">
-        <svg viewBox="0 0 420 200">
-          <circle cx="210" cy="100" r="34" fill="#2f7de0" /><circle cx="198" cy="92" r="9" fill="#5fcf7c" opacity="0.9" /><circle cx="222" cy="112" r="7" fill="#5fcf7c" opacity="0.9" />
-          <ellipse cx="210" cy="100" rx="96" ry="34" fill="none" stroke="#f6cf6a" strokeWidth="1.4" strokeDasharray="3 6" />
-          <ellipse cx="210" cy="100" rx="150" ry="58" fill="none" stroke="#7fb2ff" strokeWidth="1.4" strokeDasharray="3 6" />
-          <ellipse cx="210" cy="100" rx="196" ry="82" fill="none" stroke="#3ddbc0" strokeWidth="1.4" strokeDasharray="3 6" />
-          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#f6cf6a"><animateMotion dur="14s" repeatCount="indefinite" path="M 306 100 A 96 34 0 1 1 114 100 A 96 34 0 1 1 306 100" /></rect>
-          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#7fb2ff"><animateMotion dur="22s" repeatCount="indefinite" path="M 360 100 A 150 58 0 1 0 60 100 A 150 58 0 1 0 360 100" /></rect>
-          <rect x="-8" y="-4" width="16" height="8" rx="2" fill="#3ddbc0"><animateMotion dur="30s" repeatCount="indefinite" path="M 406 100 A 196 82 0 1 1 14 100 A 196 82 0 1 1 406 100" /></rect>
-        </svg>
-        <p className="small muted">SMAP · IMERG · MODIS</p>
-      </div>
-      <p className="muted">{t.dataIntro}</p>
+    <div className="viewer da">
+      <h2 className="sr-only">{t.dataTitle}</h2>
 
-      <Learn t={t} />
-
-      <section className="live-card">
-        <h3>{t.liveTitle}</h3>
-        {live.state === "loading" && <p className="muted">{t.liveLoading}</p>}
-        {live.state === "error" && <p className="warn">{t.liveError}</p>}
-        {live.state === "ok" && data && (
-          <>
-            <div className="stats">
-              <div className="stat">
-                <strong>{pct(data.summary.soilTopPct)}</strong>
-                <span>{t.liveSurface}</span>
+      <section className="da-hero">
+        <div className="da-hero-text">
+          <h3>{t.orbDaTitle}</h3>
+          <p>{t.orbDaIntro}</p>
+          {live.state === "loading" && <p className="da-note">{t.liveLoading}</p>}
+          {live.state === "error" && <p className="da-note warn">{t.liveError}</p>}
+          {live.state === "ok" && data && (
+            <>
+              <div className="da-tiles">
+                <div><span>{t.orbDaHot}</span><strong>{latest ? `${whole.format(latest.tmax)}°` : "–"}</strong></div>
+                <div><span>{t.orbDaCold}</span><strong>{latest ? `${whole.format(latest.tmin)}°` : "–"}</strong></div>
+                <div><span>{t.orbDaRain}</span><strong>{latest && latest.rainMm != null ? `${one.format(latest.rainMm)} mm` : "–"}</strong></div>
+                <div><span>{t.orbDaSun}</span><strong>{latest && latest.solarKwhM2 != null ? `${one.format(latest.solarKwhM2)} kWh/m²` : "–"}</strong></div>
               </div>
-              <div className="stat">
-                <strong>{pct(data.summary.soilRootPct)}</strong>
-                <span>{t.liveRoot}</span>
+              <div className="da-tiles da-tiles2">
+                <div><span>{t.liveSurface}</span><strong>{pct(data.summary.soilTopPct)}</strong></div>
+                <div><span>{t.liveRoot}</span><strong>{pct(data.summary.soilRootPct)}</strong></div>
+                <div><span>{t.liveRain7}</span><strong>{whole.format(data.summary.rain7Mm)} mm</strong></div>
               </div>
-              <div className="stat">
-                <strong>{whole.format(data.summary.rain7Mm)} mm</strong>
-                <span>{t.liveRain7}</span>
-              </div>
-            </div>
-            <p className="small muted">
-              {data.summary.latestSoilDate && (
-                <>
-                  {t.liveAsOf}: {day.format(new Date(data.summary.latestSoilDate))} ·{" "}
-                </>
-              )}
-              {t.liveSource}:{" "}
-              <a href={data.provenance.url} target="_blank" rel="noreferrer">{data.provenance.name}</a> ·{" "}
-              {t.liveResolution}: {data.provenance.resolution} · {t.liveFetched}:{" "}
-              {clock.format(new Date(data.provenance.fetchedAt))}
-            </p>
-            <p className="small warn-soft">{t.liveCaution}</p>
-          </>
-        )}
+              <p className="da-note">
+                {t.orbDaLive(latest ? day.format(new Date(latest.date)) : "–")} ·{" "}
+                {t.liveSource}: <a href={data.provenance.url} target="_blank" rel="noreferrer">{data.provenance.name}</a> ·{" "}
+                {t.liveResolution}: {data.provenance.resolution} · {t.liveFetched}: {clock.format(new Date(data.provenance.fetchedAt))}
+              </p>
+              <p className="da-note">{t.liveCaution}</p>
+            </>
+          )}
+        </div>
+        <div className="da-orbit" aria-hidden="true">
+          <svg viewBox="0 0 420 300">
+            <ellipse cx="210" cy="150" rx="96" ry="96" fill="none" stroke="#f6cf6a" strokeWidth="1.2" strokeDasharray="2 6" />
+            <ellipse cx="210" cy="150" rx="132" ry="132" fill="none" stroke="#7fb2ff" strokeWidth="1.2" strokeDasharray="2 6" />
+            <ellipse cx="210" cy="150" rx="168" ry="168" fill="none" stroke="#3ddbc0" strokeWidth="1.2" strokeDasharray="2 6" />
+            <circle cx="210" cy="150" r="58" fill="#2f7de0" />
+            <path d="M192 130c14-12 40-10 48 6-16 8-34 12-48-6z" fill="#5fcf7c" />
+            <path d="M200 176c10-6 24-4 28 6-10 6-22 6-28-6z" fill="#5fcf7c" />
+            <rect x="-9" y="-5" width="18" height="10" rx="2" fill="#f6cf6a"><animateMotion dur="20s" repeatCount="indefinite" path="M 306 150 A 96 96 0 1 1 114 150 A 96 96 0 1 1 306 150" /></rect>
+            <rect x="-9" y="-5" width="18" height="10" rx="2" fill="#7fb2ff"><animateMotion dur="30s" repeatCount="indefinite" path="M 342 150 A 132 132 0 1 0 78 150 A 132 132 0 1 0 342 150" /></rect>
+            <rect x="-9" y="-5" width="18" height="10" rx="2" fill="#3ddbc0"><animateMotion dur="40s" repeatCount="indefinite" path="M 378 150 A 168 168 0 1 1 42 150 A 168 168 0 1 1 378 150" /></rect>
+          </svg>
+        </div>
       </section>
 
-      <section className="live-card">
-        <h3>{t.satTitle}</h3>
-        {sat.state === "loading" && <p className="muted">{t.satLoading}</p>}
-        {sat.state === "error" && <p className="warn">{t.satError}</p>}
-        {sat.state === "ok" && satData && (
-          <>
-            <div className="stats">
-              <div className="stat">
-                <strong>{satData.soilSurface ? `${waterPct(satData.soilSurface.volumetric)}%` : t.liveNoData}</strong>
-                <span>{t.satSurface}</span>
-              </div>
-              <div className="stat">
-                <strong>{satData.soilRoot ? `${waterPct(satData.soilRoot.volumetric)}%` : t.liveNoData}</strong>
-                <span>{t.satRoot}</span>
-              </div>
-              <div className="stat">
-                <strong>
-                  {!satData.rainNow
-                    ? t.liveNoData
-                    : satData.rainNow.rateMmHr === 0
-                      ? t.satRainNone
-                      : `${satData.rainNow.rateMmHr} mm/hr`}
-                </strong>
-                <span>{t.satRain}</span>
-              </div>
-            </div>
-            <p className="small muted">
-              {satData.soilSurface ? (
-                <>
-                  {t.satReading}: {day.format(new Date(satData.soilSurface.date))} ({t.satDaysOld(daysOld(satData.soilSurface.date))}) ·{" "}
-                  {t.satWater(waterPct(satData.soilSurface.volumetric))} ·{" "}
-                </>
-              ) : (
-                <>{t.satNoSoil} · </>
-              )}
-              {satData.provenance.soil.name}, {satData.provenance.soil.resolution} · {t.satRead} ·{" "}
-              {t.satRounded}
+      <h3 className="da-h">{t.satTitle}</h3>
+      {sat.state === "error" && <p className="da-note warn">{t.satError}</p>}
+      <div className="da-sats">
+        {t.orbDaSats.map((s) => (
+          <article key={s.id} className={`da-sat ${s.id}`}>
+            <h4>{s.name}</h4>
+            <p>{s.what}</p>
+            <p className="da-cover">{t.orbDaCovers} <b>{s.size}</b> · {t.orbDaNew} <b>{s.every}</b></p>
+            {readings[s.id] && <p className="da-reading">{readings[s.id]}</p>}
+            <p className="da-used">
+              {t.orbDaUsedOn}{" "}
+              {s.used.map(([label, tab], i) => (
+                <Fragment key={tab}>{i > 0 && ", "}<a href={`#/${tab}`} onClick={(e) => { e.preventDefault(); go(tab); }}>{label}</a></Fragment>
+              ))}
             </p>
-            <p className="small muted">{t.satRainNote}</p>
-          </>
-        )}
-      </section>
-
-      <h3>{t.catalogueTitle}</h3>
-      <p className="small muted">{t.countLine(SOURCES.length, liveCount)}</p>
-      <div className="filters" role="group">
-        {[["all", t.filterAll], ["live", t.filterLive], ["planned", t.filterPlanned]].map(([id, label]) => (
-          <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>
-            {label}
-          </button>
+          </article>
         ))}
       </div>
+      {sat.state === "ok" && satData && satData.soilSurface && (
+        <p className="da-note">{satData.provenance.soil.name}, {satData.provenance.soil.resolution} · {t.satRead} · {t.satRounded}. {t.satRainNote}</p>
+      )}
 
-      {GROUPS.map((g) => {
-        const items = shown.filter((s) => s.group === g.id);
-        if (items.length === 0) return null;
-        return (
-          <section key={g.id}>
-            <h3 className="group-title">{g[lang] || g.en}</h3>
-            <div className="src-grid">
-              {items.map((raw) => {
-                const s = { ...raw, ...(raw[lang] || raw.en) };
-                return (
-                <article key={s.id} className="src">
-                  <header>
-                    <strong>{s.name}</strong>
-                    <span className={`badge ${s.status}`}>
-                      {s.status === "live" ? t.statusLive : t.statusPlanned}
-                    </span>
-                  </header>
-                  <p className="small muted">{s.publisher}</p>
-                  <dl>
-                    <dt>{t.provides}</dt><dd>{s.provides}</dd>
-                    <dt>{t.resolution}</dt><dd>{s.resolution}</dd>
-                    <dt>{t.updates}</dt><dd>{s.update}</dd>
-                    <dt>{t.licence}</dt>
-                    <dd>
-                      {s.licence}
-                      {!s.licenceChecked && <em className="unchecked"> · {t.licenceUnchecked}</em>}
-                    </dd>
-                    <dt>{t.access}</dt><dd>{s.access}</dd>
-                    <dt>{t.limits}</dt><dd>{s.limit}</dd>
-                  </dl>
-                  <a className="small" href={s.url} target="_blank" rel="noreferrer">{t.open} ↗</a>
-                </article>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+      <div className="da-learn">
+        <section className="da-card">
+          <h3>{t.lnSatTitle}</h3>
+          <div className="da-three">
+            <div className="good"><h4>{t.lnSatSee}</h4>{list(t.lnSatSeeList)}</div>
+            <div className="miss"><h4>{t.lnSatMiss}</h4>{list(t.lnSatMissList)}</div>
+            <div className="gnd"><h4>{t.lnSatGround}</h4>{list(t.lnSatGroundList)}</div>
+          </div>
+          <p className="da-rule">{t.lnSatRule}</p>
+          <h4 className="da-sub">{t.lnScaleTitle}</h4>
+          <div className="da-scale" role="img" aria-label={t.lnScaleAria}>
+            <figure><i className="s1" /><figcaption>{t.orbDaScale[0]}</figcaption></figure>
+            <figure><i className="s2" /><figcaption>{t.orbDaScale[1]}</figcaption></figure>
+            <figure><i className="s3" /><figcaption>{t.orbDaScale[2]}</figcaption></figure>
+            <p>{t.orbDaScaleNote}</p>
+          </div>
+        </section>
+        <section className="da-card da-words">
+          <h3>{t.orbDaWords(words.length)}</h3>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.lnSearch} aria-label={t.lnSearch} />
+          {words.length === 0 && <p className="da-note">{t.lnNone}</p>}
+          <dl>
+            {words.map((g) => (<div key={g.term}><dt>{g.term}</dt><dd>{g.def}</dd></div>))}
+          </dl>
+        </section>
+      </div>
+
+      <section className="da-card da-table-card">
+        <div className="da-table-head">
+          <h3>{t.catalogueTitle}</h3>
+          <div className="da-tabs" role="tablist">
+            {GROUPS.map((g) => (
+              <button key={g.id} role="tab" aria-selected={group === g.id} onClick={() => { setGroup(g.id); setOpen(null); }}>{g[lang] || g.en}</button>
+            ))}
+          </div>
+        </div>
+        <div className="da-filter">
+          <span>{t.countLine(SOURCES.length, liveCount)}</span>
+          <div role="group">
+            {[["all", t.filterAll], ["live", t.filterLive], ["planned", t.filterPlanned]].map(([id, label]) => (
+              <button key={id} aria-pressed={status === id} onClick={() => { setStatus(id); setOpen(null); }}>{label}</button>
+            ))}
+          </div>
+        </div>
+        <div className="da-table" role="table">
+          <div className="da-tr da-th" role="row">
+            <span>{t.orbDaColSource}</span><span>{t.orbDaColUse}</span><span>{t.resolution}</span><span>{t.licence}</span>
+          </div>
+          {rows.length === 0 && <p className="da-note">{t.lnNone}</p>}
+          {rows.map((raw) => {
+            const s = { ...raw, ...(raw[lang] || raw.en) };
+            const isOpen = open === s.id;
+            return (
+              <div key={s.id} className={`da-row${isOpen ? " open" : ""}`}>
+                <button className="da-tr" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : s.id)}>
+                  <b>{s.name}</b>
+                  <span className="da-use">{s.provides}</span>
+                  <span>{s.resolution}</span>
+                  <span className={s.licenceChecked ? "ok" : "gold"}>{s.licenceChecked ? t.orbDaOpenFree : t.orbDaNotChecked}</span>
+                </button>
+                {isOpen && (
+                  <div className="da-detail">
+                    <p className="da-pub">{s.publisher} · <span className={`da-badge ${s.status}`}>{s.status === "live" ? t.statusLive : t.statusPlanned}</span></p>
+                    <dl>
+                      <dt>{t.provides}</dt><dd>{s.provides}</dd>
+                      <dt>{t.updates}</dt><dd>{s.update}</dd>
+                      <dt>{t.licence}</dt><dd>{s.licence}{!s.licenceChecked && <em> · {t.licenceUnchecked}</em>}</dd>
+                      <dt>{t.access}</dt><dd>{s.access}</dd>
+                      <dt>{t.limits}</dt><dd>{s.limit}</dd>
+                    </dl>
+                    <a href={s.url} target="_blank" rel="noreferrer">{t.open} ↗</a>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <p className="da-note">{t.orbDaFoot}</p>
+      </section>
     </div>
   );
 }
