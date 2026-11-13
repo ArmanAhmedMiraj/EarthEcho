@@ -1193,7 +1193,7 @@ export default function App() {
       {stage === "app" && tab === "market" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.mkTitle}</h2>
+            <h2 className="sr-only">{t.mkTitle}</h2>
             <Market key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} />
           </div>
         </main>

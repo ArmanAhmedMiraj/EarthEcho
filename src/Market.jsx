@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./market.css";
-import Info from "./Info.jsx";
+import "./market2.css";
 import { loadCropTable, cycleMonths } from "./suitability.js";
 import { ANNUAL } from "./rotation.js";
 import { FARM_SHARE, estimateUsdPrice } from "./econ.js";
@@ -66,12 +66,17 @@ export default function Market({ t, lang, lat, lon, country }) {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [others, setOthers] = useState(false);
+  const [openGroups, setOpenGroups] = useState({});
   const locale = lang === "bn" ? "bn-BD" : "en-GB";
   const num = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
   const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const pct = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const monthFmt = new Intl.DateTimeFormat(locale, { month: "short", year: "numeric" });
-  const share = (() => { const v = readStore(`ef-rotation-${country}`).__share; return v != null && Number(v) > 0 ? Number(v) : FARM_SHARE; })();
+  const [share, setShare] = useState(() => { const v = readStore(`ef-rotation-${country}`).__share; return v != null && Number(v) > 0 ? Number(v) : FARM_SHARE; });
+  const pickShare = (v) => {
+    setShare(v);
+    try { localStorage.setItem(`ef-rotation-${country}`, JSON.stringify({ ...readStore(`ef-rotation-${country}`), __share: v })); } catch { /* storage blocked */ }
+  };
 
   useEffect(() => { loadCropTable().then(setTable); }, []);
   const load = useCallback(() => {
@@ -118,35 +123,35 @@ export default function Market({ t, lang, lat, lon, country }) {
   const visible = rows.filter((r) => (filter === "all" || (filter === "market" ? r.market : !r.market)) && (!q || r.crop.en.toLowerCase().includes(q) || r.crop.bn.includes(query.trim())));
   const otherItems = data.items.filter((i) => !i.crop);
 
-  return (
-    <div className="mk2">
-      <p className="muted">{t.mk2Intro} <Info t={t} source="WFP · UN OCHA">
-        <p>{t.mk2InfoWfp}</p>
-        <p>{t.mk2InfoEst}</p>
-        <p>{t.mk2InfoPlanner}</p>
-        <p>{t.mk2InfoWarn}</p>
-        <p><a href={data.provenance.url} target="_blank" rel="noopener noreferrer">{t.mk2InfoLink}</a></p>
-      </Info></p>
-      {withMarket > 0 && (
-        <div className="mk-ticker" role="group" aria-label={t.tabMarket}>
-          <div className="mk-track">
-            {[0, 1].map((k) => (
-              <ul key={k} aria-hidden={k === 1 ? "true" : undefined}>
-                {rows.filter((r) => r.market).map(({ crop, market: mk }) => (
-                  <li key={crop.id}><b>{name(crop)}</b> {num.format(mk.perKg)} <small>{currency ? `${currency} / kg` : "/ kg"}</small></li>
-                ))}
-              </ul>
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="mk2-meta">
-        <span className="mk2-pill"><b>{t.mkLatest.split(":")[0]}:</b> {month(data.latest.slice(0, 7))}</span>
-        {data.nearest.length > 0 && <span className="mk2-pill"><b>{t.mkNearest}:</b> {data.nearest.map((n) => `${n.name} (${num.format(n.km)} km)`).join(", ")}</span>}
-        <span className="mk2-pill">{fill(t.mk2Count, { a: whole.format(withMarket), b: whole.format(rows.length) })}</span>
-      </div>
+  const shareOpts = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8];
+  if (!shareOpts.some((v) => Math.abs(v - share) < 0.001)) shareOpts.push(share);
+  shareOpts.sort((a, b) => a - b);
 
-      {withMarket < rows.length && <p className="small muted">{t.mk2EstNote}</p>}
+  return (
+    <div className="mk2 mk2-new">
+      <section className="mk2-hero">
+        <h3>{t.mkTitle}</h3>
+        <p>{t.mk2Intro}</p>
+        <div className="mk2-meta">
+          <span className="mk2-pill"><b>{t.mkLatest.split(":")[0]}:</b> {month(data.latest.slice(0, 7))}</span>
+          {data.nearest.length > 0 && <span className="mk2-pill"><b>{t.mkNearest}:</b> {data.nearest.map((n) => `${n.name} ${num.format(n.km)} km`).join(" · ")}</span>}
+          <span className="mk2-pill">{fill(t.mk2Count, { a: whole.format(withMarket), b: whole.format(rows.length) })}</span>
+        </div>
+        {withMarket > 0 && (
+          <div className="mk-ticker" role="group" aria-label={t.tabMarket}>
+            <div className="mk-track">
+              {[0, 1].map((k) => (
+                <ul key={k} aria-hidden={k === 1 ? "true" : undefined}>
+                  {rows.filter((r) => r.market).map(({ crop, market: mk }) => (
+                    <li key={crop.id}><b>{name(crop)}</b> {num.format(mk.perKg)} <small>{currency ? `${currency} / kg` : "/ kg"}</small></li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
       <div className="mk2-bar">
         <input className="mk2-search" type="search" value={query} placeholder={t.mk2Search} aria-label={t.mk2Search} onChange={(e) => setQuery(e.target.value)} />
         <div className="mk2-seg" role="group">
@@ -154,17 +159,26 @@ export default function Market({ t, lang, lat, lon, country }) {
             <button key={k} type="button" className={filter === k ? "on" : ""} aria-pressed={filter === k} onClick={() => setFilter(k)}>{label}</button>
           ))}
         </div>
+        <label className="mk2-share">
+          <span>{t.orbMkShare}</span>
+          <select value={share} onChange={(e) => pickShare(Number(e.target.value))}>
+            {shareOpts.map((v) => <option key={v} value={v}>{fill(t.orbMkShareOpt, { p: whole.format(Math.round(v * 100)) })}</option>)}
+          </select>
+        </label>
       </div>
+      {withMarket < rows.length && <p className="small muted mk2-estnote">{t.mk2EstNote}</p>}
 
       {visible.length === 0 && <p className="muted">{t.mk2None}</p>}
       {GROUPS.map((g) => {
         const list = visible.filter((r) => r.crop.group === g).sort((a, b) => Number(!!b.market) - Number(!!a.market) || name(a.crop).localeCompare(name(b.crop), locale));
         if (!list.length) return null;
+        const full = openGroups[g] || q || filter !== "all";
+        const shown = full ? list : list.slice(0, 4);
         return (
           <section key={g} className="mk2-group">
             <h3>{t[`mk2Group_${g}`]} <span className="mk2-n">{whole.format(list.length)}</span></h3>
             <div className="mk2-grid">
-              {list.map(({ crop, market: m, est }) => (
+              {shown.map(({ crop, market: m, est }) => (
                 <article className={`mk2-card ${m ? "real" : "est"}`} key={crop.id}>
                   <header>
                     <h4>{name(crop)}</h4>
@@ -173,44 +187,60 @@ export default function Market({ t, lang, lat, lon, country }) {
                   {m ? (
                     <>
                       <p className="mk2-price"><b>{num.format(m.perKg)}</b> <span>{m.currency} / kg</span></p>
-                      <p className="mk2-sub">{t.mk2Shop}</p>
                       <p className="mk2-farm">{fill(t.mk2Farm, { v: `${num.format(m.perKg * share)} ${m.currency}`, p: whole.format(Math.round(share * 100)) })}</p>
-                      <div className="mk2-chg"><Change t={t} label={t.mk2Months3} v={m.change3} pct={pct} /><Change t={t} label={t.mk2Months12} v={m.change12} pct={pct} /></div>
                       {m.series && m.series.length >= 3 ? <Spark series={m.series} label={`${name(crop)}: ${m.series[0].m} – ${m.series[m.series.length - 1].m}`} /> : <p className="mk2-sub">{t.mk2NoChart}</p>}
+                      <div className="mk2-chg"><Change t={t} label={t.mk2Months3} v={m.change3} pct={pct} /><Change t={t} label={t.mk2Months12} v={m.change12} pct={pct} /></div>
                       <p className="mk2-src">{fill(t.mk2From, { market: m.market, km: whole.format(m.km), month: month(m.lastMonth) })}</p>
-                      <p className="mk2-src">{lang === "bn" && COMMODITY_BN[m.commodity] ? COMMODITY_BN[m.commodity] : m.commodity} · {m.type}</p>
+                      <p className="mk2-src">{t.mk2Shop} · {lang === "bn" && COMMODITY_BN[m.commodity] ? COMMODITY_BN[m.commodity] : m.commodity} · {m.type}</p>
                     </>
                   ) : (
                     <>
                       <p className="mk2-price"><b>{num.format(est)}</b> <span>{currency || ""} / kg</span></p>
                       <p className="mk2-sub">{t.mk2EstLine}</p>
+                      <div className="mk2-tags">
+                        <span>{t.orbMkNoMarket}</span>
+                        <a href="#/rotation">{t.orbMkOwn}</a>
+                      </div>
+                      <p className="mk2-src">{t.orbMkNotMeasured}</p>
                     </>
                   )}
                 </article>
               ))}
             </div>
+            {!full && list.length > 4 && <button type="button" className="btn mk2-more" onClick={() => setOpenGroups((o) => ({ ...o, [g]: true }))}>{fill(t.orbMkMore, { n: whole.format(list.length - 4) })}</button>}
           </section>
         );
       })}
 
-      {otherItems.length > 0 && (
-        <section className="mk2-group">
-          <h3>
-            <button type="button" className="mk2-toggle" aria-expanded={others} onClick={() => setOthers((v) => !v)}>{others ? "▾" : "▸"} {t.mk2Others} <span className="mk2-n">{whole.format(otherItems.length)}</span></button>
-          </h3>
-          {others && (
-            <div className="mk2-grid slim">
-              {otherItems.map((i) => (
-                <article className="mk2-card real slim" key={`${i.commodity}|${i.unit}|${i.type}`}>
-                  <header><h4>{lang === "bn" && COMMODITY_BN[i.commodity] ? COMMODITY_BN[i.commodity] : i.commodity}</h4></header>
-                  <p className="mk2-price"><b>{num.format(i.last)}</b> <span>{i.currency} {fill(t.mkPer, { unit: i.unit })}</span></p>
-                  <p className="mk2-src">{fill(t.mk2From, { market: i.market, km: whole.format(i.km), month: month(i.lastMonth) })}</p>
-                </article>
-              ))}
-            </div>
-          )}
+      <div className="mk2-two">
+        <section className="mk2-box">
+          {otherItems.length > 0 ? (
+            <>
+              <button type="button" className="mk2-toggle" aria-expanded={others} onClick={() => setOthers((v) => !v)}>{others ? "▾" : "▸"} {t.mk2Others} <span className="mk2-n">{whole.format(otherItems.length)}</span></button>
+              {!others && <p className="small muted">{otherItems.slice(0, 5).map((i) => (lang === "bn" && COMMODITY_BN[i.commodity] ? COMMODITY_BN[i.commodity] : i.commodity)).join(", ")}</p>}
+              {others && (
+                <div className="mk2-grid slim">
+                  {otherItems.map((i) => (
+                    <article className="mk2-card real slim" key={`${i.commodity}|${i.unit}|${i.type}`}>
+                      <header><h4>{lang === "bn" && COMMODITY_BN[i.commodity] ? COMMODITY_BN[i.commodity] : i.commodity}</h4></header>
+                      <p className="mk2-price"><b>{num.format(i.last)}</b> <span>{i.currency} {fill(t.mkPer, { unit: i.unit })}</span></p>
+                      <p className="mk2-src">{fill(t.mk2From, { market: i.market, km: whole.format(i.km), month: month(i.lastMonth) })}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : <p className="muted">{t.mk2Others}</p>}
         </section>
-      )}
+        <section className="mk2-box mk2-where">
+          <h3>{t.mk2InfoH}</h3>
+          <p className="small muted">{t.mk2InfoWfp}</p>
+          <p className="small muted">{t.mk2InfoEst}</p>
+          <p className="small muted">{t.mk2InfoPlanner}</p>
+          <p className="small muted">{t.mk2InfoWarn}</p>
+          <p className="small"><a href={data.provenance.url} target="_blank" rel="noopener noreferrer">{t.mk2InfoLink}</a></p>
+        </section>
+      </div>
     </div>
   );
 }

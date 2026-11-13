@@ -1,0 +1,42 @@
+/* Market prices, "From orbit to your field" layout */
+.app .mk2-new { display: grid; gap: 14px; }
+.app .mk2-new > * { min-width: 0; margin: 0; }
+.app .mk2-hero { border-radius: 26px; padding: 26px; background: linear-gradient(135deg, #0e2a4e, #12315f 60%, #0c2349); border: 1px solid rgba(120, 160, 255, 0.28); color: #eaf2ff; overflow: hidden; }
+:root:not([data-theme="dark"]) .app .mk2-hero { background: linear-gradient(135deg, #e6f0ff, #d3e4ff); color: #0b1235; }
+.app .mk2-hero h3 { margin: 0 0 8px; font-size: clamp(1.9rem, 4vw, 3.2rem); line-height: 1.05; letter-spacing: -0.02em; display: block; }
+.app .mk2-hero > p { margin: 0; max-width: 62ch; opacity: 0.9; }
+.app .mk2-hero .mk2-meta { margin: 14px 0; }
+.app .mk2-hero .mk2-pill { background: rgba(0, 0, 0, 0.25); border-color: rgba(255, 255, 255, 0.18); color: inherit; padding: 5px 12px; }
+:root:not([data-theme="dark"]) .app .mk2-hero .mk2-pill { background: rgba(255, 255, 255, 0.6); border-color: var(--border); }
+.app .mk2-hero .mk-ticker { margin: 6px -26px -26px; border-radius: 0; border-inline: 0; border-bottom: 0; }
+.app .mk2-bar { margin: 4px 0 0; flex-wrap: wrap; }
+.app .mk2-search { flex: 1 1 220px; padding: 12px 16px; border-radius: 16px; }
+.app .mk2-seg { padding: 4px; gap: 2px; border-radius: 16px; background: var(--panel); }
+.app .mk2-seg button { border: 0 !important; border-radius: 12px; background: transparent; font-weight: 700; padding: 8px 14px; }
+.app .mk2-seg button.on { background: #f4f8ff; color: #0b1235; }
+.app .mk2-share { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+.app .mk2-share select { font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+.app .mk2-estnote { margin: 0; }
+.app .mk2-group h3 { margin: 10px 0 8px; font-size: 1.15rem; }
+.app .mk2-new .mk2-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.app .mk2-new .mk2-grid.slim { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.app .mk2-new .mk2-card { border-radius: 18px; padding: 16px; gap: 6px; }
+.app .mk2-new .mk2-card.est { background: transparent; }
+.app .mk2-new .mk2-price b { font-size: 1.9rem; }
+.app .mk2-tags { display: grid; gap: 6px; justify-items: start; margin-top: auto; padding-top: 8px; }
+.app .mk2-tags span, .app .mk2-tags a { font-size: 0.74rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.app .mk2-tags a:hover { border-color: var(--accent); }
+.app .mk2-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.app .mk2-box { border-radius: 22px; border: 1px solid var(--border); background: var(--panel); padding: 18px 20px; }
+.app .mk2-box h3 { margin: 0 0 8px; font-size: 1.1rem; display: block; }
+.app .mk2-box p { margin: 6px 0; }
+.app .mk2-box .mk2-toggle { font-size: 1.02rem; }
+@media (max-width: 1500px) { .app .mk2-new .mk2-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .app .mk2-new .mk2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .app .mk2-hero { padding: 18px; }
+  .app .mk2-hero .mk-ticker { margin: 6px -18px -18px; }
+  .app .mk2-new .mk2-grid { grid-template-columns: 1fr; }
+  .app .mk2-two { grid-template-columns: 1fr; }
+}
+.app .mk2-more { margin-top: 10px; }
