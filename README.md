@@ -502,13 +502,18 @@ The repository contains no real phone numbers, addresses or keys. All secrets ar
 
 ## Team
 
-**Frontier Zero**, NASA Space Apps Challenge 2026, Rangpur local event, Bangladesh.
+**Frontier Zero**, NASA Space Apps Challenge 2026, Rangpur local event, Bangladesh. Six members.
 
 | Name | Role |
 |---|---|
-| Arman Ahmed Miraj | Lead developer (CSE student, Dhaka) |
-| _add teammate_ | _role_ |
-| _add teammate_ | _role_ |
+| Arman Ahmed Miraj | Team lead |
+| Rawnak Alam | Developer |
+| Rifat Nur Shafin | Researcher |
+| Rokaya Sultana Raka | Designer |
+| Shinthiya Islam Ayshi | Presenter and storyteller |
+| Md. Abid Hasan Khan | Data scientist |
+
+All members are from Daffodil International University, Dhaka.
 
 ## Licence
 
