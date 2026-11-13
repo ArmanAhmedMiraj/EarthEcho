@@ -371,3 +371,23 @@ html[data-tab="data"] .page > .viewer:first-child::after { display: none; }
 .sxc.sx-land { --sxc: #7ac46a; } .sxc.sx-water { --sxc: #4fb8e8; } .sxc.sx-crop { --sxc: #58c26f; } .sxc.sx-history { --sxc: #c69af5; } .sxc.sx-note { --sxc: #9aa4b5; }
 .sxc.sx-sky { --sxc: #7fb2ff; } .sxc.sx-sun { --sxc: #f6cf6a; } .sxc.sx-money { --sxc: #f0b64a; } .sxc.sx-danger { --sxc: #ef6d6d; } .sxc.sx-river { --sxc: #4fb8e8; }
 .sxc.sx-satellite { --sxc: #3ddbc0; } .sxc.sx-soil { --sxc: #c9915e; } .sxc.sx-map { --sxc: #7fb2ff; } .sxc.sx-shop { --sxc: #f0b64a; } .sxc.sx-photo { --sxc: #c69af5; } .sxc.sx-chat { --sxc: #3ddbc0; }
+
+/* loading screen: one picture, one percentage, a fixed-size card that never grows */
+.orb-prep-card.pp2 { align-items: center; min-height: 560px; }
+.pp2-main { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; min-height: 480px; justify-content: center; }
+.pp2-sub { margin: 0; }
+.pp2-ring { position: relative; width: 168px; height: 168px; margin: 10px 0 4px; }
+.pp2-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.pp2-track { fill: none; stroke: var(--panel-2); stroke-width: 10; }
+.pp2-fill { fill: none; stroke: url(#orbGw); stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.pp2-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; }
+.pp2-dots { display: flex; gap: 8px; }
+.pp2-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--border); transition: background 0.3s; }
+.pp2-dots i.ok { background: var(--accent); border-color: var(--accent); }
+.pp2-dots i.slow { background: var(--gold); border-color: var(--gold); }
+.pp2-dots i.run { background: var(--accent); opacity: 0.6; animation: pp2-pulse 1s infinite alternate; }
+@keyframes pp2-pulse { from { transform: scale(0.8); } to { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .pp2-dots i.run { animation: none; } }
+.pp2-step { margin: 4px 0 0; min-height: 3.2em; color: var(--muted); font-weight: 600; max-width: 34ch; }
+.pp2-act { min-height: 72px; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: center; }
+@media (max-width: 760px) { .orb-prep-card.pp2 { min-height: 0; } .pp2-main { min-height: 420px; } }

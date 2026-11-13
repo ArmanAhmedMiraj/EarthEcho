@@ -201,10 +201,12 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
   }, []);
 
   const doneCount = steps.filter((s) => s.state === "ok" || s.state === "slow").length;
-  const pct = Math.round((doneCount / Math.max(1, steps.length)) * 100);
+  const pct = finished ? 100 : Math.round((doneCount / Math.max(1, steps.length)) * 100);
+  const current = steps.find((s) => s.state === "run") || steps[steps.length - 1];
+  const R = 54, C = 2 * Math.PI * R;
   return (
     <main className="orb-prep">
-      <div className="orb-prep-card panel">
+      <div className="orb-prep-card panel pp2">
         <svg className="orb-scene" viewBox="0 0 260 560" role="img" aria-label={t.orbSceneAlt}>
           <defs>
             <linearGradient id="orbSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0b1235" /><stop offset="1" stopColor="#1d3e7a" /></linearGradient>
@@ -212,7 +214,7 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
           </defs>
           <rect x="70" y="0" width="190" height="300" rx="18" fill="url(#orbSky)" opacity="0.9" />
           <g fill="#fff" opacity="0.8"><circle cx="100" cy="30" r="1.5" /><circle cx="210" cy="22" r="1.3" /><circle cx="236" cy="70" r="1.4" /><circle cx="92" cy="110" r="1.2" /></g>
-          <g>
+          <g className="orb-sat">
             <rect x="150" y="38" width="30" height="14" rx="3" fill="#f6cf6a" /><rect x="118" y="41" width="26" height="8" fill="#7fb2ff" /><rect x="186" y="41" width="26" height="8" fill="#7fb2ff" />
           </g>
           <line className="orb-beam" x1="165" y1="56" x2="165" y2="318" stroke="#3ddbc0" strokeWidth="2.5" strokeLinecap="round" />
@@ -227,40 +229,31 @@ export default function Prepare({ t, lang, lat, lon, title, path, ready, onDone 
             <text x="0" y="48">{t.orbScene1}</text><text x="0" y="160">{t.orbScene2}</text><text x="0" y="334">{t.orbScene3}</text><text x="0" y="410">{t.orbScene4}</text><text x="0" y="486">{t.orbScene5}</text>
           </g>
         </svg>
-        <div>
+        <div className="pp2-main">
           <h1 className="prepare-title">{t.prepTitle}</h1>
-          <p className="muted">
-            {t.prepRunning} <strong>{title}</strong>
-          </p>
-          <div className="orb-prep-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><i style={{ width: `${pct}%` }} /></div>
-          <p className="small muted">{doneCount} / {steps.length}</p>
-          <div className="steps" aria-live="polite">
-            <ol>
-              {steps.map((s) => (
-                <li key={s.id} className={`step ${s.state}`}>
-                  <span className="step-mark" aria-hidden="true">
-                    {s.state === "ok" ? "✓" : s.state === "slow" ? "!" : s.state === "run" ? "" : "·"}
-                  </span>
-                  <span className="step-text">
-                    {s.label}
-                    {s.note ? <small>{s.note}</small> : null}
-                  </span>
-                </li>
-              ))}
-            </ol>
+          <p className="muted pp2-sub">{t.prepRunning} <strong>{title}</strong></p>
+          <div className="pp2-ring" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+            <svg viewBox="0 0 128 128" aria-hidden="true">
+              <circle cx="64" cy="64" r={R} className="pp2-track" />
+              <circle cx="64" cy="64" r={R} className="pp2-fill" strokeDasharray={C} strokeDashoffset={C * (1 - pct / 100)} />
+            </svg>
+            <strong>{pct}%</strong>
           </div>
-          {!finished && canSkip && (
-            <p className="prepare-skip">
-              <button className="tab" onClick={() => onDone(results.current)}>{t.prepSkip}</button>
-              <span className="small muted">{t.prepSkipNote}</span>
-            </p>
-          )}
-          {finished && (
-            <>
-              <p className="prepare-end">{finished.partial ? t.prepPartial : t.prepDone}</p>
-              <button className="btn" onClick={() => onDone(results.current)}>{t.prepOpen}</button>
-            </>
-          )}
+          <div className="pp2-dots" aria-hidden="true">
+            {steps.map((s) => <i key={s.id} className={s.state} title={s.label} />)}
+          </div>
+          <p className="pp2-step" aria-live="polite">
+            {finished ? (finished.partial ? t.prepPartial : t.prepDone) : current.label}
+          </p>
+          <div className="pp2-act">
+            {!finished && canSkip && (
+              <>
+                <button className="tab" onClick={() => onDone(results.current)}>{t.prepSkip}</button>
+                <span className="small muted">{t.prepSkipNote}</span>
+              </>
+            )}
+            {finished && <button className="btn" onClick={() => onDone(results.current)}>{t.prepOpen}</button>}
+          </div>
         </div>
       </div>
     </main>
