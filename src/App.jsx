@@ -1234,7 +1234,7 @@ export default function App() {
       {stage === "app" && tab === "assistant" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.asTitle}</h2>
+            <h2 className="sr-only">{t.asTitle}</h2>
             <Assistant t={t} lang={lang} lat={pos.lat} lon={pos.lon} label={label.title} country={country} soilData={soilData} env={envData} field={plotField} request={explainReq} onRequestHandled={() => setExplainReq(null)} />
           </div>
         </main>

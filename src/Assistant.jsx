@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import "./assistant.css";
+import "./assistant2.css";
 import { buildAlerts, fetchWeatherPlus } from "./weatherPlus.js";
 import { evaluateCrops, loadCropTable, soilInput } from "./suitability.js";
 import { historyOf } from "./history.js";
 
 // Everything the assistant is told about this farm. It is built from data the app already has, so the answer is about THIS place.
+const fill = (text, v) => Object.keys(v).reduce((a, k) => a.split(`{${k}}`).join(v[k]), text);
+
 async function buildContext({ lat, lon, label, country, soilData, env, field }) {
   const ctx = { place: label || `${lat.toFixed(2)}, ${lon.toFixed(2)}`, latitude: +lat.toFixed(3), longitude: +lon.toFixed(3), country };
   // what the farmer told us about this field (the farmer's own words, not measured by EarthEcho)
@@ -51,13 +54,20 @@ async function buildContext({ lat, lon, label, country, soilData, env, field }) 
   return ctx;
 }
 
-// [S1] in the answer becomes a small badge
+// [S1] in the answer becomes a small badge; lines that start with "- " or "• " become a list
+const cites = (line) => line.split(/([\[【]S\d+[\]】])/g).map((part, j) => (/^[\[【]S\d+[\]】]$/.test(part) ? <sup key={j} className="as-cite">{part.slice(1, -1)}</sup> : part.replace(/\*\*/g, "")));
 function renderAnswer(text) {
-  return text.split("\n").filter((line) => line.trim() !== "").map((line, i) => (
-    <p key={i} className={/^\s*\*\*[^*]+\*\*\s*$/.test(line) ? "as-head" : undefined}>
-      {line.split(/([\[【]S\d+[\]】])/g).map((part, j) => (/^[\[【]S\d+[\]】]$/.test(part) ? <sup key={j} className="as-cite">{part.slice(1, -1)}</sup> : part.replace(/\*\*/g, ""))) }
-    </p>
-  ));
+  const out = [];
+  let list = [];
+  const flush = () => { if (list.length) { out.push(<ul key={`u${out.length}`}>{list}</ul>); list = []; } };
+  text.split("\n").filter((line) => line.trim() !== "").forEach((line, i) => {
+    const m = line.match(/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/);
+    if (m && !/^\s*\*\*/.test(line)) { list.push(<li key={i}>{cites(m[1])}</li>); return; }
+    flush();
+    out.push(<p key={i} className={/^\s*\*\*[^*]+\*\*\s*$/.test(line) ? "as-head" : undefined}>{cites(line)}</p>);
+  });
+  flush();
+  return out;
 }
 
 export default function Assistant({ t, lang, lat, lon, label, country, soilData, env, field, request = null, onRequestHandled = null }) {
@@ -150,46 +160,74 @@ export default function Assistant({ t, lang, lat, lon, label, country, soilData,
   }, [request]);
 
   const suggestions = [t.asQ1, t.asQ2, t.asQ3, t.asQ4, t.asQ5];
+  const d = (field && field.details) || {};
+  const locale = lang === "bn" ? "bn-BD" : "en-GB";
+  const monthName = (m) => new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2021, Number(m), 1)));
+  const sow = d.currentSowMonth !== undefined && d.currentSowMonth !== "" ? monthName(d.currentSowMonth) : "";
+  const texSimple = soilData && soilData.available && soilData.texture ? soilData.texture.simple : null;
+  const knows = [
+    d.currentCrop && (sow ? `${d.currentCrop}, ${fill(t.orbAsSown, { m: sow })}` : d.currentCrop),
+    d.soil ? t.soilNames[d.soil] : texSimple ? t.soilNames[texSimple] : null,
+    d.irrigation && t[`fdIrr_${d.irrigation}`],
+    soilData && soilData.available && soilData.topsoil && soilData.topsoil.phh2o != null ? `pH ${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(soilData.topsoil.phh2o)}` : null,
+    d.plannedCrop && fill(t.orbAsNext, { c: d.plannedCrop }),
+    d.area && String(d.area.value || "").trim() ? `${d.area.value} ${d.area.unit}` : null,
+    t.orbAsWeather,
+  ].filter(Boolean);
+  const warn = String(t.asWarn || "").split(/(?<=[.।])\s+/).filter(Boolean);
+
   return (
-    <div className="as">
-      <div className="as-orb" aria-hidden="true"><i /><i /><i /></div>
-      <p className="small muted">{t.asIntro}</p>
-      <p className="as-warn">{t.asWarn}</p>
-      {messages.length === 0 && (
-        <div className="as-suggest">
-          <span className="small muted">{t.asSuggest}</span>
-          {suggestions.map((s) => (
-            <button key={s} className="tab" onClick={() => ask(s)}>{s}</button>
-          ))}
-        </div>
-      )}
-      <div className="as-log" aria-live="polite">
-        {messages.map((m, i) => (
-          <div key={i} className={`as-msg ${m.role}${m.error ? " err" : ""}`}>
-            <b>{m.role === "user" ? t.asYou : t.asBot}</b>
-            {m.error ? <><p>{m.error}</p>{m.detail && <p className="small muted">{m.detail}</p>}</> : m.role === "user" ? <p>{m.text}</p> : renderAnswer(m.text)}
-            {m.sources && m.sources.length > 0 && (
-              <details className="as-src">
-                <summary>{t.asSources} ({m.sources.length})</summary>
-                <ol>
-                  {m.sources.map((s) => (
-                    <li key={s.n} value={s.n}>
-                      {s.url ? <a href={s.url} target="_blank" rel="noreferrer">{s.title}</a> : s.title}
-                    </li>
-                  ))}
-                </ol>
-              </details>
-            )}
+    <div className="as as2">
+      <section className="as2-chat">
+        <header className="as2-head">
+          <div className="as-orb" aria-hidden="true"><i /><i /><i /></div>
+          <div>
+            <h3>{t.orbAsTitle}</h3>
+            <p>{t.asIntro}</p>
           </div>
-        ))}
-        {busy && !messages.some((m) => m.streaming) && <div className="as-msg bot"><p className="muted">{t.asThinking}</p></div>}
-        <div ref={endRef} />
-      </div>
-      <form className="as-form" onSubmit={(e) => { e.preventDefault(); ask(); }}>
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t.asPlaceholder} maxLength={500} aria-label={t.asPlaceholder} />
-        <button className="tab" type="submit" disabled={busy || !text.trim()}>{t.asAsk}</button>
-        {messages.length > 0 && <button className="tab" type="button" onClick={() => setMessages([])}>{t.asClear}</button>}
-      </form>
+        </header>
+        <div className="as-log as2-log" aria-live="polite">
+          {messages.length === 0 && <p className="as2-empty">{t.orbAsEmpty}</p>}
+          {messages.map((m, i) => (
+            <div key={i} className={`as-msg ${m.role}${m.error ? " err" : ""}`}>
+              <b className="sr-only">{m.role === "user" ? t.asYou : t.asBot}</b>
+              {m.error ? <><p>{m.error}</p>{m.detail && <p className="small muted">{m.detail}</p>}</> : m.role === "user" ? <p>{m.text}</p> : renderAnswer(m.text)}
+              {m.sources && m.sources.length > 0 && (
+                <div className="as2-used">
+                  <span>{t.orbAsUsed}</span>
+                  {m.sources.map((s) => (s.url
+                    ? <a key={s.n} href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
+                    : <em key={s.n}>{s.title}</em>))}
+                </div>
+              )}
+            </div>
+          ))}
+          {busy && !messages.some((m) => m.streaming) && <div className="as-msg bot as2-wait"><p className="muted">{t.asThinking} <span className="as2-dots"><i /><i /><i /></span></p></div>}
+          <div ref={endRef} />
+        </div>
+        <form className="as-form as2-form" onSubmit={(e) => { e.preventDefault(); ask(); }}>
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t.asPlaceholder} maxLength={500} aria-label={t.asPlaceholder} />
+          <button className="tab as2-ask" type="submit" disabled={busy || !text.trim()}>{t.asAsk}</button>
+          {messages.length > 0 && <button className="tab as2-clear" type="button" onClick={() => setMessages([])}>{t.asClear}</button>}
+        </form>
+      </section>
+
+      <aside className="as2-side">
+        <section className="as2-box">
+          <h3>{t.asSuggest}</h3>
+          <div className="as2-try">
+            {suggestions.map((s) => <button key={s} type="button" onClick={() => ask(s)} disabled={busy}>{s}</button>)}
+          </div>
+        </section>
+        <section className="as2-box">
+          <h3>{t.orbAsKnows}</h3>
+          <div className="as2-chips">{knows.map((k) => <span key={k}>{k}</span>)}</div>
+        </section>
+        <section className="as2-box as2-warn">
+          <h3>{t.orbAsMind}</h3>
+          <ul>{warn.map((w) => <li key={w}>{w}</li>)}</ul>
+        </section>
+      </aside>
     </div>
   );
 }

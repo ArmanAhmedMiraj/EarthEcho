@@ -1,0 +1,55 @@
+/* Ask EarthEcho, "From orbit to your field" layout */
+.app .as2 { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+.app .as2-chat { display: flex; flex-direction: column; border-radius: 26px; border: 1px solid var(--border); background: var(--panel); padding: 24px; min-height: 620px; height: calc(100vh - 150px); max-height: 820px; }
+.app .as2-head { display: flex; gap: 18px; align-items: center; }
+.app .as2-head h3 { margin: 0 0 4px; font-size: clamp(1.7rem, 3.4vw, 2.8rem); line-height: 1.05; letter-spacing: -0.02em; }
+.app .as2-head p { margin: 0; color: var(--muted); max-width: 60ch; }
+.app .as2 .as-orb { flex: none; width: 76px; height: 76px; margin: 0; }
+.app .as2-log { flex: 1 1 0; min-height: 0; overflow-y: auto; margin: 16px 0; padding-inline-end: 4px; max-width: none; }
+.app .as2-empty { margin: auto; color: var(--muted); text-align: center; }
+.app .as2 .as-msg.user { align-self: flex-end; max-width: 78%; background: var(--accent); color: #06231d; border-color: transparent; border-radius: 22px 22px 6px 22px; font-weight: 700; padding: 12px 20px; }
+.app .as2 .as-msg.bot { align-self: flex-start; max-width: 88%; border-radius: 22px 22px 22px 6px; padding: 16px 20px; background: color-mix(in srgb, var(--muted) 10%, var(--panel)); }
+.app .as2 .as-msg p { margin: 6px 0; }
+.app .as2 .as-msg ul { margin: 6px 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+.app .as2 .as-head { font-size: 1.2rem; }
+.app .as2-used { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+.app .as2-used a, .app .as2-used em { font-style: normal; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.app .as2-used a { border-color: var(--a2, #5b9cf6); color: var(--a2, #5b9cf6); }
+.app .as2-dots { display: inline-flex; gap: 4px; margin-inline-start: 6px; }
+.app .as2-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0.5; animation: as2-blink 1.2s infinite; }
+.app .as2-dots i:nth-child(2) { animation-delay: 0.2s; }
+.app .as2-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes as2-blink { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .app .as2-dots i { animation: none; } }
+.app .as2-form { position: static; display: flex; gap: 10px; padding: 8px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg, transparent); flex-wrap: nowrap; }
+.app .as2-form input { flex: 1 1 auto; border: 0; background: transparent; padding: 10px 14px; font-size: 1.05rem; }
+.app .as2-form input:focus-visible { outline: none; }
+.app .as2-form:focus-within { border-color: var(--accent); }
+.app .as2-ask { background: var(--accent); color: #06231d; border-color: transparent; font-weight: 800; padding: 0 26px; border-radius: 16px; }
+.app .as2-ask:disabled { opacity: 0.5; }
+.app .as2-side { display: grid; gap: 14px; }
+.app .as2-box { border-radius: 24px; border: 1px solid var(--border); background: var(--panel); padding: 20px; }
+.app .as2-box h3 { margin: 0 0 12px; font-size: 1.15rem; }
+.app .as2-try { display: grid; gap: 8px; }
+.app .as2-try button { text-align: start; font: inherit; font-weight: 600; padding: 13px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg, transparent); color: var(--text); cursor: pointer; }
+.app .as2-try button:hover:not(:disabled) { border-color: var(--accent); }
+.app .as2-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.app .as2-chips span { font-size: 0.85rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg, transparent); }
+.app .as2-warn { border-color: color-mix(in srgb, var(--amber, #f2c94c) 60%, transparent); }
+.app .as2-warn ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 6px; font-size: 0.92rem; }
+@media (max-width: 1000px) {
+  .app .as2 { grid-template-columns: minmax(0, 1fr); }
+  .app .as2-chat { height: auto; min-height: 520px; max-height: none; padding: 16px; }
+  .app .as2-log { max-height: 520px; }
+  .app .as2-head { gap: 12px; }
+  .app .as2 .as-orb { width: 56px; height: 56px; }
+}
+.app .as2 .as-orb i { animation: none; opacity: 1; inset: 0; background: conic-gradient(from 200deg, #3ddbc0, #f2c94c, #5b9cf6, #3ddbc0); -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%); mask: radial-gradient(circle, transparent 54%, #000 56%); box-shadow: none; }
+.app .as2 .as-orb i:nth-child(n+2) { display: none; }
+.app .as2 > *, .app .as2-head > div, .app .as2-side > * { min-width: 0; }
+@media (max-width: 600px) {
+  .app .as2-form { flex-wrap: wrap; }
+  .app .as2-form input { flex: 1 1 100%; min-width: 0; }
+  .app .as2-ask { padding: 12px 26px; }
+  .app .as2-head p { font-size: 0.92rem; }
+}
