@@ -97,13 +97,13 @@ export function Radar({ items, maxKm = 500, label, tone = "calm" }) {
 
 // ---------------------------------------------------------------- the sky chart: temperature line and rain bars for the next hours
 export function SkyChart({ hours, label, rainLabel, tempLabel, hourFmt, compact = false }) {
-  const w = compact ? 340 : 640, h = compact ? 190 : 170, pad = 8;
+  const w = compact ? 340 : 640, h = compact ? 190 : 170, pad = 8, top = 24; // room above the line for the peak labels
   const n = hours.length;
   if (n < 2) return null;
   const ts = hours.map((x) => x.temp), lo = Math.min(...ts) - 1, hi = Math.max(...ts) + 1;
   const maxR = Math.max(2, ...hours.map((x) => x.rain || 0));
-  const X = (i) => pad + (i / (n - 1)) * (w - 2 * pad);
-  const Y = (v) => pad + (1 - (v - lo) / (hi - lo)) * (h - 40);
+  const X = (i) => pad + 14 + (i / (n - 1)) * (w - 2 * pad - 28);
+  const Y = (v) => top + (1 - (v - lo) / (hi - lo)) * (h - 40 - top);
   const line = hours.map((x, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${Y(x.temp).toFixed(1)}`).join(" ");
   const ticks = hours.map((x, i) => ({ x, i })).filter(({ i }) => i % 6 === 0);
   return (
@@ -125,7 +125,6 @@ export function SkyChart({ hours, label, rainLabel, tempLabel, hourFmt, compact 
         ));
       })}
       {ticks.map(({ x, i }) => <text key={i} x={X(i)} y={h - 6} textAnchor="middle" className={`vz-sky-t${compact ? " lg" : ""}`}>{hourFmt(x.time)}</text>)}
-      <text x={pad} y="14" className={`vz-sky-k${compact ? " lg" : ""}`}>{tempLabel}</text>
     </svg>
   );
 }

@@ -17,10 +17,15 @@
 .app .wx-pill.calm i { background: var(--accent); }
 .app .wx-pill.severe, .app .wx-pill.danger { border-color: rgba(255, 148, 120, 0.6); } .app .wx-pill.severe i, .app .wx-pill.danger i { background: #ff9478; }
 .app .wx-pill.watch, .app .wx-pill.warning { border-color: rgba(246, 207, 106, 0.6); }
-.app .wx2 .wx-facts { margin: 0 0 16px; }
-.app .wx-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.app .wx2 .wx-facts { margin: 0 0 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .app .wx2 .wx-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.app .wx-trio { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.app .wx-trio > .wx-card:nth-child(2) { grid-row: 1 / span 2; grid-column: 2; }
+.app .wx-trio > .wx-card:nth-child(1), .app .wx-trio > .wx-card:nth-child(3) { grid-column: 1; }
 .app .wx-card { border: 1px solid var(--border); border-radius: 22px; background: var(--panel); padding: 20px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .app .wx-card > h3, .app .wx-card .wf-h { margin: 0 0 4px; font-size: 1.15rem; }
+.app .wx-card .sx { margin-bottom: 4px; }
+.app .wx-card .sx .info-btn, .app .wx-card .sx .inf { margin: 0; }
 .app .wx-card .vc, .app .wx-card .wf-sec { border: 0; background: none; box-shadow: none; padding: 0; margin: 0; }
 .app .wx-card p { margin: 0; }
 .app .wx-hourbar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; }
@@ -36,16 +41,23 @@
 .app .wx-strip-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
 .app .wx-strip-head h3 { margin: 0; font-size: 1.15rem; }
 .app .wx-strip-card { margin-bottom: 16px; }
-.app .wx-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(40px, 1fr); gap: 4px; overflow-x: auto; padding-bottom: 4px; }
-.app .wx-col { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; border-radius: 12px; font-size: 0.78rem; }
-.app .wx-col.today { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.app .wx-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(64px, 1fr); gap: 6px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
+.app .wx-col { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 8px; border-radius: 16px; font-size: 0.9rem; border: 1px solid transparent; background: color-mix(in srgb, var(--muted) 7%, transparent); scroll-snap-align: start; }
+.app .wx-col.past { background: transparent; border-color: var(--border); }
+.app .wx-col b { font-size: 1.15rem; }
+.app .wx-colday { font-weight: 800; font-size: 0.82rem; }
+.app .wx-coldate { color: var(--muted); font-size: 0.72rem; }
+.app .wx-collo { color: var(--muted); font-size: 0.82rem; }
+.app .wx-colmm { color: #5aa7ff; font-size: 0.72rem; font-weight: 700; }
+.app .wx-strip-note { flex-basis: 100%; }
+.app .wx-col.today { background: color-mix(in srgb, var(--accent) 18%, transparent); border-color: var(--accent); }
 .app .wx-col.far { opacity: 0.78; }
-.app .wx-col .ic { font-size: 1.1rem; line-height: 1; }
-.app .wx-colbar { height: 72px; display: flex; align-items: flex-end; }
-.app .wx-colbar i { display: block; width: 12px; border-radius: 4px 4px 0 0; background: #5aa7ff; }
+.app .wx-col .ic { font-size: 1.7rem; line-height: 1.2; }
+.app .wx-colbar { height: 58px; display: flex; align-items: flex-end; }
+.app .wx-colbar i { display: block; width: 18px; border-radius: 4px 4px 0 0; background: #5aa7ff; }
 .app .wx-coloff { color: var(--muted); font-size: 0.72rem; }
 .app .wx-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; margin-bottom: 16px; align-items: start; }
 .app .wx-duo.even { grid-template-columns: 1fr 1fr; }
 .app .wx-duo .wf-plan { grid-template-columns: 1fr; }
-@media (max-width: 1000px) { .app .wx-trio, .app .wx-duo, .app .wx-duo.even { grid-template-columns: 1fr; } }
-@media (max-width: 720px) { .app .wx2 .wx-sky { grid-template-columns: 1fr; padding: 20px; } .app .wx-strip { grid-auto-columns: 44px; } }
+@media (max-width: 1000px) { .app .wx-trio, .app .wx-duo, .app .wx-duo.even { grid-template-columns: 1fr; } .app .wx-trio > .wx-card:nth-child(2) { grid-row: auto; grid-column: auto; } .app .wx-trio > .wx-card:nth-child(1), .app .wx-trio > .wx-card:nth-child(3) { grid-column: auto; } }
+@media (max-width: 720px) { .app .wx2 .wx-sky { grid-template-columns: 1fr; padding: 20px; } .app .wx-strip { grid-auto-columns: 70px; } }

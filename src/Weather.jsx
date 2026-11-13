@@ -7,6 +7,7 @@ import "./weatherfarmer.css";
 import "./weather.css";
 import "./weather2.css";
 import { SkyChart } from "./Visuals.jsx";
+import { SectionHead } from "./Icons.jsx";
 import { fetchWeatherPlus, describeCode, compass, aqiClass, buildAlerts, sprayWindows } from "./weatherPlus.js";
 import { SERVICES, TWO_LETTER } from "./i18nWeather.js";
 
@@ -137,8 +138,8 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
       </div>
 
       <div className="wx-trio">
-        <section className="wx-card">
-          <h3>{t.workTitle}<Info t={t} source="Open-Meteo"><span>{t.workNote}</span></Info></h3>
+        <section className="wx-card sxc sx-sun">
+          <SectionHead icon="sun" kind="sun" title={t.workTitle}><Info t={t} source="Open-Meteo"><span>{t.workNote}</span></Info></SectionHead>
           <p className="small muted">{t.sprayTitle}</p>
           <div className="wx-hourbar" role="img" aria-label={t.sprayTitle}>
             {first24.map((x) => <i key={x.time} className={goodHour.has(x.time) ? "on" : ""} />)}
@@ -154,9 +155,9 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
           ) : <p className="small">{t.sprayNo}</p>}
           <p className="wx-split"><b>{t.soilWorkTitle}:</b> {wet ? t.soilWorkWet : t.soilWorkOk}</p>
         </section>
-        <section className="wx-card"><DrySpell t={t} locale={locale} lat={lat} lon={lon} soilKey={soil} rain7={rain7} onGo={onGo} /></section>
-        <section className="wx-card">
-          <h3>{t.waterTitle}</h3>
+        <section className="wx-card sxc sx-danger"><DrySpell t={t} locale={locale} lat={lat} lon={lon} soilKey={soil} rain7={rain7} onGo={onGo} /></section>
+        <section className="wx-card sxc sx-water">
+          <SectionHead icon="water" kind="water" title={t.waterTitle} />
           <div className="wx-bal"><span>{t.orbWxRainComing}</span><b>{num.format(rain7)} mm</b></div>
           <div className="wx-balbar"><i className="rain" style={{ width: `${Math.round((rain7 / barRain) * 100)}%` }} /></div>
           <div className="wx-bal"><span>{t.orbWxWillTake}</span><b>{num.format(et7)} mm</b></div>
@@ -166,18 +167,23 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
         </section>
       </div>
 
-      <section className="wx-card wx-strip-card">
-        <div className="wx-strip-head"><h3>{t.orbWxStrip}<Info t={t} source="Open-Meteo"><span>{t.outlookNote}</span><span>{t.pastNote}</span></Info></h3><span className="small muted">{t.orbWxStripNote}</span></div>
+      <section className="wx-card wx-strip-card sxc sx-sky">
+        <SectionHead icon="calendar" kind="sky" title={t.orbWxStrip}><Info t={t} source="Open-Meteo"><span>{t.outlookNote}</span><span>{t.pastNote}</span></Info></SectionHead>
+        <p className="small muted">{t.orbWxStripNote}</p>
         <div className="wx-strip" role="list">
           {strip.map(({ d, off }) => {
             const w = describeCode(d.code);
-            const hgt = Math.round(((d.rain || 0) / rainMax) * 70);
+            const hgt = Math.round(((d.rain || 0) / rainMax) * 56);
+            const dt = new Date(`${d.date}T12:00:00`);
             return (
-              <div key={d.date} role="listitem" className={`wx-col${off === 0 ? " today" : ""}${off > 7 ? " far" : ""}`} title={`${dateOf(d.date)} · ${t[`wxCode_${w.key}`]} · ${fmt(d.tmax)}° / ${fmt(d.tmin)}° · ${fmt(d.rain)} mm${d.chance != null ? ` · ${fmt(d.chance)}%` : ""}`}>
-                <b>{fmt(d.tmax)}°</b>
+              <div key={d.date} role="listitem" className={`wx-col${off === 0 ? " today" : ""}${off < 0 ? " past" : ""}${off > 7 ? " far" : ""}`} title={`${dateOf(d.date)} · ${t[`wxCode_${w.key}`]} · ${fmt(d.tmax)}° / ${fmt(d.tmin)}° · ${fmt(d.rain)} mm${d.chance != null ? ` · ${fmt(d.chance)}%` : ""}`}>
+                <span className="wx-colday">{off === 0 ? t.orbWxTodayShort : new Intl.DateTimeFormat(locale, { weekday: "short" }).format(dt)}</span>
+                <span className="wx-coldate">{new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(dt)}</span>
                 <span className="ic" aria-hidden="true">{w.icon}</span>
+                <b>{fmt(d.tmax)}°</b>
+                <span className="wx-collo">{fmt(d.tmin)}°</span>
                 <span className="wx-colbar"><i style={{ height: `${Math.max((d.rain || 0) > 0 ? 3 : 0, hgt)}px` }} /></span>
-                <span className="wx-coloff">{off === 0 ? t.orbWxTodayShort : off > 0 ? `+${num.format(off)}` : `−${num.format(-off)}`}</span>
+                <span className="wx-colmm">{(d.rain || 0) >= 0.5 ? `${fmt(d.rain)} mm` : "\u00a0"}</span>
               </div>
             );
           })}
@@ -185,13 +191,13 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
       </section>
 
       <div className="wx-duo">
-        <section className="wx-card"><SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} /></section>
-        <section className="wx-card"><SimilarYear t={t} locale={locale} lat={lat} lon={lon} /></section>
+        <section className="wx-card sxc sx-history"><SeasonCheck t={t} lang={lang} locale={locale} lat={lat} lon={lon} plus={plus} /></section>
+        <section className="wx-card sxc sx-history"><SimilarYear t={t} locale={locale} lat={lat} lon={lon} /></section>
       </div>
 
       <div className="wx-duo even">
-        <section className="wx-card">
-          <h3>{t.newsTitle}<Info t={t} source={t.wfNewsSrc}><span>{t.newsNote}</span></Info></h3>
+        <section className="wx-card sxc sx-note">
+          <SectionHead icon="note" kind="note" title={t.newsTitle}><Info t={t} source={t.wfNewsSrc}><span>{t.newsNote}</span></Info></SectionHead>
           {news.state === "loading" && <p className="muted">{t.newsLoading}{news.tries > 0 ? ` ${t.newsSlow}` : ""}</p>}
           {news.state === "busy" && (
             <p className="muted">{t.newsBusy} <button className="tab" onClick={askNews}>{t.wxRetry}</button></p>
@@ -208,7 +214,7 @@ export default function Weather({ t, lang, lat, lon, country: appCountry, soil, 
             </ul>
           ))}
         </section>
-        <section className="wx-card"><h3>{t.creditsTitle}<Info t={t} source={t.wfAllSources}><span>{t.credits}</span></Info></h3><p className="small muted">{t.orbWxSources}</p></section>
+        <section className="wx-card sxc sx-satellite"><SectionHead icon="satellite" kind="satellite" title={t.creditsTitle}><Info t={t} source={t.wfAllSources}><span>{t.credits}</span></Info></SectionHead><p className="small muted">{t.orbWxSources}</p></section>
       </div>
     </div>
   );
