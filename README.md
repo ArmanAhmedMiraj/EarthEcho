@@ -1,122 +1,411 @@
+<div align="center">
+
+<img src="docs/screenshots/01_landing_en.jpg" alt="EarthEcho landing page: From orbit to your field" width="100%">
+
 # EarthEcho
 
-**What should I plant next?** EarthEcho is a free, bilingual (English and Bengali) farm-planning web app. A farmer saves a field once. The app then reads NASA satellite and climate data for that field, compares crop-rotation strategies, explains each one in plain words, and says how sure it is. It supports the farmer's own judgment and never replaces it.
+### From orbit to your field.
 
-![React 19](https://img.shields.io/badge/React-19-61dafb) ![Vite 8](https://img.shields.io/badge/Vite-8-646cff) ![MapLibre](https://img.shields.io/badge/MapLibre-GL-396cb2) ![Languages](https://img.shields.io/badge/languages-English%20%7C%20Bengali-2e9e6b) ![Deployed on Vercel](https://img.shields.io/badge/deployed-Vercel-000000)
+**A free English and Bengali farm planner that reads NASA data for a farmer's own land and compares crop-rotation strategies in plain words.**
 
-Built by team **Frontier Zero** for the NASA Space Apps Challenge 2026, challenge **Field Shift: Adapting Farms with NASA Data**. Now in the final round.
+![React 19](https://img.shields.io/badge/React-19-61dafb) ![Vite 8](https://img.shields.io/badge/Vite-8-646cff) ![MapLibre](https://img.shields.io/badge/MapLibre-GL-396cb2) ![Languages](https://img.shields.io/badge/languages-English%20%7C%20Bengali-2e9e6b) ![Licence](https://img.shields.io/badge/licence-Apache%202.0-blue) ![Deployed on Vercel](https://img.shields.io/badge/deployed-Vercel-000000)
 
-**Live app: https://earth-echo-nine.vercel.app/** (works on a phone, installs like an app, opens offline with the last data it saw; an account is optional)
+NASA Space Apps Challenge 2026 · Team **Frontier Zero** · Challenge **Field Shift: Adapting Farms with NASA Data**
 
-Demo script for judges: [docs/DEMO.md](docs/DEMO.md) · Submission answers: [docs/SUBMISSION.md](docs/SUBMISSION.md) · Licence: [Apache 2.0](LICENSE)
+**[Open the live app](https://earth-echo-nine.vercel.app/)** · [Demo script](docs/DEMO.md) · [Submission answers](docs/SUBMISSION.md) · [Licence](LICENSE)
 
-**Try it in one minute:** open the live link, tap the globe on the map to drop a pin on a field (the demo uses Mokamtala, Shibganj, Bogura, Bangladesh), press **Save**, then open **Rotation planner**. Switch to Bengali with the language button.
+</div>
+
+---
+
+## Try it in one minute
+
+| | |
+|---|---|
+| **Live app** | https://earth-echo-nine.vercel.app/ |
+| **Demo account (phone)** | `018564344011` |
+| **Demo account (password)** | `1234567890` |
+| **No account?** | Tap **Start as a guest** on the first screen. Everything works the same; it is saved on that phone only. |
+| **Demo place** | Mokamtala, Shibganj, Bogura, Bangladesh |
+| **Language** | Use the language button at the top. English and Bengali cover every screen. |
+
+The demo account is shared and public so judges can look around. Please do not change its password. If you want a clean start, use guest mode.
+
+**A five-step path through the app**
+
+1. Log in with the demo account (or start as a guest).
+2. **My Farm**: see the two plots, *Dhan jomi* and *Alu jomi*. Switch plots at the top; every tab changes with them.
+3. **Rotation planner**: pick a goal, open a strategy, read the *How sure are we?* box, then move the weather sliders.
+4. **Weather** and **Irrigation**: see whether to water today, and why.
+5. Switch to **বাংলা** and open **Ask EarthEcho**.
+
+> **About the pictures.** They were taken from the real app using sample values for the Mokamtala demo place, because the screenshot environment cannot reach NASA. On the live site the same screens show real readings and real satellite imagery. English is shown first and Bengali second.
 
 ## Contents
 
-1. [See it](#see-it)
-2. [What it does for the Field Shift challenge](#what-it-does-for-the-field-shift-challenge)
-3. [How a farmer uses it](#how-a-farmer-uses-it)
-4. [How the strategies are worked out](#how-the-strategies-are-worked-out)
-5. [Tabs](#tabs)
-6. [Data sources](#data-sources)
-7. [Honest limits](#honest-limits)
-8. [Run it on your computer](#run-it-on-your-computer)
-9. [Build and deploy](#build-and-deploy)
-10. [Project layout](#project-layout)
-11. [Privacy](#privacy)
-12. [Team](#team)
-13. [Licence](#licence)
-14. [Credits and citations](#credits-and-citations)
-15. [How this meets the Space Apps terms](#how-this-meets-the-space-apps-terms)
+1. [The idea](#the-idea)
+2. [How a farmer uses it](#how-a-farmer-uses-it) (landing, sign-in, land picker, loading)
+3. [Every screen, in detail](#every-screen-in-detail) (12 tabs)
+4. [Works on phones, in Bengali, in light mode](#works-on-phones-in-bengali-in-light-mode)
+5. [What it does for the Field Shift challenge](#what-it-does-for-the-field-shift-challenge)
+6. [How the strategies are worked out](#how-the-strategies-are-worked-out)
+7. [How it is built](#how-it-is-built)
+8. [Honest limits](#honest-limits)
+9. [Run it on your computer](#run-it-on-your-computer)
+10. [Privacy and accounts](#privacy)
+11. [Team, licence, credits, terms](#team)
 
-## See it
+## The idea
 
-All pictures below are from the app, using a sample rice field near Mymensingh, Bangladesh. The app's look has been refreshed since these pictures were taken; the features shown are the same. The Bengali versions of every picture are in [docs/screenshots](docs/screenshots) (files ending in `_bn`).
-
-### 1. My Farm: save a field once
-
-The farmer picks the place, and EarthEcho adds its own estimates (soil, height above sea level, slope), always labelled as estimates. Under **My details** the farmer adds what only they know: land size, the crop now and the month it was sown, the crop they want next, past crops, irrigation. Everything the farmer types is marked "You entered" and is used instead of the estimate.
-
-![My Farm](docs/screenshots/01_my_farm_en.jpg)
-
-### 2. Rotation planner: compare strategies side by side
-
-The farmer's own rotation next to the best alternatives. The table shows fit to the place, months the field is in use, bare months, nitrogen-fixing crops, plant families, water needed beyond rain, profit when the farmer has entered prices, and how sure the app is.
-
-![Compare strategies](docs/screenshots/02_compare_strategies_en.jpg)
-
-### 3. Each strategy explained in five parts, with a "How sure are we?" box
-
-Why it was suggested, the evidence, what it may give, what we do not know, and the risks to review locally. The box under it lists what was entered, what was assumed and what is missing. A button sends the strategy to the AI assistant, which explains it in the farmer's language.
-
-![One strategy in detail](docs/screenshots/03_strategy_five_parts_and_how_sure_en.jpg)
-
-### 4. What if the weather changes?
-
-Rain and temperature sliders show how the farmer's crops, and the top strategy, change in a drier, wetter, hotter or cooler season.
-
-![What-if sliders](docs/screenshots/04_what_if_sliders_en.jpg)
-
-### 5. NASA evidence behind the strategies
-
-Twenty-five years of NASA POWER temperature and rain for the place, a month-by-month field calendar (bare months, very wet months, heat and cold limits), and a simple erosion-risk rating. Where the data looks wrong, such as a sudden jump in yearly rain, the app says so and claims no trend.
-
-![NASA evidence](docs/screenshots/05_nasa_evidence_en.jpg)
-
-### 6. NASA map layers with a time slider
-
-Greenness (MODIS NDVI), land temperature (MODIS) and soil moisture (SMAP) from NASA GIBS. The farmer drags the slider through the dates and reads the value at their own field, with a history line for the last dates.
-
-![NASA map layers](docs/screenshots/06_nasa_map_layers_en.jpg)
-
-### 7. Weather: is this season normal?
-
-The past week and the coming week of rain and temperature compared with what NASA data show for the same time of year at this place.
-
-![Is this season normal](docs/screenshots/07_season_check_en.jpg)
-
-## What it does for the Field Shift challenge
-
-The challenge asks for a supportive tool that compares crop-rotation strategies, explains them, and does not replace the farmer's judgment. In the **Rotation planner** tab EarthEcho:
-
-| Challenge need | What EarthEcho does | Where |
-|---|---|---|
-| Compare several strategies | The farmer's current rotation plus the best alternatives, side by side in one table and in detail cards | Rotation planner, Compare strategies |
-| Explain each strategy | Five parts each: why suggested, evidence, benefits, information gaps, risks | Open any strategy card |
-| Use NASA data | NASA POWER (25 years of temperature and rain), NASA GIBS layers (MODIS greenness, MODIS land temperature, SMAP soil moisture) with a time slider | NASA evidence; Environment; Weather |
-| Let the farmer say what matters | Save water, earn more, improve the soil, lower risk; strategies re-rank. Fit to the place still counts for 40% of each score | Rotation planner, What matters most to you? |
-| Show how conditions may change | What-if sliders for rain and temperature | Rotation planner, What if the weather changes? |
-| Be honest about uncertainty | A "How sure are we?" box on every strategy: what was entered, assumed or missing | Inside each strategy card |
-| Support, not replace, the farmer | The farmer's own values are used and labelled "You entered". Every answer points to the local agriculture officer. No yield or income forecast | My Farm, My details |
-| Be understandable | Plain words, a glossary of 21 terms, a "satellite or ground" explainer, English and Bengali, light and dark mode | Data, Learn |
-| Explain in the farmer's language | "Explain this strategy" asks the AI assistant, which answers in the app's language | Strategy card |
-
-It is decision support. It never tells a farmer to switch crops, gives no yield or income forecast, and always points to the local agriculture officer.
-
-## Status
-
-All twelve tabs are built and live. A farmer keeps many **locations** (a place such as a village), and each location can hold up to 12 **plots** (parcels of land with their own details); every tab follows the open plot. The app is bilingual, works in light and dark mode, passes Lighthouse accessibility, best-practices and SEO checks at 100 on desktop, and works offline after the first visit.
+A farmer choosing the next crop has little local evidence in a language and format they can use. EarthEcho lets the farmer **drop a pin on their own land**, then reads NASA climate and satellite data for that exact place and answers in plain words: what suits the land, when to water, what danger is coming, what crops sell for, and which rotation to consider. It **supports the farmer's judgment and never replaces it**. It gives no yield or income forecast, marks every number as *entered*, *assumed* or *estimated*, and points to the local agriculture officer.
 
 ## How a farmer uses it
 
-1. **Open the app.** It opens on **My Farm**. The first time, the farmer picks the area (country, division, district, upazila, union), then taps the map to drop a pin on **their land (jomi)** or uses their location. The Save button stays off until the pin is placed. The farmer names the location and saves it.
-2. **My Farm is the hub.** By default everything is kept on the phone (guest mode). A farmer can also create an account with a phone number, name and password to keep locations on any device. There is no text-message code. A location holds plots, and each plot has:
-   - **EarthEcho estimates** (soil, height above sea level, slope), always labelled as estimates, with a confidence when the soil data gives one;
-   - **Land size filled in from the drawn boundary** (the farmer can overwrite it);
-   - **The farmer's own details** (land size in bigha, acre, decimal, katha, hectare or square metre; crop now and the month it was sown; crop next; irrigation; who farms it; past crops and when they were sown; notes), all optional, saved as they type.
-   - If the farmer knows their soil better than the satellite, they set it. Their value is used everywhere and the original estimate is kept.
-3. **Every other tab follows the open plot.** Two switchers in the header (Location and Plot) change the data on every tab. Nothing needs to be selected twice.
+### Step 1. Landing: guest or account
 
-### Where the farmer's own answers are used
+<table><tr><td width="50%"><img src="docs/screenshots/01_landing_en.jpg" alt="Landing in English"></td><td width="50%"><img src="docs/screenshots/01_landing_bn.jpg" alt="Landing in Bengali"></td></tr></table>
 
-| Answer | Used in |
-|---|---|
-| Crop now, next crop, past crops | Rotation planner (the current rotation and bare months), field notes in Rotation planner and Suitability, the Irrigation tab (crop and land size), What-if, the AI assistant |
-| Sowing months | Rotation planner (timing, bare months, how sure) and the AI assistant. Not used by the Irrigation tab, which has its own growth-stage setting |
-| Soil, irrigation | Rotation planner, Suitability, how-sure rating |
+The first screen explains the app in one sentence and offers two doors: **Start as a guest** (no account, saved on the phone) or **Log in or register**. The four cards preview the menu: Today, Plan, Your land, Help.
 
-Weather, Disaster watch, Market prices, Suppliers and the NASA map do not use these answers.
+### Step 2. Sign up or log in
+
+<p align="center"><img src="docs/screenshots/02_signin_en.jpg" width="640" alt="Sign-in and register form"></p>
+
+Register with a first name, last name (middle name and email are optional), phone number and password (at least 8 characters). There is **no text-message code**: the phone number is not verified, and the password is stored as a scrypt hash. An account keeps locations and plots in a database so they open on any phone. Guests can move their farms into an account later.
+
+### Step 3. Place your land
+
+<table><tr><td width="50%"><img src="docs/screenshots/03_land_picker_en.jpg" alt="Land picker in English"></td><td width="50%"><img src="docs/screenshots/03_land_picker_bn.jpg" alt="Land picker in Bengali"></td></tr></table>
+
+Pick the **area** (country, division, district, upazila, union, or search any place name, or use *where I am now*). Choosing an area only **zooms the map**. Then tap the map to drop a pin on the **exact land (jomi)**. **Save this location and open it** stays off until the pin is placed, so the saved place is the land, not the area. On the live site the map shows satellite imagery with colour-coded boundaries (country, division, district, upazila, union). Bangladesh is supported down to union level, plus India, Nepal, Myanmar, Pakistan, Bhutan and the USA.
+
+### Step 4. EarthEcho prepares your land
+
+<table><tr><td width="50%"><img src="docs/screenshots/04_loading_en.jpg" alt="Loading in English"></td><td width="50%"><img src="docs/screenshots/04_loading_bn.jpg" alt="Loading in Bengali"></td></tr></table>
+
+A fixed-height loading screen with a percentage and eight steps. Its eight steps are: the area, soil, weather, 25 years of climate, height and slope, vegetation greenness, water and the crop-suitability scores. A step is ticked only when its data really arrived, and says plainly when it did not. A farmer can **Skip** to open the app early; pieces that are not ready load in the background.
+
+## Every screen, in detail
+
+The left menu groups the 12 tabs as **Today** (Weather, Disaster watch, Irrigation), **Plan** (Rotation planner, Suitability, Market prices, Suppliers), **Your land** (Soil, Environment) and **Help** (Ask EarthEcho, Data), with **My Farm** on top. The header has a **Location** switcher (with *+ Add another location*) and a **Plot** switcher (with *+ Add plot*), then the language, light or dark mode and the account.
+
+### 1. My Farm
+
+**Save your land once. Everything else follows it.**
+
+The hub. A farmer keeps **locations** (a village or area) and, inside each, up to 12 **plots** (single parcels of land). Every other tab reads the plot that is open in the header.
+
+<img src="docs/screenshots/05_my_farm_en.jpg" alt="my farm screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/05_my_farm_bn.jpg" alt="my farm in Bengali"></td><td width="38%"><img src="docs/screenshots/05_my_farm_phone.jpg" alt="my farm on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- The farmer taps the map to place a pin on their own land, then draws the plot boundary (**Edit boundary**). **Land size fills in from the boundary** in decimal, and the farmer can overwrite it in bigha, acre, katha, hectare or square metre.
+- **Found by EarthEcho** shows soil, height above sea level and slope. They are always marked *estimate*. If the farmer knows better, **I know my soil** replaces the estimate everywhere and keeps the original.
+- **My details** (11 optional items: crop now, month sown, water for the crop, how water is given, soil, land size, crop to grow next, who farms it, past seasons, notes) fill a progress ring. Whatever the farmer types is marked *You entered* and is used instead of an estimate.
+- **Season record** keeps past crops and sowing months so the rotation planner can use them.
+- **Today on this farm** lists alerts for the next 7 days. **Download my fields** makes a backup file that moves everything to another phone.
+
+**Data:** NASA POWER and ISRIC SoilGrids (estimates), Open-Meteo elevation (height and slope), the farmer's own entries.
+
+
+### 2. Weather
+
+**Is today good for field work, and is this season normal?**
+
+Plain words first ("A good day for field work. No rain."), numbers second.
+
+<img src="docs/screenshots/06_weather_en.jpg" alt="weather screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/06_weather_bn.jpg" alt="weather in Bengali"></td><td width="38%"><img src="docs/screenshots/06_weather_phone.jpg" alt="weather on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- A 48-hour temperature and rain chart, then a 7-day strip with the high, low and rain for each day, and a row of facts (humidity, wind, pressure, cloud, UV, soil wetness, sunrise and sunset).
+- **Field work guide** marks the calm, dry daylight hours that are good for spraying and says whether soil is workable.
+- **Dry spell and soil water** counts days without rain (NASA POWER) next to how wet the soil is (NASA SMAP) and says whether to hold off irrigation. **Water balance** compares the rain coming with the water the sun and crop will take.
+- **Is this season normal?** compares the past and coming week with NASA's 25-year record for the same time of year at this place.
+
+**Data:** Open-Meteo forecast, NASA POWER, NASA SMAP through NASA GIBS.
+
+
+### 3. Disaster watch
+
+**Is anything dangerous near the farm?**
+
+A radar picture of the 500 km around the farm and one word for the overall state (here: *Calm*).
+
+<img src="docs/screenshots/07_disaster_watch_en.jpg" alt="disaster watch screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/07_disaster_watch_bn.jpg" alt="disaster watch in Bengali"></td><td width="38%"><img src="docs/screenshots/07_disaster_watch_phone.jpg" alt="disaster watch on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Four independent sources are read separately, so one failing never hides the others: USGS earthquakes (30 days), GDACS cyclone, flood, drought and fire alerts, NASA EONET natural events, and a river-flow model for floods.
+- **Your river** shows the nearest river, the flow now compared with usual for the date, and the highest flow expected in the next 16 days.
+- **Upstream** follows the river back to where its water comes from and shows NASA satellite rain and flood-water layers on the map, because a flood in Bogura often starts in Nepal, India or Tibet days earlier.
+
+**Data:** USGS, GDACS, NASA EONET, GloFAS river model through Open-Meteo, NASA GIBS.
+
+
+### 4. Irrigation
+
+**Water today, or wait?**
+
+One headline (*Irrigate today*, *Wait*), the water in millimetres and litres, and how sure the app is.
+
+<img src="docs/screenshots/08_irrigation_en.jpg" alt="irrigation screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/08_irrigation_bn.jpg" alt="irrigation in Bengali"></td><td width="38%"><img src="docs/screenshots/08_irrigation_phone.jpg" alt="irrigation on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Uses the **crop and land size from My Farm**, so nothing is typed twice. The farmer sets only the growth stage, how water is given (flood or furrow, sprinkler, drip) and soil type.
+- For **rice** it keeps a paddy water account: standing water in cm, seepage and use per day, and the rain that is forecast. For **upland crops** it keeps a root-zone water account based on the soil's holding capacity (for example clay loam holds about 150 mm per metre of depth).
+- **Tell us what you see** lets the farmer enter the real standing-water depth. A reading replaces the assumed start and raises the confidence.
+- The day-by-day chart shows rain that is counted and rain that may not come, so the farmer sees why the advice is what it is.
+
+**Data:** Open-Meteo forecast and evapotranspiration, NASA POWER, the farmer's crop, land size and soil.
+
+
+### 5. Rotation planner
+
+**Compare what to plant next. The challenge's core tab.**
+
+Four goals (**Save water, Earn more, Improve soil, Lower risk**) re-rank the strategies. A 12-month wheel shows the best one.
+
+<img src="docs/screenshots/09_rotation_planner_en.jpg" alt="rotation planner screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/09_rotation_planner_bn.jpg" alt="rotation planner in Bengali"></td><td width="38%"><img src="docs/screenshots/09_rotation_planner_phone.jpg" alt="rotation planner on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- The farmer's current rotation sits next to the best alternatives in a side-by-side table and three detailed choice cards with a month-by-month strip.
+- Each strategy is explained in five parts (why suggested, evidence, benefits, information gaps, risks) with a **How sure are we?** box listing what was entered, assumed or missing.
+- **What if the weather changes?** sliders show how crops and the top strategy change in a drier, wetter, hotter or cooler season. **NASA evidence** shows 25 years of temperature and rain and a 12-month field calendar.
+- **Keep this crop** builds every rotation around the farmer's main crop. **Explain this strategy** sends it to the assistant, which answers in the app's language.
+- It never says *switch crops* and gives no yield or income forecast. How the scores work is in [How the strategies are worked out](#how-the-strategies-are-worked-out).
+
+**Data:** FAO EcoCrop limits, NASA POWER monthly climate, ISRIC SoilGrids, WFP prices, the farmer's entries.
+
+
+### 6. Market prices
+
+**What are crops selling for near me?**
+
+Latest food prices from the nearest markets, with the farmer's likely share.
+
+<img src="docs/screenshots/10_market_prices_en.jpg" alt="market prices screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/10_market_prices_bn.jpg" alt="market prices in Bengali"></td><td width="38%"><img src="docs/screenshots/10_market_prices_phone.jpg" alt="market prices on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Each crop card shows the price per kg, the change over 3 months and 12 months, which market reported it and how far away it is.
+- Prices WFP reports are **shop prices**, so the app also shows what the farmer is likely paid at the farm gate (default 65%, adjustable). Crops with no market report are marked *Estimate*, never passed off as measured.
+- These prices flow into the rotation planner's profit workings by themselves.
+
+**Data:** WFP food prices through the Humanitarian Data Exchange (CC BY-IGO).
+
+
+### 7. Suppliers
+
+**Where can I buy seed, fertiliser or get advice?**
+
+A map and a nearest-first list inside a 10, 25 or 50 km radius.
+
+<img src="docs/screenshots/11_suppliers_en.jpg" alt="suppliers screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/11_suppliers_bn.jpg" alt="suppliers in Bengali"></td><td width="38%"><img src="docs/screenshots/11_suppliers_phone.jpg" alt="suppliers on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Groups: seed, fertiliser and farm shops, plant nurseries, markets, veterinary clinics, storage and cold storage, agriculture offices.
+- Each place shows its distance and, where volunteers have added them, opening hours and phone. The page reminds farmers to call before travelling and that anyone can add a missing shop on OpenStreetMap.
+
+**Data:** OpenStreetMap contributors (ODbL).
+
+
+### 8. Ask EarthEcho
+
+**Ask in your own words, in Bengali or English.**
+
+An assistant that knows this plot.
+
+<img src="docs/screenshots/12_ask_earthecho_en.jpg" alt="ask earthecho screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/12_ask_earthecho_bn.jpg" alt="ask earthecho in Bengali"></td><td width="38%"><img src="docs/screenshots/12_ask_earthecho_phone.jpg" alt="ask earthecho on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Suggested questions (*Which crops suit my farm now?*, *Is it a good time to spray tomorrow?*) or free typing.
+- It answers **only** from this plot's live data and a sourced knowledge base, shows numbered source badges on each answer, and says when it does not know.
+- The box *What the assistant knows about this plot* lists the crop, soil, pH, next crop, land size and weather it was given.
+- It never gives pesticide or fertiliser doses and always points to the local agriculture officer.
+
+**Data:** Groq (primary) and Google Gemini (backup) language models over EarthEcho's own knowledge base.
+
+
+### 9. Suitability
+
+**Which crops suit this place?**
+
+Every crop gets a score from 0 to 100 for this place, from its weather and soil.
+
+<img src="docs/screenshots/13_suitability_en.jpg" alt="suitability screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/13_suitability_bn.jpg" alt="suitability in Bengali"></td><td width="38%"><img src="docs/screenshots/13_suitability_phone.jpg" alt="suitability on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Switch between **If I can irrigate** and **Rain-fed only**. The score is set by whatever holds the crop back most (the FAO EcoCrop method), so it shows where to look first, not what you must plant.
+- **Your field now** rates the farmer's own crop in its best month and if sown now. **Good to sow now or next month** lists what fits the coming weeks. **All crops, best first** has search and a filter by kind.
+
+**Data:** FAO EcoCrop, NASA POWER monthly climate, ISRIC SoilGrids.
+
+
+### 10. Soil
+
+**What is my soil, and how sure are we?**
+
+A 3D block of the topsoil, subsoil and deep soil, with the most likely soil type (here *Clay loam*) and its local Bengali name.
+
+<img src="docs/screenshots/14_soil_en.jpg" alt="soil screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/14_soil_bn.jpg" alt="soil in Bengali"></td><td width="38%"><img src="docs/screenshots/14_soil_phone.jpg" alt="soil on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- Sand, silt and clay shares, pH, organic carbon, nitrogen and cation exchange, with a plain-words meaning for each.
+- **How sure is the map?** gives a percentage and the second-best guesses, so the farmer sees the uncertainty.
+- **Soil wetness from satellite** shows top 5 cm and root-zone (1 m) wetness from NASA SMAP. A **cross-check** compares a second soil map and says where the two agree.
+- **I know my soil** lets the farmer override the estimate.
+
+**Data:** ISRIC SoilGrids 2.0 (CC BY 4.0), NASA SMAP, FAO and IIASA HWSD.
+
+
+### 11. Environment
+
+**Your land, seen from space.**
+
+NASA map layers with a time slider, then the same data as plain cards.
+
+<img src="docs/screenshots/15_environment_en.jpg" alt="environment screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/15_environment_bn.jpg" alt="environment in Bengali"></td><td width="38%"><img src="docs/screenshots/15_environment_phone.jpg" alt="environment on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- **Greenness** (MODIS NDVI), **Land temperature** (MODIS) and **Soil moisture** (SMAP) on a map. Drag the slider or press **Play**, and read the value at the farm. *Show the last 24 dates at my field* draws a small history chart.
+- Cards explain what each reading means and its resolution (for example, one pixel is about 1 km, so it describes an area, not one small field).
+- **Land shape** shows height above sea level and slope, with a profile picture of how water will move. **Rain against the sun** shows, month by month, where rain beats evaporation and which months are short of water.
+
+**Data:** NASA GIBS (MODIS, SMAP), NASA POWER climatology, Open-Meteo elevation (Copernicus DEM).
+
+
+### 12. Data and sources
+
+**Every number has a source you can check.**
+
+Live NASA values for the farm, the satellites explained, and a table of every source.
+
+<img src="docs/screenshots/16_data_and_sources_en.jpg" alt="data and sources screen" width="100%">
+
+<details><summary><b>বাংলা</b> and <b>phone</b> versions of this screen</summary>
+
+<table><tr><td width="62%"><img src="docs/screenshots/16_data_and_sources_bn.jpg" alt="data and sources in Bengali"></td><td width="38%"><img src="docs/screenshots/16_data_and_sources_phone.jpg" alt="data and sources on a phone"></td></tr></table>
+
+</details>
+
+**How it works**
+
+- **Live from NASA POWER:** today's hottest and coolest air, rain, sunshine energy and soil wetness for the farm.
+- Four satellite cards (**SMAP, GPM, MODIS, POWER**) say what each measures, its resolution, how often it updates and which tabs use it.
+- **Satellite or ground** explains what a satellite can and cannot tell you, with a one-pixel against one-hectare picture. A glossary explains 21 terms in both languages.
+- The source table lists publisher, resolution, update rate, licence and status (live or planned) for every source, with a flag where a licence has not been fully read.
+
+**Data:** All sources listed in [Credits and citations](#credits-and-citations).
+
+
+
+## Works on phones, in Bengali, in light mode
+
+The app is built phone first, installs like an app from the browser and opens offline with the last data it saw. Every screen above exists in Bengali. Dark mode is the default and light mode is one tap.
+
+<table><tr>
+<td><img src="docs/screenshots/01_landing_phone.jpg" alt="Landing on a phone"></td>
+<td><img src="docs/screenshots/05_my_farm_phone.jpg" alt="My Farm on a phone"></td>
+<td><img src="docs/screenshots/06_weather_phone.jpg" alt="Weather on a phone"></td>
+</tr><tr>
+<td><img src="docs/screenshots/09_rotation_planner_phone.jpg" alt="Rotation planner on a phone"></td>
+<td><img src="docs/screenshots/08_irrigation_phone.jpg" alt="Irrigation on a phone"></td>
+<td><img src="docs/screenshots/12_ask_earthecho_phone.jpg" alt="Ask EarthEcho on a phone"></td>
+</tr></table>
+
+**Light mode**
+
+<table><tr><td width="50%"><img src="docs/screenshots/05_my_farm_light.jpg" alt="My Farm in light mode"></td><td width="50%"><img src="docs/screenshots/09_rotation_planner_light.jpg" alt="Rotation planner in light mode"></td></tr></table>
+
+## What it does for the Field Shift challenge
+
+The challenge asks for a supportive tool that compares crop-rotation strategies, explains them, and does not replace the farmer's judgment.
+
+| Challenge need | What EarthEcho does | Where |
+|---|---|---|
+| Compare several strategies | The farmer's current rotation plus the best alternatives, side by side in one table and in detail cards | Rotation planner |
+| Explain each strategy | Five parts each: why suggested, evidence, benefits, information gaps, risks | Open any strategy card |
+| Use NASA data | NASA POWER (25 years of temperature and rain, daily weather), NASA GIBS layers (MODIS greenness and land temperature, SMAP soil moisture, GPM rain) with a time slider, NASA EONET events | Rotation planner, Weather, Environment, Disaster watch, Data |
+| Let the farmer say what matters | Save water, earn more, improve the soil, lower risk; strategies re-rank. Fit to the place still counts for 40% of each score | Rotation planner, goal cards |
+| Show how conditions may change | What-if sliders for rain and temperature | Rotation planner |
+| Be honest about uncertainty | A *How sure are we?* box on every strategy: what was entered, assumed or missing | Inside each strategy |
+| Support, not replace, the farmer | The farmer's own values are used and labelled *You entered*. Every answer points to the local agriculture officer. No yield or income forecast | My Farm, all tabs |
+| Be understandable | Plain words, visuals before text, a glossary of 21 terms, English and Bengali | Everywhere, Data |
+| Explain in the farmer's language | The assistant answers in the app's language | Ask EarthEcho |
 
 ## How the strategies are worked out
 
@@ -127,28 +416,43 @@ Weather, Disaster watch, Market prices, Suppliers and the NASA map do not use th
 - **"How sure"** counts inputs that are known, assumed or missing, and adds flags for weak points (a crop that only moderately fits, a large water gap, a field bare in very wet months). It is a guide, not a statistical confidence interval.
 - **Nothing is forecast.** There is no yield or income model.
 
-## Tabs
+## How it is built
 
-| Tab | What it gives |
+```mermaid
+flowchart LR
+  F[Farmer's phone<br/>React 19 + Vite + MapLibre] -->|coordinates| A[12 Vercel serverless functions]
+  A --> N[NASA POWER · GIBS · SMAP · GPM · MODIS · EONET]
+  A --> O[Open-Meteo · SoilGrids · WFP · USGS · GDACS · GDELT]
+  A --> L[Groq / Gemini + EarthEcho knowledge base]
+  A --> D[(Upstash Redis<br/>accounts only)]
+  F -->|map pictures| N
+  F -->|local storage| G[Guest farms]
+```
+
+| Layer | What | Notes |
+|---|---|---|
+| App | React 19, Vite 8, MapLibre GL, hash routes | One file per tab. Text in `src/i18n*.js` (English and Bengali). Themes in `src/orbit.css` |
+| Saved land | `src/fields.js`: locations with plots | Guests use localStorage; accounts sync to the database |
+| Strategy engine | `src/strategy.js`, `src/trust.js`, `src/crops.js` | Rule-based; the *How sure* rating counts known, assumed and missing inputs |
+| Server | `api/*.js`, shared code in `api/_lib/` | Kept to 12 functions to stay on the free Vercel plan |
+| Offline | `public/sw.js`, web app manifest | Installs like an app; opens with the last data |
+
+**The 12 server functions**
+
+| Function | What it does |
 |---|---|
-| My Farm | Saved fields, estimates, optional details, alerts for each field, backup file |
-| Weather | Forecast and recent weather for the field, and "Is this season normal?" against 25 years of NASA data |
-| Disaster watch | Earthquakes, flood and cyclone alerts, river level |
-| Irrigation | Water plan for rice and upland crops; uses the crop and land size from My Farm |
-| Rotation planner | Strategy comparison, priorities, what-if sliders, NASA evidence, how-sure boxes, profit workings, "Explain this strategy" |
-| Market prices | Local food prices from the nearest markets |
-| Suppliers | Map of nearby agricultural suppliers |
-| Ask EarthEcho | AI assistant with cited answers, in the app's language |
-| Suitability | Every crop scored for the place (FAO EcoCrop method); rates the farmer's own crops |
-| Soil | SoilGrids soil properties for the place |
-| Environment | Vegetation greenness, land temperature, soil moisture, and NASA map layers with a time slider |
-| Data | Learn section (glossary, satellite vs ground), then every data source with licence and how it is used |
-
-## Data sources
-
-NASA POWER (climate normals and 2001 to last full year history), NASA SMAP soil moisture and GPM IMERG rain (through NASA GIBS), MODIS vegetation and land temperature (through NASA GIBS, also shown as map layers), ISRIC SoilGrids (soil), FAO EcoCrop (crop limits), Open-Meteo (forecast), USGS and GDACS (earthquakes and alerts), geoBoundaries and Bangladesh Bureau of Statistics (boundaries), WFP food prices from the Humanitarian Data Exchange, Wikimedia Commons (place photographs, free licences only), OpenStreetMap (suppliers). The **Data** tab lists each source with its licence.
-
-Countries: Bangladesh (down to union level), India, Nepal, Myanmar, Pakistan, Bhutan and the USA.
+| `account` | Register, log in, log out, load and save My Farm (one function for all actions) |
+| `assistant` | Finds matching knowledge pieces plus the farm's live data, asks the language model, returns a cited answer |
+| `disasters` | USGS earthquakes, GDACS alerts, NASA EONET events, river flow and upstream |
+| `dryspell` | Days in a row without rain (NASA POWER) next to SMAP soil moisture |
+| `environment` | MODIS greenness and land temperature, NASA POWER climate normals and monthly water balance |
+| `layers` | Which dates really exist for each NASA map layer, and their colour tables |
+| `markets` | WFP food prices near the point |
+| `news` | Local weather and farming headlines (titles and links only) |
+| `power-daily` | NASA POWER daily weather, rain, solar energy and soil wetness |
+| `satellite` | Latest SMAP soil moisture and GPM rain rate |
+| `soil` | SoilGrids 2.0 soil properties with uncertainty |
+| `trend` | 25-year temperature and rain trend, with detection of data jumps |
 
 ## Honest limits
 
@@ -189,13 +493,6 @@ npm run build
 ```
 
 Vercel builds and publishes on every push to `main`. `vercel.json` sets the time limits of the slower API functions.
-
-## Project layout
-
-- `src/` the React app. One file per tab, `fields.js` for saved fields, `strategy.js` for the strategy rules, `trust.js` for the how-sure rating, `i18n*.js` for English and Bengali text.
-- `api/` the server functions (data feeds, NASA trends and map layers, and the assistant) and `api/_lib/` shared code, including the assistant's knowledge base.
-- `public/` boundaries, crop table, prepared photo galleries, the app icons and the offline service worker.
-- `docs/` the demo script and the screenshots used in this file.
 
 ## Privacy
 

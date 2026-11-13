@@ -10,6 +10,7 @@ Copy-ready answers for the final project submission. Team **Frontier Zero**, Ran
 |---|---|
 | Live app | https://earth-echo-nine.vercel.app/ |
 | Source code | https://github.com/ArmanAhmedMiraj/EarthEcho |
+| Demo login | Phone `018564344011`, password `1234567890` (or tap *Start as a guest*) |
 | Demo video | **TODO** (to be recorded; see "Video checklist") |
 | Presentation / slides | **TODO** if the form asks for one |
 | Licence | Apache 2.0, file `LICENSE` in the repository |
@@ -85,7 +86,8 @@ See the "Credits and citations" section of the README for the full table. In sho
 - [ ] README top section shows live link, repo link, licence
 - [ ] Teammate names filled in the README Team table
 - [ ] Repository is public and has the LICENSE file
-- [ ] Replace screenshots in `docs/screenshots` with the refreshed design (optional but recommended)
+- [x] Screenshots in `docs/screenshots` show the current design (English, Bengali, phone, light)
+- [ ] Register the demo account once on the live site and add the two plots so judges see data
 - [ ] Video link works while logged out
 - [ ] Match every field above to the live form (**CONFIRM** items)
 
