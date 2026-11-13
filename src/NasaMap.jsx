@@ -184,49 +184,51 @@ export default function NasaMap({ t, lang, lat, lon }) {
   const seriesNow = series && series.id === layer.id ? series.values : null;
 
   return (
-    <section className="nm-wrap" aria-labelledby="nm-title">
-      <h3 id="nm-title">{t.nmTitle}</h3>
-      <p className="muted small">{t.nmIntro}</p>
-
-      <div className="nm-layers" role="radiogroup" aria-label={t.nmChoose}>
-        {info.layers.map((l) => (
-          <button key={l.id} type="button" role="radio" aria-checked={l.id === layer.id} className={`nm-chip${l.id === layer.id ? " on" : ""}`} onClick={() => setLayerId(l.id)}>{t[`nmLayer_${l.id}`]}</button>
-        ))}
-      </div>
-      <p className="small">{t[`nmAbout_${layer.id}`]}</p>
-
-      <div className="nm-map" ref={box} role="application" aria-label={t.nmMapLabel} />
-
-      <div className="nm-legend" aria-label={t.nmLegend}>
-        <span>{nf.format(lo)}</span>
-        <i style={{ background: gradient }} />
-        <span>{nf.format(hi)} {unitLabel}</span>
+    <section className="nm-wrap nm2" aria-labelledby="nm-title">
+      <div className="nm2-stage">
+        <div className="nm-map nm2-map" ref={box} role="application" aria-label={t.nmMapLabel} />
+        <h3 id="nm-title" className="nm2-title">{t.nmTitle}</h3>
+        <div className="nm-layers nm2-layers" role="radiogroup" aria-label={t.nmChoose}>
+          {info.layers.map((l) => (
+            <button key={l.id} type="button" role="radio" aria-checked={l.id === layer.id} className={`nm-chip${l.id === layer.id ? " on" : ""}`} onClick={() => setLayerId(l.id)}>{t[`nmLayer_${l.id}`]}</button>
+          ))}
+        </div>
+        <div className="nm-legend nm2-legend" aria-label={t.nmLegend}>
+          <strong>{t[`nmLayer_${layer.id}`]}</strong>
+          <i style={{ background: gradient }} />
+          <span><em>{nf.format(lo)}</em><em>{nf.format(hi)} {unitLabel}</em></span>
+        </div>
+        <span className="nm2-farm">{t.orbSpYourFarm}</span>
       </div>
 
-      <div className="nm-slider">
-        <button type="button" className="tab" onClick={() => setPlaying((p) => !p)} aria-pressed={playing}>{playing ? t.nmPause : t.nmPlay}</button>
-        <input type="range" min="0" max={layer.dates.length - 1} value={idx == null ? 0 : idx} onChange={(e) => { setPlaying(false); setIdx(Number(e.target.value)); }}
-          aria-label={t.nmDate} aria-valuetext={date ? showDate(date) : ""} />
-        <strong className="nm-date">{date ? showDate(date) : ""}</strong>
+      <div className="nm2-bar">
+        <button type="button" className="btn nm2-play" onClick={() => setPlaying((p) => !p)} aria-pressed={playing}>{playing ? "❚❚ " : "▶ "}{playing ? t.nmPause : t.nmPlay}</button>
+        <label className="nm2-date">
+          <span>{t.nmDate}: <strong>{date ? showDate(date) : ""}</strong></span>
+          <input type="range" min="0" max={layer.dates.length - 1} value={idx == null ? 0 : idx} onChange={(e) => { setPlaying(false); setIdx(Number(e.target.value)); }} aria-valuetext={date ? showDate(date) : ""} />
+        </label>
+        <label className="nm2-op">
+          <span>{t.nmOpacity}</span>
+          <input type="range" min="0.2" max="1" step="0.1" value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} />
+        </label>
+        {!seriesNow && <button type="button" className="tab nm2-series" onClick={loadSeries} disabled={seriesBusy}>{seriesBusy ? t.nmSeriesBusy : fill(t.nmSeries, { n: nf.format(layer.dates.length) })}</button>}
       </div>
-      <label className="nm-opacity">{t.nmOpacity}
-        <input type="range" min="0.2" max="1" step="0.1" value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} />
-      </label>
 
-      <div className="nm-read" aria-live="polite">
-        <strong>{t.nmAtField}:</strong>{" "}
-        {value.state === "loading" && <span className="muted">…</span>}
-        {value.state === "ok" && <span>{here} <span className="muted small">({showDate(date)})</span></span>}
-        {value.state === "none" && <span className="muted">{t.nmNone}</span>}
-        <div>
-          {!seriesNow && <button type="button" className="tab" onClick={loadSeries} disabled={seriesBusy}>{seriesBusy ? t.nmSeriesBusy : fill(t.nmSeries, { n: nf.format(layer.dates.length) })}</button>}
+      <div className="nm2-info">
+        <div className="nm-read" aria-live="polite">
+          <strong>{t.nmAtField}:</strong>{" "}
+          {value.state === "loading" && <span className="muted">…</span>}
+          {value.state === "ok" && <span>{here} <span className="muted small">({showDate(date)})</span></span>}
+          {value.state === "none" && <span className="muted">{t.nmNone}</span>}
           {seriesNow && <Line dates={layer.dates} values={seriesNow} now={idx == null ? 0 : idx} unit={unitLabel} nf={nf} />}
           {seriesNow && <p className="muted small">{fill(t.nmSeriesNote, { a: showDate(layer.dates[0]), b: showDate(layer.dates[layer.dates.length - 1]) })}</p>}
         </div>
+        <div>
+          <p className="small">{t[`nmAbout_${layer.id}`]}</p>
+          <p className="muted small">{t[`nmLimit_${layer.id}`]}</p>
+          <p className="muted small">{t.nmCredit} <a href={info.source.url} target="_blank" rel="noreferrer">{info.source.name}</a>.</p>
+        </div>
       </div>
-
-      <p className="muted small">{t[`nmLimit_${layer.id}`]}</p>
-      <p className="muted small">{t.nmCredit} <a href={info.source.url} target="_blank" rel="noreferrer">{info.source.name}</a>.</p>
     </section>
   );
 }
