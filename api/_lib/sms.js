@@ -27,7 +27,7 @@ export async function sendSms(phone, text) {
       },
       body: new URLSearchParams({ To: phone, From: process.env.TWILIO_FROM, Body: text }),
     });
-    if (!res.ok) throw new Error(`sms ${res.status}`);
+    if (!res.ok) throw new Error(`twilio status ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`);
     return true;
   }
   if (p === "alphasms") {
@@ -36,7 +36,7 @@ export async function sendSms(phone, text) {
     if (process.env.ALPHASMS_SENDER_ID) form.set("sender_id", process.env.ALPHASMS_SENDER_ID);
     const res = await fetch("https://api.sms.net.bd/sendsms", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });
     const body = await res.json().catch(() => null);
-    if (!res.ok || !body || Number(body.error) !== 0) throw new Error("sms failed");
+    if (!res.ok || !body || Number(body.error) !== 0) throw new Error(`alphasms status ${res.status}: ${JSON.stringify(body).slice(0, 200)}`);
     return true;
   }
   if (p === "bulksmsbd") {
@@ -50,7 +50,7 @@ export async function sendSms(phone, text) {
     const body = await res.text();
     let code = null;
     try { code = JSON.parse(body).response_code; } catch { /* not JSON */ }
-    if (!res.ok || (code != null && Number(code) !== 202)) throw new Error("sms failed");
+    if (!res.ok || (code != null && Number(code) !== 202)) throw new Error(`bulksmsbd status ${res.status}: ${body.slice(0, 200)}`);
     return true;
   }
   if (devMode()) return true;

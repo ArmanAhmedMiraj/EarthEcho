@@ -31,7 +31,8 @@ async function sendCode(req, res, phone) {
   await store.setJson(`otp:${phone}`, { hash: sha(`${code}:${phone}`), exp: Date.now() + OTP_SECONDS * 1000, tries: 0 }, { ex: OTP_SECONDS });
   try {
     await sendSms(phone, `EarthEcho: your verification code is ${code}. It works for 10 minutes. Do not share it.`);
-  } catch {
+  } catch (err) {
+    console.error("[sms] gateway refused:", err && err.message); // shows the gateway's reason in the Vercel logs (no code, no number)
     await store.del(`otp:${phone}`);
     await store.del(`otpcd:${phone}`);
     { fail(res, 502, "sms_failed"); return null; }
