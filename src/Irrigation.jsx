@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./irrigation.css";
+import "./irrigation2.css";
 import { LivingPlot } from "./Visuals.jsx";
 import Info from "./Info.jsx";
 import SoilWaterChart from "./SoilWaterChart.jsx";
@@ -97,7 +98,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   // ---- the plot header, form ----
   const soilSrcWord = soilUser ? t.ir2SoilSrcYou : sys ? (sys.source === "satellite" ? t.ir2SoilSrcSat : sys.source === "map" ? t.ir2SoilSrcMap : t.ir2SoilSrcRegion) : t.ir2SoilSrcRegion;
   const form = (
-    <section className="ir2-card" aria-labelledby="ir2-plot">
+    <section className="ir2-card ir2-plotcard" aria-labelledby="ir2-plot">
       <h3 id="ir2-plot">{t.ir2YourPlot}</h3>
       <p className="muted small">{t.ir2YourPlotHint}</p>
       <div className="ir-form">
@@ -247,10 +248,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
   const hours = stamp ? new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(stamp) : "";
 
   return (
-    <div className="ir2">
-      {form}
-      {!area && <p className="muted small">{t.ir2NoArea}</p>}
-
+    <div className="ir2 ir2-new">
       <section className={`ir2-hero ${headKey}`} aria-live="polite">
         <div className="ir2-hero-top">
           <div>
@@ -279,7 +277,10 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         <p className="small muted">{t[`ir2Conf_${a.confidence}`]}</p>
       </section>
 
-      <section className="ir2-card" aria-labelledby="ir2-now">
+      {form}
+      {!area && <p className="muted small ir2-full">{t.ir2NoArea}</p>}
+
+      <section className="ir2-card ir2-c-now" aria-labelledby="ir2-now">
         <h3 id="ir2-now">{t.ir2Now}</h3>
         <div className="ir2-nums">
           <div><small>{t.ir2FromRain}</small><b>{showLevel(a.nowRainOnly)}</b></div>
@@ -321,7 +322,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         </div>
       </section>
 
-      <section className="ir2-card" aria-labelledby="ir2-chart">
+      <section className="ir2-card ir2-c-chart" aria-labelledby="ir2-chart">
         <h3 id="ir2-chart">{t.ir2ChartTitle}</h3>
         <SoilWaterChart
           t={t}
@@ -334,7 +335,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         />
       </section>
 
-      <section className="ir2-card" aria-labelledby="ir2-choices">
+      <section className="ir2-choices-wrap" aria-labelledby="ir2-choices">
         <h3 id="ir2-choices">{t.ir2ChoicesTitle}</h3>
         <p className="muted small">{t.ir2ChoicesHint}</p>
         <div className="ir2-opts">
@@ -364,7 +365,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         </div>
       </section>
 
-      <section className="ir2-card" aria-labelledby="ir2-plan">
+      <section className="ir2-card ir2-c3" aria-labelledby="ir2-plan">
         <h3 id="ir2-plan">{t.ir2PlanDatesTitle}</h3>
         {events.length === 0 ? <p className="muted">{t.ir2PlanNone}</p> : (
           <ul className="ir2-dates">
@@ -377,7 +378,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         <p className="small muted">{t.ir2PlanNote}</p>
       </section>
 
-      <section className="ir2-card" aria-labelledby="ir2-check">
+      <section className="ir2-card ir2-c3" aria-labelledby="ir2-check">
         <h3 id="ir2-check">{t.ir2CheckTitle}
           <Info t={t} source="NASA POWER · SMAP · Open-Meteo">
             <span>{t.ir2InfoSrcRain}</span>
@@ -397,7 +398,7 @@ export default function Irrigation({ t, lang, lat, lon, country, soil: appSoil, 
         </ul>
       </section>
 
-      <section className="ir2-how">
+      <section className="ir2-how ir2-c3">
         <h3>{t.ir2HowTitle}
           <Info t={t} source="FAO-56 · NASA · Open-Meteo">
             <b>{t.ir2InfoMethodH}</b>

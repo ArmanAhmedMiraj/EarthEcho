@@ -1162,7 +1162,7 @@ export default function App() {
       {stage === "app" && tab === "irrigation" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.irTitle}</h2>
+            <h2 className="sr-only">{t.irTitle}</h2>
             <Irrigation
               key={`${pos.lat},${pos.lon},${activePlotId}`}
               t={t}
