@@ -1,8 +1,7 @@
-// Accounts for EarthEcho: register with a phone number and a one-time code (OTP), log in, and keep My Farm in a database.
+// Accounts for EarthEcho: register with a phone number and a password, log in, and keep My Farm in a database.
 // One function does it all (Vercel's free plan allows only 12 functions). The action is in ?a= :
 //   health, register, verify, resend, login, logout, me, sync
 import * as store from "./_lib/store.js";
-import { sendSms, smsReady, devMode } from "./_lib/sms.js";
 import {
   normalizePhone, hashPassword, checkPassword, sha, newToken, newId, newCode, sameCode,
   checkRegistration, readCookie, sessionCookie, clientIp, sameSite,
@@ -18,26 +17,6 @@ const publicUser = (u) => ({ id: u.id, first: u.first, middle: u.middle || "", l
 
 async function limited(key, max, seconds) {
   return (await store.incr(key, seconds)) > max;
-}
-
-// make a new code and text it
-async function sendCode(req, res, phone) {
-  const ip = clientIp(req);
-  if (await limited(`rl:otpip:${ip}`, 20, 3600)) { fail(res, 429, "too_many"); return null; }
-  if (await limited(`rl:otp:${phone}`, 5, 3600)) { fail(res, 429, "too_many"); return null; }
-  const fresh = await store.set(`otpcd:${phone}`, "1", { ex: 60, nx: true });
-  if (!fresh) { fail(res, 429, "wait", { retryAfter: 60 }); return null; }
-  const code = newCode();
-  await store.setJson(`otp:${phone}`, { hash: sha(`${code}:${phone}`), exp: Date.now() + OTP_SECONDS * 1000, tries: 0 }, { ex: OTP_SECONDS });
-  try {
-    await sendSms(phone, `EarthEcho: your verification code is ${code}. It works for 10 minutes. Do not share it.`);
-  } catch (err) {
-    console.error("[sms] gateway refused:", err && err.message); // shows the gateway's reason in the Vercel logs (no code, no number)
-    await store.del(`otp:${phone}`);
-    await store.del(`otpcd:${phone}`);
-    { fail(res, 502, "sms_failed"); return null; }
-  }
-  return { code };
 }
 
 async function startSession(req, res, user) {
@@ -121,7 +100,6 @@ export default async function handler(req, res) {
     if (req.method !== "POST") return fail(res, 405, "method");
 
     if (a === "register") {
-      if (!smsReady()) return fail(res, 503, "unavailable");
       if (await limited(`rl:reg:${clientIp(req)}`, 10, 3600)) return fail(res, 429, "too_many");
       const v = checkRegistration(body);
       if (!v.ok) return fail(res, 400, "invalid", { fields: v.errors });
@@ -135,22 +113,13 @@ export default async function handler(req, res) {
         const won = await store.set(`p:${phone}`, id, { nx: true });
         if (!won) return fail(res, 409, "phone_taken");
       }
-      await store.setJson(`u:${id}`, { id, first, middle, last, email, phone, pass: hashPassword(password), verified: false, createdAt: Date.now() });
-      const sent = await sendCode(req, res, phone);
-      if (!sent) return undefined; // the reply was already given
-      return res.status(200).json({ ok: true, step: "verify", phone, devCode: devMode() ? sent.code : undefined });
+      await store.setJson(`u:${id}`, { id, first, middle, last, email, phone, pass: hashPassword(password), verified: true, createdAt: Date.now() });
+      const made = await store.getJson(`u:${id}`);
+      await startSession(req, res, made);
+      return res.status(200).json({ ok: true, user: publicUser(made) });
     }
 
-    if (a === "resend") {
-      if (!smsReady()) return fail(res, 503, "unavailable");
-      const phone = normalizePhone(body.phone);
-      const id = phone && (await store.get(`p:${phone}`));
-      const u = id && (await store.getJson(`u:${id}`));
-      if (!u || u.verified) return fail(res, 400, "nothing_to_verify");
-      const sent = await sendCode(req, res, phone);
-      if (!sent) return undefined;
-      return res.status(200).json({ ok: true, step: "verify", phone, devCode: devMode() ? sent.code : undefined });
-    }
+    if (a === "resend") return fail(res, 400, "nothing_to_verify"); // no SMS codes any more
 
     if (a === "verify") {
       const phone = normalizePhone(body.phone);
@@ -185,12 +154,7 @@ export default async function handler(req, res) {
       const u = id && (await store.getJson(`u:${id}`));
       const good = checkPassword(password, u ? u.pass : { salt: "00", hash: "00".repeat(32) }); // same work whether or not the number exists
       if (!u || !good) return fail(res, 401, "bad_login");
-      if (!u.verified) {
-        if (!smsReady()) return fail(res, 503, "unavailable");
-        const sent = await sendCode(req, res, phone);
-        if (!sent) return undefined;
-        return res.status(200).json({ ok: false, error: "unverified", step: "verify", phone, devCode: devMode() ? sent.code : undefined });
-      }
+      if (!u.verified) { u.verified = true; await store.setJson(`u:${u.id}`, u); } // accounts made before codes were removed
       await startSession(req, res, u);
       return res.status(200).json({ ok: true, user: publicUser(u) });
     }

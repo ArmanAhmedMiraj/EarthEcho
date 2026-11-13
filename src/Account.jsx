@@ -47,7 +47,7 @@ export function AuthPanel({ t, initialTab = "login", onBack }) {
     setBusy(true); setMessage("");
     const r = await register(vals);
     setBusy(false);
-    if (r.ok && r.step === "verify") { setDevCode(r.devCode || ""); setCode(""); setCool(60); setTab("verify"); return; }
+    if (r.ok) { await finish(); return; }
     if (r.error === "invalid" && r.fields) {
       const map = { first: "acErrFirst", middle: "acErrMiddle", last: "acErrLast", email: "acErrEmail", phone: "acErrPhone", password: "acErrPassword", confirm: "acErrConfirm" };
       setErrors(Object.fromEntries(Object.keys(r.fields).map((k) => [k, map[k]])));

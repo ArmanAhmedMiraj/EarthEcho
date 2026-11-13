@@ -45,7 +45,11 @@ async function api(action, body) {
 }
 
 // ---- registering, verifying, logging in
-export const register = (values) => api("register", values);
+export async function register(values) {
+  const r = await api("register", values);
+  if (r.ok && r.user) write(USER, JSON.stringify(r.user));
+  return r;
+}
 export const resendCode = (phone) => api("resend", { phone });
 export async function verifyCode(phone, code) {
   const r = await api("verify", { phone, code });
