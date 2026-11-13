@@ -221,8 +221,10 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
     return pd.area && String(pd.area.value || "").trim() ? fill(t.fdAreaLine, { v: pd.area.value, u: t[`fdUnit_${pd.area.unit}`] || pd.area.unit }) : t.plNoBoundary;
   };
   const CHIPS = [["currentCrop", t.orbD_currentCrop], ["currentSowMonth", t.orbD_currentSowMonth], ["irrigation", t.orbD_irrigation], ["soil", t.orbD_soil], ["area", t.orbD_area], ["irrigMethod", t.orbD_irrigMethod], ["plannedCrop", t.orbD_plannedCrop], ["ownership", t.orbD_ownership], ["previousCrops", t.orbD_previousCrops], ["notes", t.orbD_notes], ["previousSowMonth", t.orbD_previousSowMonth]];
-  const filled = (k) => (k === "area" ? !!(d.area && String(d.area.value || "").trim()) : !!String(d[k] || "").trim());
-  const got = detailCount(d), total = DETAIL_KEYS.length;
+  // The soil counts as done when the farmer set it or when EarthEcho found it from satellite and map data.
+  const soilKnown = !!(d.soil || sysSoil);
+  const filled = (k) => (k === "soil" ? soilKnown : k === "area" ? !!(d.area && String(d.area.value || "").trim()) : !!String(d[k] || "").trim());
+  const got = detailCount(d) + (!d.soil && sysSoil ? 1 : 0), total = DETAIL_KEYS.length;
   const pickPlotThen = (p, fn) => { onPlot(p.id); fn(); };
   const openRenameOf = (p, i) => { setNameDraft(p.name || plotLabel(p, i, t)); setRenaming("plot"); };
   const removePlotOf = (p) => {
@@ -439,7 +441,7 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
               </label>
             </div>
           </details>
-          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d)), total: num.format(DETAIL_KEYS.length) })}</p>
+          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d) + (!d.soil && sysSoil ? 1 : 0)), total: num.format(DETAIL_KEYS.length) })}</p>
         </section>
       )}
 
