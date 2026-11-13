@@ -60,4 +60,4 @@ export const SUPPLIER_TEXT = {
     spCredits: "তথ্য © OpenStreetMap অবদানকারীরা, ODbL লাইসেন্স।",
   },
 };
-export const CATEGORY_COLORS = { inputs: "#2e9d6b", nursery: "#7bb342", market: "#e08a1e", vet: "#8e5bd6", storage: "#2f8fd8", office: "#d9467a" };
+export const CATEGORY_COLORS = { inputs: "#f2c94c", nursery: "#6fcf97", market: "#f2994a", vet: "#b58cf5", storage: "#5b9cf6", office: "#f06292" };
