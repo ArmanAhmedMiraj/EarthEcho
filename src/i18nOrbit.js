@@ -205,6 +205,7 @@ export const ORBIT_TEXT = {
     changeLocationHint: "Add another location", keepLocation: "Keep my current location",
     confirmLocation: "Confirm location and prepare my data",
     orbHdrLocation: "Location", orbHdrPlot: "Plot", orbHdrAddPlot: "Add plot", orbHdrPlotTip: "Add a plot inside this location",
+    orbAreaAuto: "Filled in from your boundary on the map. Type your own size if you know it better.",
   },
   bn: {
     orbBadge: "আপনার জমির জন্য NASA-র উপগ্রহ পড়ছে",
@@ -411,5 +412,6 @@ export const ORBIT_TEXT = {
     changeLocationHint: "আরেকটি জায়গা যোগ করুন", keepLocation: "বর্তমান জায়গাই রাখুন",
     confirmLocation: "জায়গা নিশ্চিত করে তথ্য তৈরি করুন",
     orbHdrLocation: "জায়গা", orbHdrPlot: "খণ্ড", orbHdrAddPlot: "খণ্ড যোগ করুন", orbHdrPlotTip: "এই জায়গার ভেতরে একটি খণ্ড যোগ করুন",
+    orbAreaAuto: "মানচিত্রে আঁকা সীমানা থেকে নেওয়া হয়েছে। আপনি নিজের মাপ জানলে সেটা লিখুন।",
   },
 };

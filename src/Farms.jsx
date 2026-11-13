@@ -80,7 +80,7 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
   const seasons = historyOf(d);
   const setSeasons = (rows) => setDetails(historyPatch(rows));
   const setSeason = (i, patch) => setSeasons(seasons.map((r, k) => (k === i ? { ...r, ...patch } : r)));
-  const setArea = (patch) => setDetail("area", { ...area, ...patch });
+  const setArea = (patch) => setDetails({ area: { ...area, ...patch }, areaAuto: false }); // typing your own size ends the automatic fill
   const areaNumber = Number(String(area.value).replace(",", "."));
   const hectares = HECTARES_PER[area.unit] && areaNumber > 0 ? areaNumber * HECTARES_PER[area.unit] : null;
 
@@ -136,6 +136,23 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
   };
   const totalMapped = totalSqm(plots);
   const mappedSqm = plot ? areaSqm(plot.points) : 0;
+  // A plot that has a boundary on the map gets its land size from it, unless the farmer typed their own size.
+  const autoSig = plots.map((p) => `${p.id}:${areaSqm(p.points)}:${(p.details && p.details.areaAuto) ? 1 : 0}:${(p.details && p.details.area && p.details.area.value) || ""}`).join("|");
+  useEffect(() => {
+    if (!active) return;
+    let changed = false;
+    const next = plots.map((p) => {
+      const sq = areaSqm(p.points);
+      const pd = p.details || {};
+      const typed = pd.area && String(pd.area.value || "").trim() && !pd.areaAuto;
+      if (sq <= 0 || typed) return p;
+      const value = String(Math.round(inUnits(sq).decimal * 10) / 10);
+      if (pd.area && pd.area.value === value && pd.area.unit === "decimal" && pd.areaAuto) return p;
+      changed = true;
+      return { ...p, details: { ...pd, area: { value, unit: "decimal" }, areaAuto: true } };
+    });
+    if (changed) onUpdate(active.id, { parcels: next });
+  }, [autoSig, active && active.id]); // eslint-disable-line react-hooks/exhaustive-deps
   // the editor returns every plot with its boundary; each plot keeps its own details
   const saveParcels = (list) => {
     if (active) {
@@ -350,7 +367,8 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
                   {AREA_UNITS.map((u) => <option key={u} value={u}>{t[`fdUnit_${u}`]}</option>)}
                 </select>
               </span>
-              {mappedSqm > 0 && (
+              {d.areaAuto && <span className="small muted">{t.orbAreaAuto}</span>}
+              {mappedSqm > 0 && !d.areaAuto && (
                 <span className="small">{fill(t.flMappedArea, { v: num1.format(inUnits(mappedSqm).decimal) })} <button type="button" className="fd-link" onClick={() => setArea({ value: String(Math.round(inUnits(mappedSqm).decimal * 10) / 10), unit: "decimal" })}>{t.flUseMapped}</button></span>
               )}
               {hectares != null && <span className="small muted">{t.fdAbout} {fill(t.fdHectares, { h: num1.format(hectares) })}</span>}
