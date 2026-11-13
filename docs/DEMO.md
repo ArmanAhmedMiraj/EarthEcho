@@ -1,12 +1,12 @@
 # EarthEcho: demo script (about 8 minutes; for 5 minutes use sections 0, 1, 4b and 7)
 
-Use a phone or a narrow browser window for the opening, then the laptop for the rest. Have one field saved beforehand ("Rice Field", Rangpur or Dhaka area) and a second one ("Vegetable Garden") for switching.
+Use a phone or a narrow browser window for the opening, then the laptop for the rest. Have one location saved beforehand (Mokamtala, Shibganj, Bogura) with two plots (for example "Alu Jomi" and a rice plot) for switching.
 
 ## 0. The one-line pitch (15 s)
-"A farmer saves their field once. EarthEcho reads NASA data for that exact place and tells them what to plant, when to water, and what danger is coming, in Bengali, without an account."
+"A farmer saves their field once. EarthEcho reads NASA data for that exact place and tells them what to plant, when to water, and what danger is coming, in Bengali, with or without an account."
 
 ## 1. Open on My Farm (45 s)
-- Open the live link. The app opens straight on **My Farm** with the last field. No login.
+- Open the live link. The app opens straight on **My Farm** with the last field. No login needed (accounts are optional).
 - Point at the blue **EarthEcho estimate** tags (soil, height, slope) and the green **You entered** tags. "We never mix what the satellite thinks with what the farmer knows."
 - Change the soil with "I know my soil". Show that the original estimate stays visible.
 
@@ -15,8 +15,8 @@ Use a phone or a narrow browser window for the opening, then the laptop for the 
 - "More details is folded away so nobody is overwhelmed."
 
 ## 3. Switch field, everything follows (30 s)
-- Tap **Vegetable Garden** in the banner. Every tab now shows that field.
-- Show **Add a field** and **Move this field**.
+- Switch the **Plot** in the header. Every tab now shows that plot.
+- Show **+ Add plot** and **+ Add another location**.
 
 ## 4. What the data says (60 s)
 - **Suitability**: the "Your field" box rates their own crops. Explain the score: set by whatever holds the crop back most (FAO EcoCrop).
@@ -47,10 +47,10 @@ This is the main demo for the challenge. Open **Rotation planner** with the Rice
 
 ## 6. Works on a phone, offline (30 s)
 - Show it installed on the home screen. Turn on airplane mode and reopen. It still shows the last data.
-- "No account, nothing leaves the phone except coordinates."
+- "Nothing leaves the phone except coordinates, unless you choose to make an account."
 
 ## 7. Close (15 s)
-"Free, bilingual, no login, NASA data, and honest about its limits."
+"Free, bilingual, no login needed, NASA data, and honest about its limits."
 
 ## Questions judges may ask
 
@@ -58,7 +58,7 @@ This is the main demo for the challenge. Open **Rotation planner** with the Rice
 - **How accurate is crop suitability?** It is the FAO EcoCrop method with NASA climate averages. It says where to look first, not what to plant.
 - **Where is the data stored?** On the farmer's phone. No server holds accounts.
 - **What if the data service is slow?** Each page handles missing data and says so. The climate answer is never held up by slow satellite pictures.
-- **Why no login?** Farmers who are not used to apps should not need one. The backup file moves fields to another phone.
+- **Why is login optional?** Farmers who are not used to apps should not need one. An account (phone, name, password) or the backup file moves locations to another phone.
 - **What is AI used for?** Only the assistant and the "Explain this strategy" button. Everything else is data and published methods, shown in the Data tab.
 - **Is the strategy comparison a yield forecast?** No. It is rule-based: crop fit to the place, bare months, legumes, crop families, water gap, heat and cold months. It gives no yield or income forecast.
 - **Why do the alternatives show 100% fit?** In irrigated mode rain is not counted. The table has a second row, the fit on rain alone, so the farmer sees both.

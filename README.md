@@ -32,7 +32,7 @@ Demo script for judges: [docs/DEMO.md](docs/DEMO.md) · Submission answers: [doc
 
 ## See it
 
-All pictures below are from the app, using a sample rice field near Mymensingh, Bangladesh. The app's look has since been refreshed ("From orbit to your field" design); the content and features shown are the same. The Bengali versions of every picture are in [docs/screenshots](docs/screenshots) (files ending in `_bn`).
+All pictures below are from the app, using a sample rice field near Mymensingh, Bangladesh. The app's look has been refreshed since these pictures were taken; the features shown are the same. The Bengali versions of every picture are in [docs/screenshots](docs/screenshots) (files ending in `_bn`).
 
 ### 1. My Farm: save a field once
 
