@@ -206,6 +206,7 @@ export const ORBIT_TEXT = {
     confirmLocation: "Confirm location and prepare my data",
     orbHdrLocation: "Location", orbHdrPlot: "Plot", orbHdrAddPlot: "Add plot", orbHdrPlotTip: "Add a plot inside this location",
     orbAreaAuto: "Filled in from your boundary on the map. Type your own size if you know it better.",
+    orbD_landGroup: "The land", orbD_waterGroup: "Water", orbD_cropGroup: "Crops",
   },
   bn: {
     orbBadge: "আপনার জমির জন্য NASA-র উপগ্রহ পড়ছে",
@@ -413,5 +414,6 @@ export const ORBIT_TEXT = {
     confirmLocation: "জায়গা নিশ্চিত করে তথ্য তৈরি করুন",
     orbHdrLocation: "জায়গা", orbHdrPlot: "খণ্ড", orbHdrAddPlot: "খণ্ড যোগ করুন", orbHdrPlotTip: "এই জায়গার ভেতরে একটি খণ্ড যোগ করুন",
     orbAreaAuto: "মানচিত্রে আঁকা সীমানা থেকে নেওয়া হয়েছে। আপনি নিজের মাপ জানলে সেটা লিখুন।",
+    orbD_landGroup: "জমি", orbD_waterGroup: "পানি", orbD_cropGroup: "ফসল",
   },
 };

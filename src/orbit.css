@@ -354,3 +354,20 @@ html[data-tab="data"] .page > .viewer:first-child::after { display: none; }
 .ctx-plots { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
 .ctx-pill.add:disabled { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 760px) { .ctx-group { border-radius: 20px; width: 100%; } }
+
+/* ---- section identity: an icon badge and a colour per subject, used on every page ---- */
+.sx { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; margin: 0 0 12px; --sxc: var(--accent); }
+.sx-ic { flex: none; width: 40px; height: 40px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; color: var(--sxc); background: color-mix(in srgb, var(--sxc) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sxc) 35%, transparent); }
+.sx-t { flex: 1 1 0; min-width: 0; margin: 0; font-size: 1.12rem; font-weight: 800; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sx-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: color-mix(in srgb, var(--sxc) 18%, transparent); color: var(--sxc); }
+.sx-r { margin-inline-start: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.sx-land { --sxc: #7ac46a; } .sx-water { --sxc: #4fb8e8; } .sx-crop { --sxc: #58c26f; } .sx-history { --sxc: #c69af5; }
+.sx-note { --sxc: #9aa4b5; } .sx-sky { --sxc: #7fb2ff; } .sx-sun { --sxc: #f6cf6a; } .sx-money { --sxc: #f0b64a; }
+.sx-danger { --sxc: #ef6d6d; } .sx-river { --sxc: #4fb8e8; } .sx-satellite { --sxc: #3ddbc0; } .sx-soil { --sxc: #c9915e; }
+.sx-map { --sxc: #7fb2ff; } .sx-shop { --sxc: #f0b64a; } .sx-photo { --sxc: #c69af5; } .sx-chat { --sxc: #3ddbc0; } .sx-plain { --sxc: var(--accent); }
+/* a card with the subject colour as a soft band at its top */
+.sxc { position: relative; overflow: hidden; }
+.sxc::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--sxc, var(--accent)); opacity: 0.85; }
+.sxc.sx-land { --sxc: #7ac46a; } .sxc.sx-water { --sxc: #4fb8e8; } .sxc.sx-crop { --sxc: #58c26f; } .sxc.sx-history { --sxc: #c69af5; } .sxc.sx-note { --sxc: #9aa4b5; }
+.sxc.sx-sky { --sxc: #7fb2ff; } .sxc.sx-sun { --sxc: #f6cf6a; } .sxc.sx-money { --sxc: #f0b64a; } .sxc.sx-danger { --sxc: #ef6d6d; } .sxc.sx-river { --sxc: #4fb8e8; }
+.sxc.sx-satellite { --sxc: #3ddbc0; } .sxc.sx-soil { --sxc: #c9915e; } .sxc.sx-map { --sxc: #7fb2ff; } .sxc.sx-shop { --sxc: #f0b64a; } .sxc.sx-photo { --sxc: #c69af5; } .sxc.sx-chat { --sxc: #3ddbc0; }

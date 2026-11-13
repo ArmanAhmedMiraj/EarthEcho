@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SectionHead } from "./Icons.jsx";
 import { createPortal } from "react-dom";
 import SeasonRecord from "./SeasonRecord.jsx";
 import "./farms.css";
@@ -28,6 +29,8 @@ function checkFarm(farm, onPart) {
 
 // a small label that says where a value comes from
 const Chip = ({ kind, children }) => <span className={`fd-chip ${kind}`}>{children}</span>;
+// a form label: the text on the left, the "You entered" chip on the right, always one line high
+const Lab = ({ text, on, t }) => <span className="fd-lab"><span title={text}>{text}</span>{on ? <Chip kind="you">{t.fdYou}</Chip> : null}</span>;
 
 export default function Farms({ t, lang, fields, active, system, plotId, onPlot, onUpdate, onRemove, onOpen, onAdd, onMove, onImport, addPlotSignal = 0, onSignalHandled }) {
   const [status, setStatus] = useState({}); // id -> { state, alerts, hazard, at }
@@ -300,8 +303,8 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
           </div>
 
           <div className="fd2-trio">
-            <section className="fd2-card" aria-label={t.fdFoundTitle}>
-              <h3>{t.fdFoundTitle} <span className="fd2-badge">{t.orbEstimate}</span></h3>
+            <section className="fd2-card sxc sx-satellite" aria-label={t.fdFoundTitle}>
+              <SectionHead icon="satellite" kind="satellite" title={t.fdFoundTitle} badge={t.orbEstimate} />
               <div className="fd2-found">
                 <svg className="fd2-block" viewBox="0 0 160 110" aria-hidden="true">
                   <polygon points="80,8 152,44 80,80 8,44" fill="#58c26f" /><polygon points="8,44 80,80 80,100 8,64" fill="#7a5638" /><polygon points="80,80 152,44 152,64 80,100" fill="#5d3f28" />
@@ -325,8 +328,8 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
               </label>
             </section>
 
-            <section className="fd2-card" aria-label={t.fdSecDetails}>
-              <h3>{fill(t.orbMyDetails, { name: plotName })}</h3>
+            <section className="fd2-card sxc sx-note" aria-label={t.fdSecDetails}>
+              <SectionHead icon="note" kind="note" title={fill(t.orbMyDetails, { name: plotName })} />
               <div className="fd2-det-top">
                 <svg width="76" height="76" viewBox="0 0 76 76" role="img" aria-label={`${got}/${total}`}>
                   <circle cx="38" cy="38" r="30" fill="none" stroke="var(--border)" strokeWidth="7" />
@@ -341,8 +344,8 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
               <button className="btn wide" onClick={() => setSection("details")}>{t.orbFill}</button>
             </section>
 
-            <section className="fd2-card" aria-label={t.srSection}>
-              <h3>{t.srSection}</h3>
+            <section className="fd2-card sxc sx-history" aria-label={t.srSection}>
+              <SectionHead icon="history" kind="history" title={t.srSection} />
               <ul className="fd2-seasons">
                 {d.currentCrop && <li><b>{d.currentCrop}</b> · {t.orbGrowingNow}{sowWord(d).replace(/^,\s*/, " · ")}</li>}
                 {pastRows.slice(0, 3).map((r, i) => <li key={`h${i}`}><b>{r.crop}</b>{r.year || (r.sowMonth !== "" && monthsAbbr[Number(r.sowMonth)]) ? ` · ${[r.sowMonth !== "" ? monthsAbbr[Number(r.sowMonth)] : "", r.year].filter(Boolean).join(" ")}` : ""}</li>)}
@@ -357,70 +360,82 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
       )}
 
       {active && section === "details" && (
-        <section className="fd-card">
+        <section className="fd-card fd3">
           {plotSwitch}
           <p className="small muted">{t.fdAboutHelp}</p>
-          <div className="fd-form">
-            <label className="fd-field">
-              <span>{t.fdArea} {String(area.value).trim() && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <span className="fd-row">
-                <input inputMode="decimal" value={area.value} placeholder={t.fdAreaPlaceholder} onChange={(e) => setArea({ value: e.target.value.slice(0, 12) })} />
-                <select value={area.unit} onChange={(e) => setArea({ unit: e.target.value })} aria-label={t.fdArea}>
-                  {AREA_UNITS.map((u) => <option key={u} value={u}>{t[`fdUnit_${u}`]}</option>)}
-                </select>
-              </span>
-              {d.areaAuto && <span className="small muted">{t.orbAreaAuto}</span>}
-              {mappedSqm > 0 && !d.areaAuto && (
-                <span className="small">{fill(t.flMappedArea, { v: num1.format(inUnits(mappedSqm).decimal) })} <button type="button" className="fd-link" onClick={() => setArea({ value: String(Math.round(inUnits(mappedSqm).decimal * 10) / 10), unit: "decimal" })}>{t.flUseMapped}</button></span>
-              )}
-              {hectares != null && <span className="small muted">{t.fdAbout} {fill(t.fdHectares, { h: num1.format(hectares) })}</span>}
-            </label>
-            <label className="fd-field">
-              <span>{t.fdIrrigation} {d.irrigation && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <select value={d.irrigation || ""} onChange={(e) => setDetail("irrigation", e.target.value)}>
-                <option value="">{t.fdChoose}</option>
-                {IRRIGATION.map((k) => <option key={k} value={k}>{t[`fdIrr_${k}`]}</option>)}
-              </select>
-            </label>
-            <label className="fd-field">
-              <span>{t.ir2Method} {d.irrigMethod && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <select value={d.irrigMethod || ""} onChange={(e) => setDetail("irrigMethod", e.target.value)}>
-                <option value="">{t.fdChoose}</option>
-                {["surface", "sprinkler", "drip"].map((k) => <option key={k} value={k}>{t[`irMethod_${k}`]}</option>)}
-              </select>
-            </label>
-            <label className="fd-field">
-              <span>{t.fdCurrentCrop} {d.currentCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <input list="fd-crops" value={d.currentCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("currentCrop", e.target.value)} />
-            </label>
-            {d.currentCrop && (
-              <label className="fd-field">
-                <span>{t.fdSowMonth} {d.currentSowMonth !== undefined && d.currentSowMonth !== "" && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <select value={d.currentSowMonth ?? ""} onChange={(e) => setDetail("currentSowMonth", e.target.value)}>
-                  <option value="">{t.fdChoose}</option>
-                  {t.rtMonthsAbbr.split(" ").map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
-                </select>
-              </label>
-            )}
-            <label className="fd-field">
-              <span>{t.fdPlannedCrop} {d.plannedCrop && <Chip kind="you">{t.fdYou}</Chip>}</span>
-              <input list="fd-crops" value={d.plannedCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("plannedCrop", e.target.value)} />
-            </label>
-            <datalist id="fd-crops">{crops.map((c) => <option key={c} value={c} />)}</datalist>
-          </div>
-          <details className="fd-more">
-            <summary>{t.fdMore}</summary>
-            <div className="fd-form">
-              <label className="fd-field">
-                <span>{t.fdOwnership} {d.ownership && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <select value={d.ownership || ""} onChange={(e) => setDetail("ownership", e.target.value)}>
-                  <option value="">{t.fdChoose}</option>
-                  {OWNERSHIP.map((k) => <option key={k} value={k}>{t[`fdOwn_${k}`]}</option>)}
-                </select>
-              </label>
-              <div className="fd-field wide fd-hist">
-                <span>{t.fdHistory} {seasons.some((r) => r.crop.trim()) && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <p className="small muted fd-hist-hint">{t.fdHistoryHint}</p>
+
+          <div className="fd3-grid">
+            <section className="fd3-card sxc sx-land">
+              <SectionHead icon="land" kind="land" title={t.orbD_landGroup} />
+              <div className="fd3-form">
+                <label className="fd-field">
+                  <Lab text={t.fdArea} on={String(area.value).trim()} t={t} />
+                  <span className="fd-row">
+                    <input inputMode="decimal" value={area.value} placeholder={t.fdAreaPlaceholder} onChange={(e) => setArea({ value: e.target.value.slice(0, 12) })} />
+                    <select value={area.unit} onChange={(e) => setArea({ unit: e.target.value })} aria-label={t.fdArea}>
+                      {AREA_UNITS.map((u) => <option key={u} value={u}>{t[`fdUnit_${u}`]}</option>)}
+                    </select>
+                  </span>
+                  <span className="fd-sub">
+                    {d.areaAuto ? t.orbAreaAuto : mappedSqm > 0 ? <>{fill(t.flMappedArea, { v: num1.format(inUnits(mappedSqm).decimal) })} <button type="button" className="fd-link" onClick={() => setArea({ value: String(Math.round(inUnits(mappedSqm).decimal * 10) / 10), unit: "decimal" })}>{t.flUseMapped}</button></> : hectares != null ? `${t.fdAbout} ${fill(t.fdHectares, { h: num1.format(hectares) })}` : "\u00a0"}
+                  </span>
+                </label>
+                <label className="fd-field">
+                  <Lab text={t.fdOwnership} on={d.ownership} t={t} />
+                  <select value={d.ownership || ""} onChange={(e) => setDetail("ownership", e.target.value)}>
+                    <option value="">{t.fdChoose}</option>
+                    {OWNERSHIP.map((k) => <option key={k} value={k}>{t[`fdOwn_${k}`]}</option>)}
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section className="fd3-card sxc sx-water">
+              <SectionHead icon="water" kind="water" title={t.orbD_waterGroup} />
+              <div className="fd3-form">
+                <label className="fd-field">
+                  <Lab text={t.fdIrrigation} on={d.irrigation} t={t} />
+                  <select value={d.irrigation || ""} onChange={(e) => setDetail("irrigation", e.target.value)}>
+                    <option value="">{t.fdChoose}</option>
+                    {IRRIGATION.map((k) => <option key={k} value={k}>{t[`fdIrr_${k}`]}</option>)}
+                  </select>
+                </label>
+                <label className="fd-field">
+                  <Lab text={t.ir2Method} on={d.irrigMethod} t={t} />
+                  <select value={d.irrigMethod || ""} onChange={(e) => setDetail("irrigMethod", e.target.value)}>
+                    <option value="">{t.fdChoose}</option>
+                    {["surface", "sprinkler", "drip"].map((k) => <option key={k} value={k}>{t[`irMethod_${k}`]}</option>)}
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section className="fd3-card fd3-wide sxc sx-crop">
+              <SectionHead icon="crop" kind="crop" title={t.orbD_cropGroup} />
+              <div className="fd3-form fd3-three">
+                <label className="fd-field">
+                  <Lab text={t.fdCurrentCrop} on={d.currentCrop} t={t} />
+                  <input list="fd-crops" value={d.currentCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("currentCrop", e.target.value)} />
+                </label>
+                <label className="fd-field">
+                  <Lab text={t.fdSowMonth} on={d.currentSowMonth !== undefined && d.currentSowMonth !== ""} t={t} />
+                  <select value={d.currentSowMonth ?? ""} disabled={!d.currentCrop} onChange={(e) => setDetail("currentSowMonth", e.target.value)}>
+                    <option value="">{t.fdChoose}</option>
+                    {t.rtMonthsAbbr.split(" ").map((m, i) => <option key={m} value={String(i)}>{m}</option>)}
+                  </select>
+                </label>
+                <label className="fd-field">
+                  <Lab text={t.fdPlannedCrop} on={d.plannedCrop} t={t} />
+                  <input list="fd-crops" value={d.plannedCrop || ""} placeholder={t.fdCropPlaceholder} maxLength={60} onChange={(e) => setDetail("plannedCrop", e.target.value)} />
+                </label>
+                <datalist id="fd-crops">{crops.map((c) => <option key={c} value={c} />)}</datalist>
+              </div>
+            </section>
+
+            <section className="fd3-card fd3-wide sxc sx-history">
+              <SectionHead icon="history" kind="history" title={t.fdHistory}>{seasons.some((r) => r.crop.trim()) && <Chip kind="you">{t.fdYou}</Chip>}</SectionHead>
+              <p className="small muted fd-hist-hint">{t.fdHistoryHint}</p>
+              <div className="fd-hist">
                 {seasons.map((r, i) => (
                   <div className="fd-hist-row" key={i}>
                     <b className="fd-hist-n">{fill(t.fdHistoryRow, { n: num.format(i + 1) })}</b>
@@ -435,13 +450,14 @@ export default function Farms({ t, lang, fields, active, system, plotId, onPlot,
                 ))}
                 {seasons.length < MAX_SEASONS && <button type="button" className="fd-link fd-hist-add" onClick={() => setSeasons([...seasons, { crop: "", sowMonth: "", year: "" }])}>{t.fdHistoryAdd}</button>}
               </div>
-              <label className="fd-field wide">
-                <span>{t.fdNotes} {d.notes && <Chip kind="you">{t.fdYou}</Chip>}</span>
-                <textarea rows={2} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />
-              </label>
-            </div>
-          </details>
-          <p className="small muted">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d) + (!d.soil && sysSoil ? 1 : 0)), total: num.format(DETAIL_KEYS.length) })}</p>
+            </section>
+
+            <section className="fd3-card fd3-wide sxc sx-note">
+              <SectionHead icon="note" kind="note" title={t.fdNotes}>{d.notes && <Chip kind="you">{t.fdYou}</Chip>}</SectionHead>
+              <textarea rows={2} value={d.notes || ""} placeholder={t.fdNotesPlaceholder} maxLength={500} onChange={(e) => setDetail("notes", e.target.value)} />
+            </section>
+          </div>
+          <p className="small muted fd3-saved">✓ {t.fdSaved} · {fill(t.fdDetailsCount, { n: num.format(detailCount(d) + (!d.soil && sysSoil ? 1 : 0)), total: num.format(DETAIL_KEYS.length) })}</p>
         </section>
       )}
 
