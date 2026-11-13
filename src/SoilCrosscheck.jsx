@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { loadSecondMap, lookupSecond, compareSoil, GROUP } from "./soilcheck.js";
 
 // Shown on the Soil tab for places in Bangladesh: the SoilGrids estimate next to a second, different soil map.
-export default function SoilCrosscheck({ t, lang, lat, lon, country, tex }) {
+export default function SoilCrosscheck({ t, lang, lat, lon, country, tex, compact }) {
   const [map, setMap] = useState(undefined); // undefined = loading, null = failed
   useEffect(() => {
     let cancelled = false;
@@ -26,7 +26,7 @@ export default function SoilCrosscheck({ t, lang, lat, lon, country, tex }) {
       .replace("{group}", second ? groupOf(second.group) : "");
 
   return (
-    <section className="soil-card soil-wide sx-card" aria-label={t.sxTitle}>
+    <section className={compact ? "so2-card sx-card" : "soil-card soil-wide sx-card"} aria-label={t.sxTitle}>
       <h3>{t.sxTitle}</h3>
       <p className="muted small">{t.sxIntro}</p>
       {!second && <p className="sx-verdict none">{t.sxMissing}</p>}

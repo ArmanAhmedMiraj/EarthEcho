@@ -1,0 +1,58 @@
+/* Soil, "From orbit to your field" layout */
+.app .so2 { display: grid; gap: 14px; }
+.app .so2 > * { min-width: 0; margin: 0; }
+.app .so2-card { border-radius: 22px; border: 1px solid var(--border); background: var(--panel); padding: 20px 22px; box-shadow: none; }
+.app .so2-card h3 { margin: 0 0 10px; font-size: 1.2rem; display: block; }
+.app .so2-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; align-items: center; border-radius: 26px; padding: 28px; background: linear-gradient(135deg, #2a1d28, #251a2a 60%, #1c1a2b); border: 1px solid rgba(220, 150, 120, 0.3); color: #f4ece8; }
+:root:not([data-theme="dark"]) .app .so2-hero { background: linear-gradient(135deg, #fbeee4, #f4dccc); color: #2b1a12; }
+.app .so2-block { width: 100%; max-width: 440px; justify-self: center; color: inherit; }
+.app .so2-eyebrow { margin: 0 0 4px; font-weight: 700; color: #ffb08c; }
+.app .so2-hero h3 { margin: 0 0 10px; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; letter-spacing: -0.025em; }
+.app .so2-desc { margin: 0 0 10px; font-size: 1.08rem; max-width: 46ch; }
+.app .so2-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.app .so2-pill { font-size: 0.88rem; font-weight: 700; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(61, 219, 192, 0.55); background: rgba(61, 219, 192, 0.14); }
+.app .so2-pill.medium { border-color: var(--amber, #f2c94c); background: rgba(242, 201, 76, 0.14); }
+.app .so2-pill.low { border-color: var(--clay, #ff9478); background: rgba(255, 148, 120, 0.14); }
+.app .so2-pill.soft { font-weight: 500; border-color: rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.08); }
+:root:not([data-theme="dark"]) .app .so2-pill.soft { border-color: var(--border); background: rgba(255, 255, 255, 0.6); }
+.app .so2-know { display: grid; gap: 6px; font-weight: 700; font-size: 0.9rem; max-width: 380px; }
+.app .so2-know select { font: inherit; font-weight: 500; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.3); color: inherit; }
+:root:not([data-theme="dark"]) .app .so2-know select { background: #fff; }
+.app .so2-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.app .so2-bar { height: 40px; border-radius: 12px; }
+.app .so2-bar span { font-size: 0.9rem; }
+.app .so2-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; font-size: 0.9rem; }
+.app .so2-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-inline-end: 6px; }
+.app .so2-meter { position: relative; height: 10px; border-radius: 99px; margin: 10px 0 6px; background: color-mix(in srgb, var(--muted) 25%, transparent); overflow: visible; }
+.app .so2-meter.conf i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #f2c94c, #3ddbc0); }
+.app .so2-meter.wet { background: linear-gradient(90deg, #d08a6a 0 22%, #3ddbc0 22% 52%, #5aa0f5 52% 78%, #3a5fc0 78%); }
+.app .so2-meter.fert { background: linear-gradient(90deg, #f2a07a, #f2c94c 30%, #3ddbc0 60%, #f2a07a); }
+.app .so2-meter u { position: absolute; top: -4px; width: 5px; height: 18px; border-radius: 3px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); transform: translateX(-50%); }
+.app .so2-scale { display: flex; justify-content: space-between; gap: 4px; font-size: 0.72rem; color: var(--muted); margin: 2px 0 8px; }
+.app .so2-wet { display: grid; gap: 14px; }
+.app .so2-wetlabel { display: flex; justify-content: space-between; margin: 0; font-weight: 700; }
+.app .so2-line { margin: 4px 0; }
+.app .so2-card .soil-conf { font-size: 1rem; }
+.app .sx-card.so2-card .sx-two { grid-template-columns: repeat(2, minmax(0, 320px)); }
+.app .so2-card .sx-two { gap: 8px; }
+.app .so2-h { margin: 8px 0 0; font-size: 1.3rem; }
+.app .so2-fert { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.app .so2-f { padding: 18px 20px; }
+.app .so2-f p { margin: 3px 0; }
+.app .so2-fname { color: var(--muted); }
+.app .so2-fbig { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
+.app .so2-fbig small { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.app .so2-fword { font-weight: 800; }
+.app .so2-fword.good { color: var(--a1, #3ddbc0); }
+.app .so2-fword.mid { color: var(--gold, #f2c94c); }
+.app .so2-fsrc { margin: -6px 0 0; }
+.app .so2-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.app .so2-means { border-color: rgba(61, 219, 192, 0.4); background: color-mix(in srgb, var(--a1, #3ddbc0) 8%, var(--panel)); }
+.app .so2-means ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; }
+.app .so2-card .wf-actions { margin-top: 12px; }
+@media (max-width: 1200px) { .app .so2-trio { grid-template-columns: 1fr; } .app .so2-fert { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 800px) {
+  .app .so2-hero { grid-template-columns: 1fr; padding: 18px; }
+  .app .so2-two { grid-template-columns: 1fr; }
+  .app .so2-fert { grid-template-columns: 1fr; }
+}

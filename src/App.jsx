@@ -1254,6 +1254,7 @@ export default function App() {
             onGo={(id) => { window.location.hash = `/${id}`; }}
             chosen={soilChoice !== "auto" ? soilChoice : null}
             suggested={soil}
+            onFieldChange={patchPlot}
           />
         </main>
       )}
