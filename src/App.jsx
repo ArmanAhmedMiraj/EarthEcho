@@ -1120,7 +1120,7 @@ export default function App() {
       {stage === "app" && tab === "weather" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.step3}</h2>
+            <h2 className="sr-only">{t.step3}</h2>
             <Weather
               key={`${pos.lat},${pos.lon}`}
               t={t}

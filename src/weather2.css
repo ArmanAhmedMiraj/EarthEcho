@@ -1,0 +1,51 @@
+/* Weather, "From orbit to your field" layout */
+.app .wx2 { display: block; }
+.app .wx2 .wx-sky { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: center; padding: 30px; margin: 0 0 16px; min-height: 280px; }
+.app .wx2 .wx-sky.day { color: #0b1235; background: radial-gradient(420px 200px at 70% -20%, rgba(255, 230, 150, 0.9), transparent 70%), linear-gradient(180deg, #2f6fd0 0%, #6fb0f5 50%, #f3c98f 100%); }
+.app .wx2 .wx-sky.night { color: #eef1ff; background: linear-gradient(180deg, #0b1235 0%, #1d2d78 60%, #3a3f86 100%); }
+.app .wx-today { margin: 0 0 6px; font-weight: 700; }
+.app .wx-headline { margin: 0 0 10px; font-size: clamp(2rem, 4.4vw, 3.6rem); line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; }
+.app .wx-range { margin: 0 0 6px; font-weight: 700; font-size: 1.05rem; }
+.app .wx-nowline { margin: 0; font-size: 0.92rem; opacity: 0.9; }
+.app .wx-nowline small { opacity: 0.85; }
+.app .wx2 .wx-sky-r { background: rgba(8, 14, 38, 0.72); color: #eef1ff; border-radius: 20px; padding: 16px 18px; border: 1px solid rgba(255, 255, 255, 0.15); }
+.app .wx-tmr { margin: 6px 0 0; text-align: right; }
+.app .wx-pills { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin: 0 0 14px; }
+.app .wx-pills > b { font-size: 1rem; margin-inline-end: 4px; }
+.app .wx-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 16px; border: 1px solid var(--border-strong, var(--border)); background: var(--panel); font-size: 0.86rem; font-weight: 600; max-width: 560px; }
+.app .wx-pill i { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--gold, #f6cf6a); }
+.app .wx-pill.calm i { background: var(--accent); }
+.app .wx-pill.severe, .app .wx-pill.danger { border-color: rgba(255, 148, 120, 0.6); } .app .wx-pill.severe i, .app .wx-pill.danger i { background: #ff9478; }
+.app .wx-pill.watch, .app .wx-pill.warning { border-color: rgba(246, 207, 106, 0.6); }
+.app .wx2 .wx-facts { margin: 0 0 16px; }
+.app .wx-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.app .wx-card { border: 1px solid var(--border); border-radius: 22px; background: var(--panel); padding: 20px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.app .wx-card > h3, .app .wx-card .wf-h { margin: 0 0 4px; font-size: 1.15rem; }
+.app .wx-card .vc, .app .wx-card .wf-sec { border: 0; background: none; box-shadow: none; padding: 0; margin: 0; }
+.app .wx-card p { margin: 0; }
+.app .wx-hourbar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; }
+.app .wx-hourbar i { height: 30px; border-radius: 4px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+.app .wx-hourbar i.on { background: var(--accent); }
+.app .wx-hourlab { display: flex; justify-content: space-between; }
+.app .wx-split { padding-top: 8px; border-top: 1px solid var(--border); font-size: 0.9rem; }
+.app .wx-bal { display: flex; justify-content: space-between; font-size: 0.92rem; margin-top: 4px; }
+.app .wx-balbar { height: 12px; border-radius: 8px; background: color-mix(in srgb, var(--muted) 25%, transparent); overflow: hidden; }
+.app .wx-balbar i { display: block; height: 100%; border-radius: 8px; }
+.app .wx-balbar i.rain { background: #5aa7ff; } .app .wx-balbar i.need { background: var(--gold, #f6cf6a); }
+.app .wx-verdict { font-weight: 800; font-size: 1.1rem; margin-top: 8px !important; }
+.app .wx-strip-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
+.app .wx-strip-head h3 { margin: 0; font-size: 1.15rem; }
+.app .wx-strip-card { margin-bottom: 16px; }
+.app .wx-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(40px, 1fr); gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+.app .wx-col { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; border-radius: 12px; font-size: 0.78rem; }
+.app .wx-col.today { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.app .wx-col.far { opacity: 0.78; }
+.app .wx-col .ic { font-size: 1.1rem; line-height: 1; }
+.app .wx-colbar { height: 72px; display: flex; align-items: flex-end; }
+.app .wx-colbar i { display: block; width: 12px; border-radius: 4px 4px 0 0; background: #5aa7ff; }
+.app .wx-coloff { color: var(--muted); font-size: 0.72rem; }
+.app .wx-duo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; margin-bottom: 16px; align-items: start; }
+.app .wx-duo.even { grid-template-columns: 1fr 1fr; }
+.app .wx-duo .wf-plan { grid-template-columns: 1fr; }
+@media (max-width: 1000px) { .app .wx-trio, .app .wx-duo, .app .wx-duo.even { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .app .wx2 .wx-sky { grid-template-columns: 1fr; padding: 20px; } .app .wx-strip { grid-auto-columns: 44px; } }
