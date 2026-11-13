@@ -1,0 +1,36 @@
+/* Disaster watch, "From orbit to your field" layout */
+.app .ds2 { display: block; }
+.app .ds2-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; align-items: stretch; }
+.app .ds2-radar { border: 1px solid var(--border); border-radius: 24px; background: var(--panel); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.app .ds2-radar .vz-radar { width: min(100%, 440px); height: auto; }
+.app .ds2-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: center; margin: 0; }
+.app .ds2-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.app .ds2-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.app .ds2-right { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.app .ds2-overall { border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border)); border-radius: 24px; padding: 20px 22px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.app .ds2-overall.watch { border-color: var(--gold, #f6cf6a); background: color-mix(in srgb, var(--gold, #f6cf6a) 10%, var(--panel)); }
+.app .ds2-overall.alert { border-color: var(--clay, #ff9478); background: color-mix(in srgb, var(--clay, #ff9478) 12%, var(--panel)); }
+.app .ds2-kick { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
+.app .ds2-overall.watch .ds2-kick { color: var(--gold, #f6cf6a); } .app .ds2-overall.alert .ds2-kick { color: var(--clay, #ff9478); }
+.app .ds2-big { font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+.app .ds2-overall .ds-sum { margin: 0; padding-left: 18px; font-size: 0.92rem; }
+.app .ds2 .ds-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.app .ds2 .ds-tile { border-radius: 18px; padding: 12px 14px; border-top-width: 3px; }
+.app .ds2-pair { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; align-items: start; }
+.app .ds2-pair.one { grid-template-columns: 1fr; }
+.app .ds2-card { border: 1px solid var(--border); border-radius: 22px; background: var(--panel); padding: 20px; min-width: 0; }
+.app .ds2-card > h3, .app .ds2-card .rv-card > h3, .app .ds2-card .up-wrap2 > h3 { margin: 0 0 8px; font-size: 1.15rem; }
+.app .ds2-card .rv-card, .app .ds2-card .up-wrap2 { border: 0; background: none; box-shadow: none; padding: 0; margin: 0; }
+.app .ds2-map { margin-bottom: 18px; padding: 14px; }
+.app .ds2-map .up-wrap2 { padding: 0; }
+.app .ds2-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; align-items: start; }
+.app .ds2-three .ds-list li { flex-wrap: wrap; }
+.app .ds2-todo { border-color: color-mix(in srgb, var(--gold, #f6cf6a) 55%, var(--border)); max-width: 520px; margin-bottom: 14px; }
+.app .ds2-todo h3 { margin: 0 0 6px; }
+@media (max-width: 1000px) {
+  .app .ds2-top, .app .ds2-pair, .app .ds2-three { grid-template-columns: 1fr; }
+}
+.app .ds2-card .up-journey .up-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; font-size: 0.78rem; }
+.app .ds2-card .up-journey li { padding-block: 8px; }
+.app .ds2-card .up-journey .up-facts span { font-size: 0.7rem; }
+.app .ds2-card .up-why summary { font-size: 0.78rem; }

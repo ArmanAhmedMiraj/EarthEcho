@@ -6,7 +6,8 @@ const fill = (text, values) => Object.keys(values).reduce((s, k) => s.split(`{${
 const RANK = { calm: 0, watch: 1, alert: 2 };
 const ext = (url, label) => <a href={url} target="_blank" rel="noopener noreferrer">{label}</a>;
 
-export default function Upstream({ t, locale, rw }) {
+export default function Upstream({ t, locale, rw, part }) {
+  const show = (p) => !part || part === p;
   const nf = useMemo(() => new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }), [locale]);
   const nf1 = useMemo(() => new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }), [locale]);
   const dateF = useMemo(() => { const f = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }); return (s) => f.format(new Date(`${s}T00:00:00Z`)); }, [locale]);
@@ -28,7 +29,8 @@ export default function Upstream({ t, locale, rw }) {
   const nasaDays = stations.map((s) => (s.rain ? s.rain.nasaDays : 0)).reduce((a, b) => Math.max(a, b), 0);
 
   return (
-    <section className="up-wrap2" id="ds-upstream" aria-labelledby="ur-title">
+    <section className={`up-wrap2${part ? " up-part" : ""}`} id={show("journey") ? "ds-upstream" : undefined} aria-labelledby={show("journey") ? "ur-title" : undefined}>
+      {show("journey") && <>
       <h3 id="ur-title">{t.urTitle}
         <Info t={t} source="GloFAS · NASA POWER · NASA GIBS">
           <span>{t.urInfoHow}</span>
@@ -100,9 +102,11 @@ export default function Upstream({ t, locale, rw }) {
       </ol>
       {rw.failed.includes("stations") && <p className="warn small">{t.urPartial}</p>}
       {nasaDays === 0 && null}
+      </>}
 
-      <UpstreamMap t={t} lat={rw.location.lat} lon={rw.location.lon} river={rw.river} lines={rw.lines} stations={stations} order={stations.map((s) => s.id)} />
+      {show("map") && <UpstreamMap t={t} lat={rw.location.lat} lon={rw.location.lon} river={rw.river} lines={rw.lines} stations={stations} order={stations.map((s) => s.id)} />}
 
+      {show("events") && <>
       <h4 className="wf-sub">{t.urEvTitle}
         <Info t={t} source="GDACS · NASA EONET">
           <span>{t.dsSrcGdacs}</span>
@@ -121,6 +125,7 @@ export default function Upstream({ t, locale, rw }) {
           ))}
         </ul>
       )}
+      </>}
     </section>
   );
 }

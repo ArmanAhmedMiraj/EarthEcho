@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./disasters.css";
+import "./disasters2.css";
 import { DISASTER_OFFICES } from "./i18nDisasters.js";
 import { TWO_LETTER } from "./i18nWeather.js";
 import Info from "./Info.jsx";
@@ -127,116 +128,114 @@ export default function Disasters({ t, lang, lat, lon, country: appCountry }) {
   const quakeLv = base.earthquakes.some((q) => q.magnitude >= 6 && q.km <= 300) ? "alert" : base.earthquakes.some((q) => q.magnitude >= 5 && q.km <= 300) ? "watch" : "calm";
   const alertLv = base.alerts.some((a) => a.alert === "red") ? "alert" : nearby.length ? "watch" : "calm";
 
+  const kindsLegend = [["quake", t.orbDsQ, "#ff9478"], ["alert", t.orbDsA, "#f6cf6a"], ["you", t.orbDsYou, "#3ddbc0"]];
+
   return (
-    <div className="ds-page">
-      <p className="muted">{t.dsIntro}</p>
+    <div className="ds-page ds2">
       {state === "failed" && (
         <p className="warn small">{t.dsFailed} <button className="tab" onClick={load}>{t.dsRetry}</button></p>
       )}
       {data && data.failed.length > 0 && (
         <p className="warn small">{t.dsPartial.replace("{list}", data.failed.filter((f) => f !== "river").map((f) => t[`src_${f}`]).join(", "))}</p>
       )}
-      <div className={`ds-level ${level}`}>
-        <span className="ds-dot" aria-hidden="true" />
-        <div><span className="muted small">{t.levelTitle}</span><br /><strong>{t[`level_${level}`]}</strong></div>
-      </div>
 
-      <div className="ds-radar">
-        <Radar
-          tone={level}
-          label={t[`level_${level}`]}
-          maxKm={500}
-          items={[
-            ...base.earthquakes.map((q) => ({ km: q.km, big: q.magnitude >= 5, tone: q.magnitude >= 6 ? "alert" : q.magnitude >= 5 ? "watch" : "calm", title: `M ${num.format(q.magnitude)}` })),
-            ...nearby.map((e) => ({ km: e.km, big: true, tone: e.alert === "red" ? "alert" : "watch", title: e.title })),
-          ]}
-        />
-        <div>
-          <h3>{t.levelTitle}: {t[`level_${level}`]}</h3>
-          <p className="muted">{t.dsGlQuakeSub}</p>
-          <p className="small muted">0 – 500 km</p>
+      <div className="ds2-top">
+        <section className={`ds2-radar ${level}`} aria-label={t.levelTitle}>
+          <Radar
+            tone={level}
+            label={t[`level_${level}`]}
+            maxKm={500}
+            items={[
+              ...base.earthquakes.map((q) => ({ km: q.km, big: q.magnitude >= 5, tone: q.magnitude >= 6 ? "alert" : q.magnitude >= 5 ? "watch" : "calm", title: `M ${num.format(q.magnitude)}` })),
+              ...nearby.map((e) => ({ km: e.km, big: true, tone: e.alert === "red" ? "alert" : "watch", title: e.title })),
+            ]}
+          />
+          <p className="ds2-legend small">{kindsLegend.map(([k, label, col]) => <span key={k}><i style={{ background: col }} />{label}</span>)}<span className="muted">0 – 500 km</span></p>
+        </section>
+        <div className="ds2-right">
+          <section className={`ds2-overall ${level}`}>
+            <span className="ds2-kick">{t.levelTitle}</span>
+            <strong className="ds2-big">{t[`level_${level}`]}</strong>
+            {lines.length > 0 && (
+              <>
+                <ul className="ds-sum">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                <Info t={t} source="USGS · GDACS · NASA EONET · GloFAS">
+                  <b>{t.dsSrcTitle}</b>
+                  <ul><li>{t.dsSrcQuake}</li><li>{t.dsSrcGdacs}</li><li>{t.dsSrcEonet}</li><li>{t.rvInfoSource}</li></ul>
+                  <span>{t.dsSrcNote}</span>
+                </Info>
+              </>
+            )}
+          </section>
+          <div className="ds-tiles">
+            {tile("ds-quakes", t.dsGlQuake, base.earthquakes.length ? `M ${num.format(base.earthquakes[0].magnitude)}` : t.dsGlQuakeNone, t.dsGlQuakeSub, quakeLv)}
+            {tile("ds-alerts", t.dsGlAlerts, nearby.length ? whole.format(nearby.length) : t.dsGlAlertsNone, t.dsGlAlertsSub, alertLv)}
+            {tile("ds-river", t.dsGlRiver, flow ? t[`rvShort_${rState}`] : "…", riverName || "", flow ? (riverLevel === "alert" ? "alert" : riverLevel === "watch" ? "watch" : "calm") : "calm")}
+            {inBd && tile("ds-upstream", t.dsGlUp, rw ? t[`urLevel_${upWorst}`] : "…", t.dsGlUpSub, upWorst)}
+          </div>
         </div>
       </div>
 
-      <section className="vc">
-<h3>{t.dsGlance}</h3>
-      <div className="ds-tiles">
-        {tile("ds-quakes", t.dsGlQuake, base.earthquakes.length ? `M ${num.format(base.earthquakes[0].magnitude)}` : t.dsGlQuakeNone, t.dsGlQuakeSub, quakeLv)}
-        {tile("ds-alerts", t.dsGlAlerts, nearby.length ? whole.format(nearby.length) : t.dsGlAlertsNone, t.dsGlAlertsSub, alertLv)}
-        {tile("ds-river", t.dsGlRiver, flow ? t[`rvShort_${rState}`] : "…", riverName || "", flow ? (riverLevel === "alert" ? "alert" : riverLevel === "watch" ? "watch" : "calm") : "calm")}
-        {inBd && tile("ds-upstream", t.dsGlUp, rw ? t[`urLevel_${upWorst}`] : "…", t.dsGlUpSub, upWorst)}
-      </div>
-      </section>
-      <section className="vc">
-{lines.length > 0 && (
-        <>
-          <h3>{t.sumTitle}
-            <Info t={t} source="USGS · GDACS · NASA EONET · GloFAS">
-              <b>{t.dsSrcTitle}</b>
-              <ul><li>{t.dsSrcQuake}</li><li>{t.dsSrcGdacs}</li><li>{t.dsSrcEonet}</li><li>{t.rvInfoSource}</li></ul>
-              <span>{t.dsSrcNote}</span>
-            </Info>
-          </h3>
-          <ul className="ds-sum">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
-        </>
-      )}
-      </section>
-      <section className="vc">
-<h3 id="ds-alerts">{t.alertsTitle}
-        <Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info>
-      </h3>
-      {nearby.length === 0 ? <p className="muted">{t.alertsNone}</p> : (
-        <ul className="ds-list">
-          {nearby.map((e, i) => (
-            <li key={i}>
-              {e.alert && <span className={`ds-chip ${e.alert}`}>{t[`alertLevel_${e.alert}`] || e.alert}</span>}
-              <span className="ds-chip">{t[`kind_${e.kind}`]}</span>
-              {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : <strong>{e.title}</strong>}
-              <span className="muted small">{t.away.replace("{km}", whole.format(e.km))}{e.size ? ` · ${e.size}` : ""}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      </section>
-      <section className="vc">
-<h3 id="ds-quakes">{t.quakeTitle}
-        <Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info>
-      </h3>
-      {base.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
-        <ul className="ds-quakes">
-          {base.earthquakes.map((q, i) => {
-            const k = q.magnitude >= 5.5 ? "high" : q.magnitude >= 4.5 ? "mid" : "low";
-            return (
-              <li key={i}>
-                <span className={`ds-mag ${k}`}>{num.format(q.magnitude)}</span>
-                <div>
-                  <a href={q.url} target="_blank" rel="noopener noreferrer">{t.away.replace("{km}", whole.format(q.km))} · {dateFmt.format(new Date(q.time))}</a>
-                  <span className="small muted">{q.title.replace(/^M [\d.]+ - /, "")}</span>
-                  <span className="small">{t[`qFelt_${k}`]} · {t.quakeDepth.replace("{depth}", whole.format(q.depthKm))}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-      <p className="muted small">{t.qNoteShort}</p>
-      </section>
-      <section className="vc">
-{rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
+      {rwState === "loading" && <p className="muted small">{t.urLoading}</p>}
       {rwState === "failed" && <p className="warn small">{t.urFailed} <button className="tab" onClick={loadRiver}>{t.urRetry}</button></p>}
-      {rw && <RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} />}
-      {inBd && rw && rw.stations.length > 0 && <Upstream t={t} locale={locale} rw={rw} />}
-      </section>
-      <section className="vc">
-{tips.length > 0 && (
-        <>
+      <div className={`ds2-pair${inBd && rw && rw.stations.length > 0 ? "" : " one"}`}>
+        {rw && <div className="ds2-card"><RiverNow t={t} locale={locale} flow={flow} name={riverName} km={inBd ? rw.river.km : 0} within={inBd ? rw.river.within : true} anyRiver={!inBd} /></div>}
+        {inBd && rw && rw.stations.length > 0 && <div className="ds2-card"><Upstream t={t} locale={locale} rw={rw} part="journey" /></div>}
+      </div>
+      {inBd && rw && rw.stations.length > 0 && <div className="ds2-card ds2-map"><Upstream t={t} locale={locale} rw={rw} part="map" /></div>}
+
+      <div className="ds2-three">
+        <section className="ds2-card">
+          <h3 id="ds-alerts">{t.alertsTitle}
+            <Info t={t} source="GDACS · NASA EONET"><span>{t.dsSrcGdacs}</span><span>{t.dsSrcEonet}</span><span>{t.gdacsNote}</span></Info>
+          </h3>
+          {nearby.length === 0 ? <p className="muted">{t.alertsNone}</p> : (
+            <ul className="ds-list">
+              {nearby.map((e, i) => (
+                <li key={i}>
+                  {e.alert && <span className={`ds-chip ${e.alert}`}>{t[`alertLevel_${e.alert}`] || e.alert}</span>}
+                  <span className="ds-chip">{t[`kind_${e.kind}`]}</span>
+                  {e.url ? <a href={e.url} target="_blank" rel="noopener noreferrer">{e.title}</a> : <strong>{e.title}</strong>}
+                  <span className="muted small">{t.away.replace("{km}", whole.format(e.km))}{e.size ? ` · ${e.size}` : ""}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        <section className="ds2-card">
+          <h3 id="ds-quakes">{t.quakeTitle}
+            <Info t={t} source="USGS"><span>{t.dsSrcQuake}</span><span>{t.quakeNote}</span></Info>
+          </h3>
+          {base.earthquakes.length === 0 ? <p className="muted">{t.quakeNone}</p> : (
+            <ul className="ds-quakes">
+              {base.earthquakes.map((q, i) => {
+                const k = q.magnitude >= 5.5 ? "high" : q.magnitude >= 4.5 ? "mid" : "low";
+                return (
+                  <li key={i}>
+                    <span className={`ds-mag ${k}`}>{num.format(q.magnitude)}</span>
+                    <div>
+                      <a href={q.url} target="_blank" rel="noopener noreferrer">{t.away.replace("{km}", whole.format(q.km))} · {dateFmt.format(new Date(q.time))}</a>
+                      <span className="small muted">{q.title.replace(/^M [\d.]+ - /, "")}</span>
+                      <span className="small">{t[`qFelt_${k}`]} · {t.quakeDepth.replace("{depth}", whole.format(q.depthKm))}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="muted small">{t.qNoteShort}</p>
+        </section>
+        {inBd && rw && rw.stations.length > 0 && <section className="ds2-card"><Upstream t={t} locale={locale} rw={rw} part="events" /></section>}
+      </div>
+
+      {tips.length > 0 && (
+        <section className="ds2-card ds2-todo">
           <h3>{t.tipsTitle}</h3>
           <ul>{tips.map((x, i) => <li key={i}>{x}</li>)}</ul>
           <p className="muted small">{t.tipsNote}</p>
-        </>
+        </section>
       )}
-      </section>
-      <p className="muted small">{t.goWeather}</p>
+      <p className="muted small">{t.dsIntro} {t.goWeather}</p>
       {office && (
         <p className="small">
           {t.officialTitle}: <a href={office.url} target="_blank" rel="noopener noreferrer">{office.name}</a>

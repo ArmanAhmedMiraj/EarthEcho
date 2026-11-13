@@ -70,4 +70,4 @@
   .app .fd2 .fd-seg { display: flex; width: 100%; }
   .app .fd2 .fd-seg button { flex: 1; padding: 9px 6px; font-size: 0.8rem; }
 }
-html[data-tab="farms"] .ctx-sub, html[data-tab="rotation"] .ctx-sub, html[data-tab="weather"] .ctx-sub { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+html[data-tab="farms"] .ctx-sub, html[data-tab="rotation"] .ctx-sub, html[data-tab="weather"] .ctx-sub, html[data-tab="disasters"] .ctx-sub { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

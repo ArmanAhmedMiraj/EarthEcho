@@ -1153,7 +1153,7 @@ export default function App() {
       {stage === "app" && tab === "disasters" && (
         <main className="page">
           <div className="viewer">
-            <h2>{t.dsTitle}</h2>
+            <h2 className="sr-only">{t.dsTitle}</h2>
             <Disasters key={`${pos.lat},${pos.lon}`} t={t} lang={lang} lat={pos.lat} lon={pos.lon} country={country} />
           </div>
         </main>
