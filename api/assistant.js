@@ -162,6 +162,24 @@ async function openGroq(system, user, maxTokens = 700) {
   throw new Error(errors.join(" | ").slice(0, 400));
 }
 
+// Optional local model: when OLLAMA_URL is set (for example http://localhost:11434) the assistant asks a local open-weight model
+// through Ollama's OpenAI-compatible endpoint first. Nothing leaves the machine, it costs nothing and it works offline.
+// OLLAMA_MODEL picks the model (default llama3.2:3b). It streams in the same format as Groq, so the same reader is used.
+async function openLocal(system, user, maxTokens = 700) {
+  const base = String(process.env.OLLAMA_URL).replace(/\/$/, "");
+  const response = await fetch(`${base}/v1/chat/completions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({
+      model: process.env.OLLAMA_MODEL || "llama3.2:3b", stream: true, temperature: 0.3, max_tokens: maxTokens,
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+  if (!response.ok) throw new Error(`local model: HTTP ${response.status}`);
+  return response;
+}
+
 const clip = (v, n) => String(v == null ? "" : v).slice(0, n);
 
 export default async function handler(req, res) {
@@ -218,7 +236,11 @@ export default async function handler(req, res) {
     const user = `FARM DATA (live, from the app):\n${farm || "(none)"}\n\nKNOWLEDGE:\n${knowledge || "(nothing matched)"}\n\nQUESTION:\n${question}\n\n(Answer language: ${lang === "bn" ? "Bengali, বাংলায় উত্তর দিন" : "English"}.)`;
     let upstream;
     let kind = "gemini";
-    if (process.env.GROQ_API_KEY) {
+    if (process.env.OLLAMA_URL) {
+      try { upstream = await openLocal(system, user, maxTokens); kind = "groq"; } // same streaming format as Groq
+      catch { /* local model not running: fall through to Groq or Gemini */ }
+    }
+    if (!upstream && process.env.GROQ_API_KEY) {
       try { upstream = await openGroq(system, user, maxTokens); kind = "groq"; }
       catch (e) {
         // if Groq is down or limited, use Gemini when its key is also set
