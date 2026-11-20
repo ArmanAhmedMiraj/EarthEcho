@@ -7,7 +7,7 @@ then writes a short, plain-language brief for one plot.
 
 Setup (once):    pip install -r agents/requirements.txt
 Run:             python agents/farm_advisor.py --lat 24.78 --lon 89.31 --country BD "What should I do this week?"
-Model:           AGENT_MODEL (default groq:llama-3.3-70b-versatile, needs GROQ_API_KEY in the environment).
+Model:           AGENT_MODEL (default groq:openai/gpt-oss-120b, needs GROQ_API_KEY in the environment).
 Dry run:         AGENT_MODEL=test runs the same agent with a scripted offline model (no key) that calls three real tools,
                  to check the tool wiring.
 """
@@ -65,7 +65,7 @@ async def main():
     p.add_argument("--lon", type=float, default=89.31)
     p.add_argument("--country", default="BD")
     a = p.parse_args()
-    name = os.environ.get("AGENT_MODEL", "groq:llama-3.3-70b-versatile")
+    name = os.environ.get("AGENT_MODEL", "groq:openai/gpt-oss-120b")
     model = scripted_model(a.lat, a.lon, a.country) if name == "test" else name
     agent = build_agent(model)
     prompt = f"Plot at latitude {a.lat}, longitude {a.lon}, country {a.country}. {' '.join(a.question)}"
