@@ -25,7 +25,7 @@ Team **NeuroNex** · Domain **AgriSphere AI** · Challenge **Climate Smart Farmi
 | | |
 |---|---|
 | **Live app** | https://earth-echo-nine.vercel.app/ |
-| **Demo account (phone)** | `018564344011` |
+| **Demo account (phone)** | `01856434401` |
 | **Demo account (password)** | `1234567890` |
 | **No account?** | Tap **Start as a guest** on the first screen. Everything works the same; it is saved on that phone only. |
 | **Demo place** | Mokamtala, Shibganj, Bogura, Bangladesh |
