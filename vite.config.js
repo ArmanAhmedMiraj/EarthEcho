@@ -53,5 +53,6 @@ export default defineConfig(({ mode }) => {
   // secret keys for the local API (for example GEMINI_API_KEY) are read from the file .env.local, which is never committed
   const env = loadEnv(mode, process.cwd(), "");
   for (const [k, v] of Object.entries(env)) if (process.env[k] === undefined) process.env[k] = v;
-  return { plugins: [react(), localApi()] };
+  // allowedHosts lets a temporary Cloudflare quick tunnel (https://....trycloudflare.com) reach the dev server, so the app can be tested on a phone
+  return { plugins: [react(), localApi()], server: { allowedHosts: [".trycloudflare.com"] } };
 });
