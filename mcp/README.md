@@ -23,3 +23,9 @@ Tools: `get_soil`, `get_environment`, `get_hazards`, `get_dry_spell`.
 ```json
 { "mcpServers": { "earthecho-live": { "command": "node", "args": ["mcp/earthecho-live-mcp.js"] } } }
 ```
+
+## Third server and a client
+
+`node mcp/earthecho-market-mcp.js` serves nearby market prices (`get_market_prices`, `list_supported_countries`).
+
+`node mcp/client-demo.js` is a small MCP client that starts all three servers over stdio, performs the handshake, lists their tools and calls one tool on each.
