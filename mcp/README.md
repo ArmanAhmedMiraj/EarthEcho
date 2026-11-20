@@ -13,3 +13,13 @@ Client config example:
 ```
 
 It reuses `api/_lib/knowledge.js`, `retrieve.js` and `ecocrop.js`, the same code the in-app assistant uses.
+
+## Second server: live plot data
+
+`node mcp/earthecho-live-mcp.js` serves live data for a latitude and longitude by calling EarthEcho's own public API (set `EARTHECHO_API` to use another deployment).
+
+Tools: `get_soil`, `get_environment`, `get_hazards`, `get_dry_spell`.
+
+```json
+{ "mcpServers": { "earthecho-live": { "command": "node", "args": ["mcp/earthecho-live-mcp.js"] } } }
+```
