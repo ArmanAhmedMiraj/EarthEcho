@@ -17,7 +17,8 @@ export function buildIndex(docs) {
   return { entries, df, avg, n: entries.length };
 }
 
-export function search(index, question, k = 5) {
+// Same ranking, but keeps each piece's BM25 score so the caller can grade how good the match is.
+export function searchScored(index, question, k = 5) {
   const q = [...new Set(words(question))];
   const k1 = 1.4, b = 0.75;
   const scored = index.entries.map((e) => {
@@ -30,5 +31,9 @@ export function search(index, question, k = 5) {
     }
     return { doc: e.doc, score };
   });
-  return scored.filter((s) => s.score > 0).sort((a, b2) => b2.score - a.score).slice(0, k).map((s) => s.doc);
+  return scored.filter((s) => s.score > 0).sort((a, b2) => b2.score - a.score).slice(0, k);
+}
+
+export function search(index, question, k = 5) {
+  return searchScored(index, question, k).map((s) => s.doc);
 }

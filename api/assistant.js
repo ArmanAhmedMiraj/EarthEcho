@@ -5,7 +5,7 @@
 // The Gemini key is read from the server setting GEMINI_API_KEY. It is never in the code and never sent to the browser.
 import speakHandler from "./_lib/voice.js";
 import { DOCS } from "./_lib/knowledge.js";
-import { buildIndex, search } from "./_lib/retrieve.js";
+import { buildIndex, searchScored } from "./_lib/retrieve.js";
 import CROPS from "./_lib/ecocrop.js";
 
 const INDEX = buildIndex(DOCS);
@@ -184,7 +184,21 @@ export default async function handler(req, res) {
   const maxTokens = strategyMode ? (lang === "bn" ? 1800 : 1100) : 700;
 
   try {
-    const found = search(INDEX, `${englishHints(question)} ${question}`, 5);
+    // Corrective retrieval (CRAG style): grade the matches, drop weak ones, and if the best match is poor,
+    // search again with the crops named in this farm's own data (for example "is it a good time now?" becomes about the farmer's crop).
+    const GOOD = 2.0, KEEP = 0.3;
+    const hints = englishHints(question);
+    let ranked = searchScored(INDEX, `${hints} ${question}`, 6);
+    if (!ranked.length || ranked[0].score < GOOD) {
+      const farmLower = farm.toLowerCase();
+      const own = CROPS.filter((c) => farmLower.includes(String(c.en).toLowerCase())).map((c) => `${c.en} ${c.id}`).join(" ");
+      if (own) {
+        const retry = searchScored(INDEX, `${hints} ${question} ${own}`, 6);
+        if (retry.length && (!ranked.length || retry[0].score > ranked[0].score)) ranked = retry;
+      }
+    }
+    const top = ranked.length ? ranked[0].score : 0;
+    const found = ranked.filter((r) => r.score >= top * KEEP).slice(0, 5).map((r) => r.doc);
     const sources = found.map((d, i) => ({ n: i + 1, id: d.id, title: d.title, url: d.url }));
     const knowledge = found.map((d, i) => `[S${i + 1}] ${d.title}\n${d.text}`).join("\n\n");
 
