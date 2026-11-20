@@ -508,14 +508,6 @@ The repository contains no real phone numbers, addresses or keys. All secrets ar
 
 **Team NeuroNex**, Bangladesh. *Think Beyond. Build Beyond.* Six members.
 
-| Name | Role |
-|---|---|
-| Arman Ahmed Miraj | Team lead |
-| Rawnak Alam | Developer |
-| Rifat Nur Shafin | Researcher |
-| Rokaya Sultana Raka | Designer |
-| Shinthiya Islam Ayshi | Presenter and storyteller |
-| Md. Abid Hasan Khan | Data scientist |
 
 All members are from Daffodil International University, Dhaka.
 
