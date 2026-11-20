@@ -1,0 +1,18 @@
+# Weekly health check of the live app and its data APIs. Also runs on demand (Actions tab, "Run workflow").
+name: Live health check
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the live site and its APIs
+        run: |
+          BASE=https://earth-echo-nine.vercel.app
+          for path in "/" "/api/soil?lat=24.78&lon=89.31" "/api/markets?country=BD&lat=24.78&lon=89.31" "/api/dryspell?lat=24.78&lon=89.31"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$BASE$path")
+            echo "$code $path"
+            [ "$code" = "200" ] || exit 1
+          done

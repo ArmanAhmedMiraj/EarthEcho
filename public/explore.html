@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EarthEcho data explorer</title>
+<style>
+  body{margin:0;background:#0a0f2a;color:#eef1ff;font-family:system-ui,Segoe UI,Arial,sans-serif;line-height:1.5}
+  main{max-width:1000px;margin:0 auto;padding:24px 18px 48px}
+  h1{font-size:30px;margin:0 0 6px} h2{font-size:19px;margin:0 0 4px}
+  p{color:#aab3d8;margin:0 0 14px;font-size:15px}
+  section{background:#0e1738;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px;margin:18px 0}
+  #temp{height:560px} #groups{max-height:320px} svg text{fill:#aab3d8;font-size:12px}
+  a{color:#3ddbc0}
+</style>
+</head>
+<body>
+<main>
+  <h1>EarthEcho data explorer</h1>
+  <p>Three views of the FAO EcoCrop table that powers the Suitability and Rotation planner pages. <a href="/">Open the app</a></p>
+
+  <section>
+    <h2>Temperature each crop tolerates</h2>
+    <p>Plotly: the pale bar is the survivable range, the bright bar is the best range (°C).</p>
+    <div id="temp"></div>
+  </section>
+
+  <section>
+    <h2>Crops by group</h2>
+    <p>Chart.js: how many crops of each group are in the table.</p>
+    <canvas id="groups"></canvas>
+  </section>
+
+  <section>
+    <h2>Growing cycle length</h2>
+    <p>D3.js: shortest against longest growing cycle in days. Hover a dot for the crop name.</p>
+    <svg id="cycle" viewBox="0 0 900 420" width="100%"></svg>
+  </section>
+
+  <p>Source: FAO EcoCrop ranges (expert opinion), from the CRAN package Recocrop. Same data file the app reads: /crops/ecocrop.json</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script>
+fetch("/crops/ecocrop.json").then((r) => r.json()).then((data) => {
+  const crops = data.crops;
+  const COLORS = ["#3ddbc0", "#7fb2ff", "#f6cf6a", "#ff9478", "#c39bff", "#8be28b", "#ffb3d9", "#9ad1d4"];
+
+  // 1. Plotly: temperature ranges of the first 25 crops by name
+  const list = crops.slice().sort((a, b) => a.en.localeCompare(b.en)).slice(0, 25).reverse();
+  Plotly.newPlot("temp", [
+    { type: "bar", orientation: "h", name: "Survives", y: list.map((c) => c.en), x: list.map((c) => c.t[3] - c.t[0]), base: list.map((c) => c.t[0]), marker: { color: "rgba(127,178,255,0.35)" } },
+    { type: "bar", orientation: "h", name: "Best", y: list.map((c) => c.en), x: list.map((c) => c.t[2] - c.t[1]), base: list.map((c) => c.t[1]), marker: { color: "#3ddbc0" } },
+  ], {
+    barmode: "overlay", paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: "#eef1ff" },
+    margin: { l: 130, r: 20, t: 10, b: 40 }, xaxis: { title: "Temperature (°C)", gridcolor: "rgba(255,255,255,.12)" }, legend: { orientation: "h", y: 1.06 },
+  }, { displayModeBar: false, responsive: true });
+
+  // 2. Chart.js: crops per group
+  const counts = {};
+  for (const c of crops) counts[c.group] = (counts[c.group] || 0) + 1;
+  const names = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  new Chart(document.getElementById("groups"), {
+    type: "bar",
+    data: { labels: names, datasets: [{ label: "Crops", data: names.map((n) => counts[n]), backgroundColor: COLORS }] },
+    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#aab3d8" } }, y: { ticks: { color: "#aab3d8" }, grid: { color: "rgba(255,255,255,.1)" } } } },
+  });
+
+  // 3. D3: shortest against longest growing cycle
+  const svg = d3.select("#cycle"), W = 900, H = 420, m = { l: 56, r: 20, t: 14, b: 44 };
+  const x = d3.scaleLinear().domain([0, d3.max(crops, (c) => c.gmin) * 1.05]).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, d3.max(crops, (c) => c.gmax) * 1.05]).range([H - m.b, m.t]);
+  const color = d3.scaleOrdinal().domain(names).range(COLORS);
+  svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x)).selectAll("text").style("fill", "#aab3d8");
+  svg.append("g").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y)).selectAll("text").style("fill", "#aab3d8");
+  svg.append("text").attr("x", W / 2).attr("y", H - 8).attr("text-anchor", "middle").text("Shortest cycle (days)");
+  svg.append("text").attr("transform", "rotate(-90)").attr("x", -H / 2).attr("y", 14).attr("text-anchor", "middle").text("Longest cycle (days)");
+  svg.selectAll("circle").data(crops).join("circle")
+    .attr("cx", (c) => x(c.gmin)).attr("cy", (c) => y(c.gmax)).attr("r", 5).attr("fill", (c) => color(c.group)).attr("fill-opacity", 0.85)
+    .append("title").text((c) => `${c.en}: ${c.gmin} to ${c.gmax} days`);
+});
+</script>
+</body>
+</html>

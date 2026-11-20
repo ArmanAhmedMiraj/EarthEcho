@@ -551,3 +551,9 @@ Everything we used that we did not write ourselves.
 React 19 (MIT), Vite 8 (MIT), @vitejs/plugin-react (MIT), MapLibre GL JS (BSD-3-Clause), geotiff (MIT), pngjs (MIT). Fonts: Plus Jakarta Sans, Anek Latin, Anek Bangla, Hind Siliguri through Fontsource (SIL OFL 1.1).
 
 The same list, with each source's resolution and update rate, is on the in-app **Data** tab.
+
+## Data explorer, agent and automation
+
+- **Data explorer:** `/explore.html` on the live site shows the FAO EcoCrop table in three charts (Plotly, Chart.js and D3.js).
+- **Farm advisor agent:** `agents/farm_advisor.py` is a Pydantic AI agent that plans its steps and calls our three MCP servers as tools. See the header of the file for setup and a key-free dry run.
+- **Automation:** GitHub Actions builds the app and smoke-tests the MCP server on every push (`.github/workflows/ci.yml`), a weekly job checks that the live site and its APIs answer (`health.yml`), and Dependabot opens weekly dependency update pull requests.

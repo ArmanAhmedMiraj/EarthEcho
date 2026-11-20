@@ -11,3 +11,5 @@ Conventions for any AI coding agent working in this repository.
 - Product spec and review gates: `docs/SPEC.md`.
 - Checks before a commit: `npm run build`, and `python data-tools/test_farm_data.py` for the data tests.
 - Small commits, one change each, written by the person committing.
+- Agent: `agents/farm_advisor.py` (Pydantic AI) calls the MCP servers as tools; run it with `AGENT_MODEL=test` for a key-free dry run.
+- Data explorer page: `public/explore.html` (Plotly, Chart.js, D3.js over `public/crops/ecocrop.json`).
