@@ -8,5 +8,6 @@ Conventions for any AI coding agent working in this repository.
 - Assistant (`api/assistant.js`): answers only from FARM DATA and KNOWLEDGE, cites `[S1]` tags, keys stay in server environment variables.
 - Knowledge base: `api/_lib/knowledge.js` (topics) and `api/_lib/ecocrop.js` (crop ranges). Search is BM25 in `api/_lib/retrieve.js`.
 - MCP server: `mcp/earthecho-mcp.js` exposes the same knowledge base.
+- Product spec and review gates: `docs/SPEC.md`.
 - Checks before a commit: `npm run build`, and `python data-tools/test_farm_data.py` for the data tests.
 - Small commits, one change each, written by the person committing.
