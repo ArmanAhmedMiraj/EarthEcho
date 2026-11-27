@@ -1,1 +1,1 @@
-pydantic-ai-slim[groq,mcp]==2.71.0
+pydantic-ai-slim[groq,mcp]==2.73.0
